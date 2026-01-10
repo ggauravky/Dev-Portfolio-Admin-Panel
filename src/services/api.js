@@ -29,21 +29,37 @@ const authFetch = async (url, options = {}) => {
 
 // Login
 export const login = async (email, password) => {
-  const response = await fetch(`${API_URL}/login`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ email, password }),
-  });
+  try {
+    const response = await fetch(`${API_URL}/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email, password }),
+    });
 
-  const data = await response.json();
+    // Check if response is ok before parsing JSON
+    if (!response.ok) {
+      const data = await response
+        .json()
+        .catch(() => ({ message: "Login failed" }));
+      throw new Error(data.message || "Login failed");
+    }
 
-  if (!response.ok) {
-    throw new Error(data.message || "Login failed");
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    // Handle network errors or CORS issues
+    if (error.message === "Failed to fetch") {
+      throw new Error(
+        "Cannot connect to server. Please check:\n" +
+          "1. Backend is running on Render\n" +
+          "2. FRONTEND_URL is set on Render to: https://ggauravkyadmin.vercel.app\n" +
+          "3. VITE_API_URL is set correctly"
+      );
+    }
+    throw error;
   }
-
-  return data;
 };
 
 // Get dashboard stats
