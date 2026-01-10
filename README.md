@@ -23,14 +23,16 @@ This admin panel transforms your portfolio management experience with lightning-
 ## 🎭 The Problem
 
 Managing portfolio data through MongoDB directly or basic tools is:
+
 - ❌ **Slow** - Waiting for database queries to load
-- ❌ **Inefficient** - No proper filtering or search capabilities  
+- ❌ **Inefficient** - No proper filtering or search capabilities
 - ❌ **Clunky** - Poor user experience for data management
 - ❌ **Time-consuming** - Manual data operations take forever
 
 ## ✨ The Solution
 
 A modern, blazing-fast admin panel that gives you:
+
 - ✅ **Instant Access** - View all contact messages and newsletter subscriptions in seconds
 - ✅ **Smart Filtering** - Powerful search, sort, and filter capabilities
 - ✅ **Full Control** - Complete CRUD operations with intuitive UI
@@ -46,12 +48,14 @@ A modern, blazing-fast admin panel that gives you:
 <td width="50%">
 
 ### 📊 Dashboard Analytics
+
 - Real-time statistics
 - Contact & subscription counts
 - Visual data representation
 - Quick access metrics
 
 ### 📬 Contact Management
+
 - View all contact messages
 - Advanced search & filtering
 - Sort by date, name, or email
@@ -62,6 +66,7 @@ A modern, blazing-fast admin panel that gives you:
 <td width="50%">
 
 ### 📰 Newsletter Management
+
 - Subscriber list with details
 - Email verification status
 - Subscription date tracking
@@ -69,6 +74,7 @@ A modern, blazing-fast admin panel that gives you:
 - Easy subscriber management
 
 ### 🔐 Security & Auth
+
 - Secure JWT authentication
 - Protected admin routes
 - Session management
@@ -83,26 +89,29 @@ A modern, blazing-fast admin panel that gives you:
 ## 🛠️ Tech Stack
 
 ### Frontend
-| Technology | Purpose |
-|------------|---------|
-| ![React](https://img.shields.io/badge/React-61DAFB?style=flat&logo=react&logoColor=black) | UI Library |
-| ![Vite](https://img.shields.io/badge/Vite-646CFF?style=flat&logo=vite&logoColor=white) | Build Tool |
-| ![TailwindCSS](https://img.shields.io/badge/Tailwind-38B2AC?style=flat&logo=tailwind-css&logoColor=white) | Styling |
-| ![React Router](https://img.shields.io/badge/React_Router-CA4245?style=flat&logo=react-router&logoColor=white) | Routing |
+
+| Technology                                                                                                     | Purpose    |
+| -------------------------------------------------------------------------------------------------------------- | ---------- |
+| ![React](https://img.shields.io/badge/React-61DAFB?style=flat&logo=react&logoColor=black)                      | UI Library |
+| ![Vite](https://img.shields.io/badge/Vite-646CFF?style=flat&logo=vite&logoColor=white)                         | Build Tool |
+| ![TailwindCSS](https://img.shields.io/badge/Tailwind-38B2AC?style=flat&logo=tailwind-css&logoColor=white)      | Styling    |
+| ![React Router](https://img.shields.io/badge/React_Router-CA4245?style=flat&logo=react-router&logoColor=white) | Routing    |
 
 ### Backend
-| Technology | Purpose |
-|------------|---------|
-| ![Node.js](https://img.shields.io/badge/Node.js-339933?style=flat&logo=node.js&logoColor=white) | Runtime |
-| ![Express](https://img.shields.io/badge/Express-000000?style=flat&logo=express&logoColor=white) | Web Framework |
-| ![MongoDB](https://img.shields.io/badge/MongoDB-47A248?style=flat&logo=mongodb&logoColor=white) | Database |
+
+| Technology                                                                                      | Purpose        |
+| ----------------------------------------------------------------------------------------------- | -------------- |
+| ![Node.js](https://img.shields.io/badge/Node.js-339933?style=flat&logo=node.js&logoColor=white) | Runtime        |
+| ![Express](https://img.shields.io/badge/Express-000000?style=flat&logo=express&logoColor=white) | Web Framework  |
+| ![MongoDB](https://img.shields.io/badge/MongoDB-47A248?style=flat&logo=mongodb&logoColor=white) | Database       |
 | ![JWT](https://img.shields.io/badge/JWT-000000?style=flat&logo=json-web-tokens&logoColor=white) | Authentication |
 
 ### Deployment
-| Service | Purpose |
-|---------|---------|
+
+| Service                                                                                      | Purpose          |
+| -------------------------------------------------------------------------------------------- | ---------------- |
 | ![Vercel](https://img.shields.io/badge/Vercel-000000?style=flat&logo=vercel&logoColor=white) | Frontend Hosting |
-| ![Render](https://img.shields.io/badge/Render-46E3B7?style=flat&logo=render&logoColor=white) | Backend Hosting |
+| ![Render](https://img.shields.io/badge/Render-46E3B7?style=flat&logo=render&logoColor=white) | Backend Hosting  |
 
 ---
 
@@ -119,17 +128,20 @@ MongoDB Atlas account (or local MongoDB)
 ### 📥 Installation
 
 1. **Clone the repository**
+
 ```bash
 git clone https://github.com/ggauravky/Dev-Portfolio-Admin-Panel.git
 cd Dev-Portfolio-Admin-Panel
 ```
 
 2. **Install Frontend Dependencies**
+
 ```bash
 npm install
 ```
 
 3. **Install Backend Dependencies**
+
 ```bash
 cd server
 npm install
@@ -138,11 +150,13 @@ npm install
 4. **Setup Environment Variables**
 
 **Frontend** - Create `.env.local` in root:
+
 ```env
 VITE_API_URL=http://localhost:5000/api/admin
 ```
 
 **Backend** - Create `.env` in `server/` folder:
+
 ```env
 PORT=5000
 MONGO_URI=your_mongodb_connection_string
@@ -157,17 +171,20 @@ READ_ONLY_MODE=false
 5. **Run Development Servers**
 
 **Terminal 1 - Backend:**
+
 ```bash
 cd server
 npm start
 ```
 
 **Terminal 2 - Frontend:**
+
 ```bash
 npm run dev
 ```
 
 6. **Access the Application**
+
 - Frontend: `http://localhost:5173`
 - Backend API: `http://localhost:5000`
 
@@ -245,29 +262,32 @@ Portfolio-Admin-Panel/
 
 ## 🔐 Security Features
 
-| Feature | Description |
-|---------|-------------|
-| 🔒 **JWT Authentication** | Secure token-based authentication |
-| 🛡️ **Protected Routes** | Frontend and backend route protection |
-| 🔑 **Environment Variables** | Sensitive data stored securely |
-| 🚫 **CORS Configuration** | Whitelist trusted origins only |
-| ⏰ **Token Expiration** | Auto-logout after 7 days |
-| 🔐 **Helmet.js** | Security headers protection |
+| Feature                      | Description                           |
+| ---------------------------- | ------------------------------------- |
+| 🔒 **JWT Authentication**    | Secure token-based authentication     |
+| 🛡️ **Protected Routes**      | Frontend and backend route protection |
+| 🔑 **Environment Variables** | Sensitive data stored securely        |
+| 🚫 **CORS Configuration**    | Whitelist trusted origins only        |
+| ⏰ **Token Expiration**      | Auto-logout after 7 days              |
+| 🔐 **Helmet.js**             | Security headers protection           |
 
 ---
 
 ## 📸 Screenshots
 
 ### Dashboard
+
 > Analytics overview with real-time statistics
 
 ### Contact Management
+
 > View, filter, and manage all contact form submissions
 
 ### Newsletter Management
+
 > Handle newsletter subscriptions with ease
 
-*Screenshots coming soon!*
+_Screenshots coming soon!_
 
 ---
 
@@ -286,6 +306,7 @@ This admin panel is perfect for:
 ## 🔧 Available Scripts
 
 ### Frontend
+
 ```bash
 npm run dev          # Start development server
 npm run build        # Build for production
@@ -293,6 +314,7 @@ npm run preview      # Preview production build
 ```
 
 ### Backend
+
 ```bash
 npm start            # Start production server
 npm run dev          # Start with nodemon (auto-reload)
@@ -323,9 +345,11 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 **Gaurav Kumar Yadav**
 
 - 🌐 Portfolio: [ggauravky.vercel.app](https://ggauravky.vercel.app/)
-- 💼 LinkedIn: [Your LinkedIn](https://linkedin.com/in/your-profile)
+- 💼 LinkedIn: [linkedin.com/in/gauravky](https://www.linkedin.com/in/gauravky/)
 - 🐙 GitHub: [@ggauravky](https://github.com/ggauravky)
-- 📧 Email: your.email@example.com
+- 📸 Instagram: [@the_gau_rav](https://www.instagram.com/the_gau_rav/)
+- 💻 LeetCode: [gauravky](https://leetcode.com/u/gauravky/)
+- 🎯 GeeksforGeeks: [gauravky](https://www.geeksforgeeks.org/profile/gauravky)
 
 ---
 
