@@ -27,13 +27,13 @@ app.use(
       if (!origin) {
         return callback(null, true);
       }
-      
+
       // Check if the origin is in the allowed list
       if (allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
         console.log(`CORS blocked origin: ${origin}`);
-        console.log(`Allowed origins: ${allowedOrigins.join(', ')}`);
+        console.log(`Allowed origins: ${allowedOrigins.join(", ")}`);
         callback(new Error("Not allowed by CORS"));
       }
     },
