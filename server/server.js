@@ -2,6 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const helmet = require("helmet");
+const dns = require("dns");
 require("dotenv").config();
 
 const adminRoutes = require("./routes/adminRoutes");
@@ -43,17 +44,56 @@ app.use(
 
 app.use(express.json());
 
-// MongoDB connection with proper options
-mongoose
-  .connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-  .then(() => console.log("MongoDB connected successfully"))
-  .catch((err) => {
-    console.error("MongoDB connection error:", err);
-    process.exit(1);
+const dnsFallbackServers = (process.env.DNS_SERVERS || "1.1.1.1,8.8.8.8")
+  .split(",")
+  .map((server) => server.trim())
+  .filter(Boolean);
+
+const mongoDnsRetryErrorCodes = new Set([
+  "ECONNREFUSED",
+  "ENOTFOUND",
+  "ETIMEOUT",
+  "EAI_AGAIN",
+]);
+
+const configureDnsForMongoSrv = async (mongoUri) => {
+  if (!mongoUri || !mongoUri.startsWith("mongodb+srv://")) {
+    return;
+  }
+
+  let clusterHost;
+  try {
+    clusterHost = new URL(mongoUri).hostname;
+  } catch {
+    return;
+  }
+
+  const srvRecord = `_mongodb._tcp.${clusterHost}`;
+
+  try {
+    await dns.promises.resolveSrv(srvRecord);
+    return;
+  } catch (err) {
+    if (!mongoDnsRetryErrorCodes.has(err.code) || dnsFallbackServers.length === 0) {
+      throw err;
+    }
+
+    const currentServers = dns.getServers();
+    dns.setServers(dnsFallbackServers);
+    console.warn(
+      `SRV lookup failed (${err.code}) using DNS [${currentServers.join(", ")}]. Retrying with [${dnsFallbackServers.join(", ")}].`
+    );
+    await dns.promises.resolveSrv(srvRecord);
+  }
+};
+
+const connectToDatabase = async () => {
+  await configureDnsForMongoSrv(process.env.MONGO_URI);
+  await mongoose.connect(process.env.MONGO_URI, {
+    serverSelectionTimeoutMS: 15000,
   });
+  console.log("MongoDB connected successfully");
+};
 
 // Read-only mode middleware
 if (process.env.READ_ONLY_MODE === "true") {
@@ -83,7 +123,53 @@ app.use((req, res) => {
   res.status(404).json({ message: "Route not found" });
 });
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+const configuredPort = Number.parseInt(process.env.PORT || "", 10);
+const defaultPort = 5000;
+const basePort = Number.isInteger(configuredPort) ? configuredPort : defaultPort;
+const canRetryPort = process.env.NODE_ENV !== "production";
+const maxPortRetries = canRetryPort ? 20 : 0;
+
+if (process.env.PORT && !Number.isInteger(configuredPort)) {
+  console.warn(
+    `Invalid PORT "${process.env.PORT}" in environment. Falling back to ${defaultPort}.`
+  );
+}
+
+const startServer = (port, retriesLeft) => {
+  const server = app.listen(port, () => {
+    if (port !== basePort) {
+      console.warn(`Port ${basePort} was in use, switched to port ${port}.`);
+    }
+    console.log(`Server running on port ${port}`);
+  });
+
+  server.on("error", (err) => {
+    if (err.code === "EADDRINUSE" && retriesLeft > 0) {
+      const nextPort = port + 1;
+      console.warn(`Port ${port} is in use. Retrying on port ${nextPort}...`);
+      startServer(nextPort, retriesLeft - 1);
+      return;
+    }
+
+    if (err.code === "EADDRINUSE") {
+      console.error(
+        `Port ${port} is already in use. Stop the process on that port or set PORT in .env.`
+      );
+    } else {
+      console.error("Failed to start server:", err);
+    }
+    process.exit(1);
+  });
+};
+
+const bootstrap = async () => {
+  try {
+    await connectToDatabase();
+    startServer(basePort, maxPortRetries);
+  } catch (err) {
+    console.error("MongoDB connection error:", err);
+    process.exit(1);
+  }
+};
+
+bootstrap();

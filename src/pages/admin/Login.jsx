@@ -15,7 +15,7 @@ const Login = () => {
         setLoading(true);
 
         try {
-            const data = await login(email, password);
+            const data = await login(email.trim(), password.trim());
             localStorage.setItem('adminToken', data.token);
             navigate('/admin');
         } catch (err) {

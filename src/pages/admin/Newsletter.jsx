@@ -12,7 +12,7 @@ const Newsletter = () => {
     const [selectedNewsletters, setSelectedNewsletters] = useState([]);
     const [editingNewsletter, setEditingNewsletter] = useState(null);
     const [showAddModal, setShowAddModal] = useState(false);
-    const [sortBy, setSortBy] = useState('createdAt');
+    const [sortBy, setSortBy] = useState('subscribedAt');
     const [sortOrder, setSortOrder] = useState('desc');
 
     useEffect(() => {
@@ -73,9 +73,9 @@ const Newsletter = () => {
         }
     };
 
-    const handleUpdate = async (id, newEmail) => {
+    const handleUpdate = async (id, updatedData) => {
         try {
-            await updateNewsletter(id, newEmail);
+            await updateNewsletter(id, updatedData);
             await fetchNewsletters();
             setEditingNewsletter(null);
             setError(null);
@@ -127,7 +127,9 @@ const Newsletter = () => {
     };
 
     const formatDate = (dateString) => {
+        if (!dateString) return 'N/A';
         const date = new Date(dateString);
+        if (Number.isNaN(date.getTime())) return 'N/A';
         return date.toLocaleDateString('en-US', {
             year: 'numeric',
             month: 'short',
@@ -202,8 +204,10 @@ const Newsletter = () => {
                                 onChange={(e) => setSortBy(e.target.value)}
                                 className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500"
                             >
-                                <option value="createdAt">Date</option>
+                                <option value="subscribedAt">Subscribed Date</option>
+                                <option value="createdAt">Created Date</option>
                                 <option value="email">Email</option>
+                                <option value="subscribed">Status</option>
                             </select>
                             <button
                                 onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
@@ -324,7 +328,15 @@ const Newsletter = () => {
 
 // Newsletter Card Component
 const NewsletterCard = ({ subscriber, isSelected, isEditing, onToggleSelect, onDelete, onEdit, onUpdate, onCancelEdit, copiedEmail, onCopyEmail, formatDate }) => {
-    const [email, setEmail] = useState(subscriber.email);
+    const [formData, setFormData] = useState({
+        email: subscriber.email || '',
+        subscribed: subscriber.subscribed !== false
+    });
+    const isSubscribed = subscriber.subscribed !== false;
+    const statusLabel = isSubscribed ? 'Subscribed' : 'Unsubscribed';
+    const statusClasses = isSubscribed
+        ? 'bg-emerald-100 text-emerald-800'
+        : 'bg-gray-100 text-gray-700';
 
     if (isEditing) {
         return (
@@ -332,14 +344,27 @@ const NewsletterCard = ({ subscriber, isSelected, isEditing, onToggleSelect, onD
                 <div className="space-y-4">
                     <input
                         type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        value={formData.email}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
                         placeholder="Email"
                     />
+                    <select
+                        value={formData.subscribed ? 'true' : 'false'}
+                        onChange={(e) => setFormData({ ...formData, subscribed: e.target.value === 'true' })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                    >
+                        <option value="true">Subscribed</option>
+                        <option value="false">Unsubscribed</option>
+                    </select>
                     <div className="flex gap-3">
                         <button
-                            onClick={() => onUpdate(subscriber._id, email)}
+                            onClick={() =>
+                                onUpdate(subscriber._id, {
+                                    email: formData.email,
+                                    subscribed: formData.subscribed
+                                })
+                            }
                             className="flex-1 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
                         >
                             Save
@@ -380,7 +405,7 @@ const NewsletterCard = ({ subscriber, isSelected, isEditing, onToggleSelect, onD
                             className="text-sm font-semibold text-green-600 hover:text-green-800 truncate flex items-center gap-1"
                             title={subscriber.email}
                         >
-                            {subscriber.email}
+                            {subscriber.email || 'No email'}
                             {copiedEmail === subscriber.email ? (
                                 <svg className="w-4 h-4 text-green-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -391,12 +416,18 @@ const NewsletterCard = ({ subscriber, isSelected, isEditing, onToggleSelect, onD
                                 </svg>
                             )}
                         </button>
+                        <span className={`text-xs px-2 py-1 rounded-full font-semibold ${statusClasses}`}>
+                            {statusLabel}
+                        </span>
                     </div>
                     <p className="text-xs text-gray-500 flex items-center">
                         <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
                         </svg>
-                        {formatDate(subscriber.createdAt)}
+                        {formatDate(subscriber.subscribedAt || subscriber.createdAt)}
+                    </p>
+                    <p className="text-xs text-gray-400 mt-2 truncate">
+                        {subscriber.userAgent || 'unknown'}
                     </p>
                 </div>
 

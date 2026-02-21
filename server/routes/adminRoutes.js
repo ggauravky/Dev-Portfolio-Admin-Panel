@@ -13,20 +13,28 @@ const auth = require("../middleware/auth");
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
+    const inputEmail = String(email || "").trim().toLowerCase();
+    const inputPassword = String(password || "").trim();
+    const adminEmail = String(process.env.ADMIN_EMAIL || "")
+      .trim()
+      .toLowerCase();
+    const adminPassword = String(process.env.ADMIN_PASSWORD || "").trim();
 
     // Validate input
-    if (!email || !password) {
+    if (!inputEmail || !inputPassword) {
       return res
         .status(400)
         .json({ message: "Email and password are required" });
     }
 
+    if (!adminEmail || !adminPassword) {
+      console.error("Missing ADMIN_EMAIL or ADMIN_PASSWORD in environment");
+      return res.status(500).json({ message: "Server auth is misconfigured" });
+    }
+
     // Simple hardcoded admin check
-    if (
-      email === process.env.ADMIN_EMAIL &&
-      password === process.env.ADMIN_PASSWORD
-    ) {
-      const token = jwt.sign({ email: email }, process.env.JWT_SECRET, {
+    if (inputEmail === adminEmail && inputPassword === adminPassword) {
+      const token = jwt.sign({ email: inputEmail }, process.env.JWT_SECRET, {
         expiresIn: "7d",
       });
 
@@ -35,6 +43,9 @@ router.post("/login", async (req, res) => {
         message: "Login successful",
       });
     } else {
+      if (process.env.NODE_ENV === "development") {
+        console.warn(`Invalid admin login attempt for email: ${inputEmail}`);
+      }
       res.status(401).json({ message: "Invalid credentials" });
     }
   } catch (error) {
@@ -48,6 +59,7 @@ router.get("/contacts", auth, async (req, res) => {
   try {
     const {
       search,
+      status,
       sortBy = "createdAt",
       order = "desc",
       limit,
@@ -55,6 +67,15 @@ router.get("/contacts", auth, async (req, res) => {
     } = req.query;
 
     let query = {};
+    const allowedStatuses = ["unread", "read", "replied"];
+    const allowedSortFields = [
+      "createdAt",
+      "updatedAt",
+      "name",
+      "email",
+      "subject",
+      "status",
+    ];
 
     // Search functionality
     if (search) {
@@ -62,20 +83,34 @@ router.get("/contacts", auth, async (req, res) => {
         $or: [
           { name: { $regex: search, $options: "i" } },
           { email: { $regex: search, $options: "i" } },
+          { subject: { $regex: search, $options: "i" } },
           { message: { $regex: search, $options: "i" } },
+          { status: { $regex: search, $options: "i" } },
         ],
       };
     }
 
+    // Optional status filter
+    if (status && allowedStatuses.includes(status)) {
+      query.status = status;
+    }
+
     // Build sort object
     const sortOrder = order === "asc" ? 1 : -1;
-    const sortObj = { [sortBy]: sortOrder };
+    const sortField = allowedSortFields.includes(sortBy) ? sortBy : "createdAt";
+    const sortObj = { [sortField]: sortOrder };
 
     // Execute query with pagination
     let contactsQuery = Contact.find(query).sort(sortObj);
 
-    if (skip) contactsQuery = contactsQuery.skip(parseInt(skip));
-    if (limit) contactsQuery = contactsQuery.limit(parseInt(limit));
+    const parsedSkip = Number.parseInt(skip, 10);
+    const parsedLimit = Number.parseInt(limit, 10);
+    if (Number.isInteger(parsedSkip) && parsedSkip > 0) {
+      contactsQuery = contactsQuery.skip(parsedSkip);
+    }
+    if (Number.isInteger(parsedLimit) && parsedLimit > 0) {
+      contactsQuery = contactsQuery.limit(parsedLimit);
+    }
 
     const contacts = await contactsQuery;
     const total = await Contact.countDocuments(query);
@@ -104,13 +139,27 @@ router.get("/contacts/:id", auth, async (req, res) => {
 // Create new contact
 router.post("/contacts", auth, async (req, res) => {
   try {
-    const { name, email, message } = req.body;
+    const { name, email, subject, message, status } = req.body;
 
-    if (!name || !email || !message) {
+    if (!name || !email || !subject || !message) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    const contact = new Contact({ name, email, message });
+    const ipAddress =
+      (req.headers["x-forwarded-for"] || "").toString().split(",")[0].trim() ||
+      req.ip ||
+      "unknown";
+    const userAgent = req.get("user-agent") || "unknown";
+
+    const contact = new Contact({
+      name,
+      email,
+      subject,
+      message,
+      status,
+      ipAddress,
+      userAgent,
+    });
     await contact.save();
 
     res.status(201).json({ message: "Contact created successfully", contact });
@@ -123,11 +172,22 @@ router.post("/contacts", auth, async (req, res) => {
 // Update contact
 router.put("/contacts/:id", auth, async (req, res) => {
   try {
-    const { name, email, message } = req.body;
+    const { name, email, subject, message, status } = req.body;
+    const updates = {};
+
+    if (name !== undefined) updates.name = name;
+    if (email !== undefined) updates.email = email;
+    if (subject !== undefined) updates.subject = subject;
+    if (message !== undefined) updates.message = message;
+    if (status !== undefined) updates.status = status;
+
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ message: "No fields provided for update" });
+    }
 
     const contact = await Contact.findByIdAndUpdate(
       req.params.id,
-      { name, email, message },
+      updates,
       { new: true, runValidators: true }
     );
 
@@ -184,6 +244,7 @@ router.get("/newsletters", auth, async (req, res) => {
   try {
     const {
       search,
+      subscribed,
       sortBy = "createdAt",
       order = "desc",
       limit,
@@ -191,21 +252,43 @@ router.get("/newsletters", auth, async (req, res) => {
     } = req.query;
 
     let query = {};
+    const allowedSortFields = [
+      "createdAt",
+      "updatedAt",
+      "email",
+      "subscribed",
+      "subscribedAt",
+      "unsubscribedAt",
+    ];
 
     // Search functionality
     if (search) {
       query = { email: { $regex: search, $options: "i" } };
     }
 
+    // Optional subscribed filter
+    if (subscribed === "true") {
+      query.subscribed = true;
+    } else if (subscribed === "false") {
+      query.subscribed = false;
+    }
+
     // Build sort object
     const sortOrder = order === "asc" ? 1 : -1;
-    const sortObj = { [sortBy]: sortOrder };
+    const sortField = allowedSortFields.includes(sortBy) ? sortBy : "createdAt";
+    const sortObj = { [sortField]: sortOrder };
 
     // Execute query with pagination
     let newslettersQuery = Newsletter.find(query).sort(sortObj);
 
-    if (skip) newslettersQuery = newslettersQuery.skip(parseInt(skip));
-    if (limit) newslettersQuery = newslettersQuery.limit(parseInt(limit));
+    const parsedSkip = Number.parseInt(skip, 10);
+    const parsedLimit = Number.parseInt(limit, 10);
+    if (Number.isInteger(parsedSkip) && parsedSkip > 0) {
+      newslettersQuery = newslettersQuery.skip(parsedSkip);
+    }
+    if (Number.isInteger(parsedLimit) && parsedLimit > 0) {
+      newslettersQuery = newslettersQuery.limit(parsedLimit);
+    }
 
     const newsletters = await newslettersQuery;
     const total = await Newsletter.countDocuments(query);
@@ -237,18 +320,38 @@ router.get("/newsletters/:id", auth, async (req, res) => {
 router.post("/newsletters", auth, async (req, res) => {
   try {
     const { email } = req.body;
+    const normalizedEmail = String(email || "").trim().toLowerCase();
 
-    if (!email) {
+    if (!normalizedEmail) {
       return res.status(400).json({ message: "Email is required" });
     }
 
     // Check if email already exists
-    const existing = await Newsletter.findOne({ email });
+    const existing = await Newsletter.findOne({ email: normalizedEmail });
     if (existing) {
+      if (!existing.subscribed) {
+        await existing.resubscribe();
+        return res.json({
+          message: "Newsletter subscription re-activated successfully",
+          newsletter: existing,
+        });
+      }
       return res.status(400).json({ message: "Email already subscribed" });
     }
 
-    const newsletter = new Newsletter({ email });
+    const ipAddress =
+      (req.headers["x-forwarded-for"] || "").toString().split(",")[0].trim() ||
+      req.ip ||
+      "unknown";
+    const userAgent = req.get("user-agent") || "unknown";
+
+    const newsletter = new Newsletter({
+      email: normalizedEmail,
+      ipAddress,
+      userAgent,
+      subscribed: true,
+      subscribedAt: Date.now(),
+    });
     await newsletter.save();
 
     res
@@ -266,21 +369,36 @@ router.post("/newsletters", auth, async (req, res) => {
 // Update newsletter subscription
 router.put("/newsletters/:id", auth, async (req, res) => {
   try {
-    const { email } = req.body;
+    const { email, subscribed } = req.body;
+    const updates = {};
+    const normalizedEmail = email ? String(email).trim().toLowerCase() : null;
 
-    // Check if email already exists (excluding current record)
-    const existing = await Newsletter.findOne({
-      email,
-      _id: { $ne: req.params.id },
-    });
+    if (normalizedEmail) {
+      // Check if email already exists (excluding current record)
+      const existing = await Newsletter.findOne({
+        email: normalizedEmail,
+        _id: { $ne: req.params.id },
+      });
 
-    if (existing) {
-      return res.status(400).json({ message: "Email already subscribed" });
+      if (existing) {
+        return res.status(400).json({ message: "Email already subscribed" });
+      }
+
+      updates.email = normalizedEmail;
+    }
+
+    if (typeof subscribed === "boolean") {
+      updates.subscribed = subscribed;
+      updates.unsubscribedAt = subscribed ? null : Date.now();
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ message: "No fields provided for update" });
     }
 
     const newsletter = await Newsletter.findByIdAndUpdate(
       req.params.id,
-      { email },
+      updates,
       { new: true, runValidators: true }
     );
 
@@ -345,11 +463,17 @@ router.post("/newsletters/bulk-delete", auth, async (req, res) => {
 router.get("/stats", auth, async (req, res) => {
   try {
     const totalContacts = await Contact.countDocuments();
-    const totalNewsletters = await Newsletter.countDocuments();
+    const totalNewsletters = await Newsletter.countDocuments({
+      subscribed: { $ne: false },
+    });
+    const unsubscribedNewsletters = await Newsletter.countDocuments({
+      subscribed: false,
+    });
 
     res.json({
       totalContacts,
       totalNewsletters,
+      unsubscribedNewsletters,
     });
   } catch (error) {
     console.error("Error fetching stats:", error);

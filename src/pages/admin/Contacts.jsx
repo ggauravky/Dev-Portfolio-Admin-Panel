@@ -14,17 +14,20 @@ const Contacts = () => {
     const [showAddModal, setShowAddModal] = useState(false);
     const [sortBy, setSortBy] = useState('createdAt');
     const [sortOrder, setSortOrder] = useState('desc');
+    const [statusFilter, setStatusFilter] = useState('all');
 
     useEffect(() => {
         fetchContacts();
-    }, [sortBy, sortOrder]);
+    }, [sortBy, sortOrder, statusFilter]);
 
     useEffect(() => {
         if (searchTerm) {
             const filtered = contacts.filter(contact =>
-                contact.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                contact.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                contact.message.toLowerCase().includes(searchTerm.toLowerCase())
+                (contact.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                (contact.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                (contact.subject || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                (contact.message || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                (contact.status || '').toLowerCase().includes(searchTerm.toLowerCase())
             );
             setFilteredContacts(filtered);
         } else {
@@ -35,7 +38,11 @@ const Contacts = () => {
     const fetchContacts = async () => {
         try {
             setError(null);
-            const data = await getContacts({ sortBy, order: sortOrder });
+            const data = await getContacts({
+                sortBy,
+                order: sortOrder,
+                ...(statusFilter !== 'all' ? { status: statusFilter } : {})
+            });
             const contactsList = data.contacts || data;
             setContacts(contactsList);
             setFilteredContacts(contactsList);
@@ -124,7 +131,9 @@ const Contacts = () => {
     };
 
     const formatDate = (dateString) => {
+        if (!dateString) return 'N/A';
         const date = new Date(dateString);
+        if (Number.isNaN(date.getTime())) return 'N/A';
         return date.toLocaleDateString('en-US', {
             year: 'numeric',
             month: 'short',
@@ -172,7 +181,7 @@ const Contacts = () => {
                         <div className="flex-1 min-w-[300px] relative">
                             <input
                                 type="text"
-                                placeholder="Search by name, email, or message..."
+                                placeholder="Search by name, email, subject, message, or status..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 className="w-full px-4 py-3 pl-12 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
@@ -202,6 +211,18 @@ const Contacts = () => {
                                 <option value="createdAt">Date</option>
                                 <option value="name">Name</option>
                                 <option value="email">Email</option>
+                                <option value="subject">Subject</option>
+                                <option value="status">Status</option>
+                            </select>
+                            <select
+                                value={statusFilter}
+                                onChange={(e) => setStatusFilter(e.target.value)}
+                                className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            >
+                                <option value="all">All Statuses</option>
+                                <option value="unread">Unread</option>
+                                <option value="read">Read</option>
+                                <option value="replied">Replied</option>
                             </select>
                             <button
                                 onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
@@ -312,10 +333,22 @@ const Contacts = () => {
 // Contact Card Component
 const ContactCard = ({ contact, isSelected, isEditing, onToggleSelect, onDelete, onEdit, onUpdate, onCancelEdit, copiedEmail, onCopyEmail, formatDate }) => {
     const [formData, setFormData] = useState({
-        name: contact.name,
-        email: contact.email,
-        message: contact.message
+        name: contact.name || '',
+        email: contact.email || '',
+        subject: contact.subject || '',
+        message: contact.message || '',
+        status: contact.status || 'unread'
     });
+
+    const statusClassMap = {
+        unread: 'bg-amber-100 text-amber-800',
+        read: 'bg-blue-100 text-blue-800',
+        replied: 'bg-emerald-100 text-emerald-800'
+    };
+
+    const normalizedStatus = (contact.status || 'unread').toLowerCase();
+    const statusLabel = normalizedStatus.charAt(0).toUpperCase() + normalizedStatus.slice(1);
+    const statusClasses = statusClassMap[normalizedStatus] || 'bg-gray-100 text-gray-700';
 
     if (isEditing) {
         return (
@@ -335,6 +368,22 @@ const ContactCard = ({ contact, isSelected, isEditing, onToggleSelect, onDelete,
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
                         placeholder="Email"
                     />
+                    <input
+                        type="text"
+                        value={formData.subject}
+                        onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                        placeholder="Subject"
+                    />
+                    <select
+                        value={formData.status}
+                        onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                    >
+                        <option value="unread">Unread</option>
+                        <option value="read">Read</option>
+                        <option value="replied">Replied</option>
+                    </select>
                     <textarea
                         value={formData.message}
                         onChange={(e) => setFormData({ ...formData, message: e.target.value })}
@@ -373,20 +422,28 @@ const ContactCard = ({ contact, isSelected, isEditing, onToggleSelect, onDelete,
 
                 {/* Avatar */}
                 <div className="bg-gradient-to-r from-purple-500 to-pink-500 rounded-full w-12 h-12 flex items-center justify-center text-white font-bold text-lg shadow-lg">
-                    {contact.name.charAt(0).toUpperCase()}
+                    {(contact.name || '?').charAt(0).toUpperCase()}
                 </div>
 
                 {/* Content */}
                 <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between mb-3">
                         <div className="flex-1">
-                            <h3 className="text-lg font-bold text-gray-900">{contact.name}</h3>
+                            <div className="flex items-center gap-2 flex-wrap">
+                                <h3 className="text-lg font-bold text-gray-900">{contact.name || 'Unknown'}</h3>
+                                <span className={`text-xs px-2 py-1 rounded-full font-semibold ${statusClasses}`}>
+                                    {statusLabel}
+                                </span>
+                            </div>
+                            <p className="text-sm text-gray-600 mt-1">
+                                Subject: <span className="font-medium text-gray-800">{contact.subject || 'No subject'}</span>
+                            </p>
                             <div className="flex items-center gap-2 mt-1">
                                 <button
                                     onClick={() => onCopyEmail(contact.email)}
                                     className="text-purple-600 hover:text-purple-800 flex items-center gap-1 text-sm"
                                 >
-                                    {contact.email}
+                                    {contact.email || 'No email'}
                                     {copiedEmail === contact.email ? (
                                         <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
                                             <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -401,7 +458,11 @@ const ContactCard = ({ contact, isSelected, isEditing, onToggleSelect, onDelete,
                         </div>
                         <span className="text-xs text-gray-500">{formatDate(contact.createdAt)}</span>
                     </div>
-                    <p className="text-gray-700 bg-gray-50 p-4 rounded-lg">{contact.message}</p>
+                    <p className="text-gray-700 bg-gray-50 p-4 rounded-lg">{contact.message || 'No message'}</p>
+                    <div className="mt-3 text-xs text-gray-500 flex flex-wrap gap-4">
+                        <span>IP: {contact.ipAddress || 'unknown'}</span>
+                        <span className="truncate">Agent: {contact.userAgent || 'unknown'}</span>
+                    </div>
                 </div>
 
                 {/* Actions */}
@@ -435,6 +496,8 @@ const AddContactModal = ({ onClose, onSubmit }) => {
     const [formData, setFormData] = useState({
         name: '',
         email: '',
+        subject: '',
+        status: 'unread',
         message: ''
     });
 
@@ -478,6 +541,29 @@ const AddContactModal = ({ onClose, onSubmit }) => {
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
                             placeholder="Enter email"
                         />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Subject</label>
+                        <input
+                            type="text"
+                            required
+                            value={formData.subject}
+                            onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                            placeholder="Enter subject"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                        <select
+                            value={formData.status}
+                            onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                        >
+                            <option value="unread">Unread</option>
+                            <option value="read">Read</option>
+                            <option value="replied">Replied</option>
+                        </select>
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Message</label>

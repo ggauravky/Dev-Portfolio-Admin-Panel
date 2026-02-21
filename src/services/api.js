@@ -195,10 +195,15 @@ export const getNewsletter = async (id) => {
 };
 
 // Create new newsletter subscription
-export const createNewsletter = async (email) => {
+export const createNewsletter = async (newsletterData) => {
+  const payload =
+    typeof newsletterData === "string"
+      ? { email: newsletterData }
+      : newsletterData;
+
   const response = await authFetch(`${API_URL}/newsletters`, {
     method: "POST",
-    body: JSON.stringify({ email }),
+    body: JSON.stringify(payload),
   });
 
   const data = await response.json();
@@ -211,10 +216,15 @@ export const createNewsletter = async (email) => {
 };
 
 // Update newsletter subscription
-export const updateNewsletter = async (id, email) => {
+export const updateNewsletter = async (id, newsletterData) => {
+  const payload =
+    typeof newsletterData === "string"
+      ? { email: newsletterData }
+      : newsletterData;
+
   const response = await authFetch(`${API_URL}/newsletters/${id}`, {
     method: "PUT",
-    body: JSON.stringify({ email }),
+    body: JSON.stringify(payload),
   });
 
   const data = await response.json();
