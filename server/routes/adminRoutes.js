@@ -3,6 +3,7 @@ const router = express.Router();
 const jwt = require("jsonwebtoken");
 const Contact = require("../models/Contact");
 const Newsletter = require("../models/Newsletter");
+const ChatLog = require("../models/ChatLog");
 const auth = require("../middleware/auth");
 
 // ====================================================
@@ -459,21 +460,177 @@ router.post("/newsletters/bulk-delete", auth, async (req, res) => {
   }
 });
 
+// Get chat logs with filtering, search and pagination
+router.get("/chats", auth, async (req, res) => {
+  try {
+    const {
+      search,
+      source,
+      degraded,
+      intentTag,
+      country,
+      sessionId,
+      sortBy = "createdAt",
+      order = "desc",
+      limit,
+      skip,
+    } = req.query;
+
+    const allowedSortFields = [
+      "createdAt",
+      "updatedAt",
+      "responseTimeMs",
+      "source",
+      "degraded",
+      "country",
+      "intentTag",
+      "messageIndex",
+      "historyLength",
+      "messageLength",
+    ];
+
+    const query = {};
+
+    if (search) {
+      query.$or = [
+        { userMessage: { $regex: search, $options: "i" } },
+        { aiReply: { $regex: search, $options: "i" } },
+        { model: { $regex: search, $options: "i" } },
+        { ipAddress: { $regex: search, $options: "i" } },
+        { sessionId: { $regex: search, $options: "i" } },
+        { country: { $regex: search, $options: "i" } },
+        { city: { $regex: search, $options: "i" } },
+        { region: { $regex: search, $options: "i" } },
+        { timezone: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    if (source && ["gemini", "fallback"].includes(source)) {
+      query.source = source;
+    }
+
+    if (degraded === "true") {
+      query.degraded = true;
+    } else if (degraded === "false") {
+      query.degraded = false;
+    }
+
+    if (intentTag) {
+      query.intentTag = intentTag;
+    }
+
+    if (country) {
+      query.country = country;
+    }
+
+    if (sessionId) {
+      query.sessionId = sessionId;
+    }
+
+    const sortOrder = order === "asc" ? 1 : -1;
+    const sortField = allowedSortFields.includes(sortBy) ? sortBy : "createdAt";
+    const sortObj = { [sortField]: sortOrder };
+
+    let chatsQuery = ChatLog.find(query).sort(sortObj);
+
+    const parsedSkip = Number.parseInt(skip, 10);
+    const parsedLimit = Number.parseInt(limit, 10);
+    if (Number.isInteger(parsedSkip) && parsedSkip > 0) {
+      chatsQuery = chatsQuery.skip(parsedSkip);
+    }
+    if (Number.isInteger(parsedLimit) && parsedLimit > 0) {
+      chatsQuery = chatsQuery.limit(parsedLimit);
+    }
+
+    const chats = await chatsQuery;
+    const total = await ChatLog.countDocuments(query);
+
+    res.json({ chats, total });
+  } catch (error) {
+    console.error("Error fetching chats:", error);
+    res.status(500).json({ message: "Error fetching chats" });
+  }
+});
+
+// Get single chat log
+router.get("/chats/:id", auth, async (req, res) => {
+  try {
+    const chat = await ChatLog.findById(req.params.id);
+    if (!chat) {
+      return res.status(404).json({ message: "Chat log not found" });
+    }
+    res.json(chat);
+  } catch (error) {
+    console.error("Error fetching chat log:", error);
+    res.status(500).json({ message: "Error fetching chat log" });
+  }
+});
+
+// Delete single chat log
+router.delete("/chats/:id", auth, async (req, res) => {
+  try {
+    const chat = await ChatLog.findByIdAndDelete(req.params.id);
+    if (!chat) {
+      return res.status(404).json({ message: "Chat log not found" });
+    }
+    res.json({ message: "Chat log deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting chat log:", error);
+    res.status(500).json({ message: "Error deleting chat log" });
+  }
+});
+
+// Bulk delete chat logs
+router.post("/chats/bulk-delete", auth, async (req, res) => {
+  try {
+    const { ids } = req.body;
+
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ message: "No chat log IDs provided" });
+    }
+
+    const result = await ChatLog.deleteMany({ _id: { $in: ids } });
+
+    res.json({
+      message: `${result.deletedCount} chat log(s) deleted successfully`,
+      deletedCount: result.deletedCount,
+    });
+  } catch (error) {
+    console.error("Error bulk deleting chat logs:", error);
+    res.status(500).json({ message: "Error deleting chat logs" });
+  }
+});
+
 // Get dashboard stats
 router.get("/stats", auth, async (req, res) => {
   try {
     const totalContacts = await Contact.countDocuments();
+    const unreadContacts = await Contact.countDocuments({ status: "unread" });
     const totalNewsletters = await Newsletter.countDocuments({
       subscribed: { $ne: false },
     });
     const unsubscribedNewsletters = await Newsletter.countDocuments({
       subscribed: false,
     });
+    const totalChats = await ChatLog.countDocuments();
+    const degradedChats = await ChatLog.countDocuments({ degraded: true });
+    const fallbackChats = await ChatLog.countDocuments({ source: "fallback" });
+    const avgResponseRow = await ChatLog.aggregate([
+      { $match: { responseTimeMs: { $type: "number", $gt: 0 } } },
+      { $group: { _id: null, avgMs: { $avg: "$responseTimeMs" } } },
+    ]);
+    const avgChatResponseMs =
+      avgResponseRow.length > 0 ? Math.round(avgResponseRow[0].avgMs) : null;
 
     res.json({
       totalContacts,
+      unreadContacts,
       totalNewsletters,
       unsubscribedNewsletters,
+      totalChats,
+      degradedChats,
+      fallbackChats,
+      avgChatResponseMs,
     });
   } catch (error) {
     console.error("Error fetching stats:", error);

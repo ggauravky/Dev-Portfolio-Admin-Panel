@@ -1,5 +1,5 @@
 const API_URL =
-  import.meta.env.VITE_API_URL || "http://localhost:5000/api/admin";
+  import.meta.env.VITE_API_URL || "http://localhost:5001/api/admin";
 
 // Get token from localStorage
 const getToken = () => {
@@ -264,6 +264,64 @@ export const bulkDeleteNewsletters = async (ids) => {
     throw new Error(
       data.message || "Failed to delete newsletter subscriptions"
     );
+  }
+
+  return data;
+};
+
+// ==================== CHATS API ====================
+
+// Get all chat logs with optional search and filters
+export const getChats = async (params = {}) => {
+  const queryString = new URLSearchParams(params).toString();
+  const url = queryString ? `${API_URL}/chats?${queryString}` : `${API_URL}/chats`;
+
+  const response = await authFetch(url);
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch chat logs");
+  }
+
+  return await response.json();
+};
+
+// Get single chat log
+export const getChat = async (id) => {
+  const response = await authFetch(`${API_URL}/chats/${id}`);
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch chat log");
+  }
+
+  return await response.json();
+};
+
+// Delete single chat log
+export const deleteChat = async (id) => {
+  const response = await authFetch(`${API_URL}/chats/${id}`, {
+    method: "DELETE",
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || "Failed to delete chat log");
+  }
+
+  return data;
+};
+
+// Bulk delete chat logs
+export const bulkDeleteChats = async (ids) => {
+  const response = await authFetch(`${API_URL}/chats/bulk-delete`, {
+    method: "POST",
+    body: JSON.stringify({ ids }),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || "Failed to delete chat logs");
   }
 
   return data;

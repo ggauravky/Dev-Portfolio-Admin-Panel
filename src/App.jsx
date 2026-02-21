@@ -3,6 +3,7 @@ import Login from './pages/admin/Login';
 import Dashboard from './pages/admin/Dashboard';
 import Contacts from './pages/admin/Contacts';
 import Newsletter from './pages/admin/Newsletter';
+import Chats from './pages/admin/Chats';
 import AdminRoutes from './routes/AdminRoutes';
 
 function App() {
@@ -17,6 +18,7 @@ function App() {
                     <Route path="/admin" element={<Dashboard />} />
                     <Route path="/admin/contacts" element={<Contacts />} />
                     <Route path="/admin/newsletter" element={<Newsletter />} />
+                    <Route path="/admin/chats" element={<Chats />} />
                 </Route>
             </Routes>
         </BrowserRouter>
