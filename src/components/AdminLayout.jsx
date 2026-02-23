@@ -72,6 +72,18 @@ const AdminLayout = ({ children }) => {
                                 </svg>
                                 Chats
                             </Link>
+                            <Link
+                                to="/admin/mllogs"
+                                className={`inline-flex items-center px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${location.pathname === '/admin/mllogs'
+                                        ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg'
+                                        : 'text-gray-600 hover:bg-gray-100'
+                                    }`}
+                            >
+                                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17v-6m3 6V7m3 10v-4m3 8H6a2 2 0 01-2-2V5a2 2 0 012-2h12a2 2 0 012 2v14a2 2 0 01-2 2z" />
+                                </svg>
+                                ML Logs
+                            </Link>
                         </div>
                         <div className="flex items-center">
                             <button

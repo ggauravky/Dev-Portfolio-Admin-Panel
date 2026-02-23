@@ -4,6 +4,7 @@ const jwt = require("jsonwebtoken");
 const Contact = require("../models/Contact");
 const Newsletter = require("../models/Newsletter");
 const ChatLog = require("../models/ChatLog");
+const MlLog = require("../models/MlLog");
 const auth = require("../middleware/auth");
 
 // ====================================================
@@ -601,6 +602,138 @@ router.post("/chats/bulk-delete", auth, async (req, res) => {
   }
 });
 
+// Get ML logs with filtering, search and pagination
+router.get("/mllogs", auth, async (req, res) => {
+  try {
+    const {
+      search,
+      demoType,
+      event,
+      countryCode,
+      sortBy = "createdAt",
+      order = "desc",
+      limit,
+      skip,
+    } = req.query;
+
+    const allowedDemoTypes = ["image_analyzer", "prompt_improver"];
+    const allowedSortFields = [
+      "createdAt",
+      "updatedAt",
+      "demoType",
+      "event",
+      "predictionLabel",
+      "nlpAction",
+      "nlpTone",
+      "countryCode",
+      "city",
+    ];
+
+    const query = {};
+
+    if (search) {
+      query.$or = [
+        { demoType: { $regex: search, $options: "i" } },
+        { event: { $regex: search, $options: "i" } },
+        { predictionLabel: { $regex: search, $options: "i" } },
+        { "topPredictions.className": { $regex: search, $options: "i" } },
+        { inputPrompt: { $regex: search, $options: "i" } },
+        { improvedPrompt: { $regex: search, $options: "i" } },
+        { nlpAction: { $regex: search, $options: "i" } },
+        { nlpTone: { $regex: search, $options: "i" } },
+        { ipAddress: { $regex: search, $options: "i" } },
+        { userAgent: { $regex: search, $options: "i" } },
+        { countryCode: { $regex: search, $options: "i" } },
+        { city: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    if (demoType && allowedDemoTypes.includes(demoType)) {
+      query.demoType = demoType;
+    }
+
+    if (event) {
+      query.event = event;
+    }
+
+    if (countryCode) {
+      query.countryCode = countryCode;
+    }
+
+    const sortOrder = order === "asc" ? 1 : -1;
+    const sortField = allowedSortFields.includes(sortBy) ? sortBy : "createdAt";
+    const sortObj = { [sortField]: sortOrder };
+
+    let mlLogsQuery = MlLog.find(query).sort(sortObj);
+
+    const parsedSkip = Number.parseInt(skip, 10);
+    const parsedLimit = Number.parseInt(limit, 10);
+    if (Number.isInteger(parsedSkip) && parsedSkip > 0) {
+      mlLogsQuery = mlLogsQuery.skip(parsedSkip);
+    }
+    if (Number.isInteger(parsedLimit) && parsedLimit > 0) {
+      mlLogsQuery = mlLogsQuery.limit(parsedLimit);
+    }
+
+    const mllogs = await mlLogsQuery;
+    const total = await MlLog.countDocuments(query);
+
+    res.json({ mllogs, total });
+  } catch (error) {
+    console.error("Error fetching ML logs:", error);
+    res.status(500).json({ message: "Error fetching ML logs" });
+  }
+});
+
+// Get single ML log
+router.get("/mllogs/:id", auth, async (req, res) => {
+  try {
+    const mlLog = await MlLog.findById(req.params.id);
+    if (!mlLog) {
+      return res.status(404).json({ message: "ML log not found" });
+    }
+    res.json(mlLog);
+  } catch (error) {
+    console.error("Error fetching ML log:", error);
+    res.status(500).json({ message: "Error fetching ML log" });
+  }
+});
+
+// Delete single ML log
+router.delete("/mllogs/:id", auth, async (req, res) => {
+  try {
+    const mlLog = await MlLog.findByIdAndDelete(req.params.id);
+    if (!mlLog) {
+      return res.status(404).json({ message: "ML log not found" });
+    }
+    res.json({ message: "ML log deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting ML log:", error);
+    res.status(500).json({ message: "Error deleting ML log" });
+  }
+});
+
+// Bulk delete ML logs
+router.post("/mllogs/bulk-delete", auth, async (req, res) => {
+  try {
+    const { ids } = req.body;
+
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ message: "No ML log IDs provided" });
+    }
+
+    const result = await MlLog.deleteMany({ _id: { $in: ids } });
+
+    res.json({
+      message: `${result.deletedCount} ML log(s) deleted successfully`,
+      deletedCount: result.deletedCount,
+    });
+  } catch (error) {
+    console.error("Error bulk deleting ML logs:", error);
+    res.status(500).json({ message: "Error deleting ML logs" });
+  }
+});
+
 // Get dashboard stats
 router.get("/stats", auth, async (req, res) => {
   try {
@@ -615,6 +748,13 @@ router.get("/stats", auth, async (req, res) => {
     const totalChats = await ChatLog.countDocuments();
     const degradedChats = await ChatLog.countDocuments({ degraded: true });
     const fallbackChats = await ChatLog.countDocuments({ source: "fallback" });
+    const totalMlLogs = await MlLog.countDocuments();
+    const imageAnalyzerLogs = await MlLog.countDocuments({
+      demoType: "image_analyzer",
+    });
+    const promptImproverLogs = await MlLog.countDocuments({
+      demoType: "prompt_improver",
+    });
     const avgResponseRow = await ChatLog.aggregate([
       { $match: { responseTimeMs: { $type: "number", $gt: 0 } } },
       { $group: { _id: null, avgMs: { $avg: "$responseTimeMs" } } },
@@ -630,6 +770,9 @@ router.get("/stats", auth, async (req, res) => {
       totalChats,
       degradedChats,
       fallbackChats,
+      totalMlLogs,
+      imageAnalyzerLogs,
+      promptImproverLogs,
       avgChatResponseMs,
     });
   } catch (error) {

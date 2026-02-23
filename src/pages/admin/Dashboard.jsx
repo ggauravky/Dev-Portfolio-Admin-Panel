@@ -65,6 +65,13 @@ const Dashboard = () => {
       path: "/admin/chats",
     },
     {
+      title: "ML Logs",
+      value: stats?.totalMlLogs || 0,
+      hint: `${stats?.imageAnalyzerLogs || 0} image analyzer`,
+      gradient: "from-violet-500 to-indigo-700",
+      path: "/admin/mllogs",
+    },
+    {
       title: "Fallback Responses",
       value: stats?.fallbackChats || 0,
       hint: `Avg latency: ${stats?.avgChatResponseMs ? `${stats.avgChatResponseMs} ms` : "N/A"}`,
@@ -115,7 +122,7 @@ const Dashboard = () => {
           </div>
         )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-6 mb-8">
           {cards.map((card) => (
             <Link
               to={card.path}
@@ -132,7 +139,7 @@ const Dashboard = () => {
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
           <div className="xl:col-span-2 bg-white rounded-2xl shadow-lg p-6">
             <h2 className="text-xl font-bold text-gray-900 mb-5">Quick Actions</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
               <Link
                 to="/admin/contacts"
                 className="p-4 rounded-xl border border-blue-200 bg-blue-50 hover:bg-blue-100 transition-colors"
@@ -157,6 +164,14 @@ const Dashboard = () => {
                 <div className="text-2xl font-bold text-gray-900 mt-2">{stats?.totalChats || 0}</div>
                 <p className="text-sm text-gray-600 mt-1">Inspect user/AI conversations</p>
               </Link>
+              <Link
+                to="/admin/mllogs"
+                className="p-4 rounded-xl border border-violet-200 bg-violet-50 hover:bg-violet-100 transition-colors"
+              >
+                <div className="text-sm font-semibold text-violet-700">ML Logs</div>
+                <div className="text-2xl font-bold text-gray-900 mt-2">{stats?.totalMlLogs || 0}</div>
+                <p className="text-sm text-gray-600 mt-1">Review image and prompt demo usage</p>
+              </Link>
             </div>
           </div>
 
@@ -179,6 +194,11 @@ const Dashboard = () => {
                 tone="blue"
               />
               <SignalRow
+                label="Prompt improver logs"
+                value={stats?.promptImproverLogs || 0}
+                tone="violet"
+              />
+              <SignalRow
                 label="Average chat response"
                 value={stats?.avgChatResponseMs ? `${stats.avgChatResponseMs} ms` : "N/A"}
                 tone="emerald"
@@ -197,6 +217,7 @@ const SignalRow = ({ label, value, tone }) => {
     red: "bg-red-50 border-red-200 text-red-800",
     blue: "bg-blue-50 border-blue-200 text-blue-800",
     emerald: "bg-emerald-50 border-emerald-200 text-emerald-800",
+    violet: "bg-violet-50 border-violet-200 text-violet-800",
   };
 
   return (
