@@ -5,6 +5,7 @@ const Contact = require("../models/Contact");
 const Newsletter = require("../models/Newsletter");
 const ChatLog = require("../models/ChatLog");
 const MlLog = require("../models/MlLog");
+const Booking = require("../models/Booking");
 const auth = require("../middleware/auth");
 
 // ====================================================
@@ -734,6 +735,123 @@ router.post("/mllogs/bulk-delete", auth, async (req, res) => {
   }
 });
 
+// ==================== BOOKINGS API ====================
+
+// Get all bookings with advanced search and filtering
+router.get("/bookings", auth, async (req, res) => {
+  try {
+    const {
+      search,
+      sortBy = "createdAt",
+      order = "desc",
+      limit,
+      skip,
+    } = req.query;
+
+    let query = {};
+    const allowedSortFields = [
+      "createdAt",
+      "name",
+      "email",
+      "service",
+      "preferredDate",
+      "amount",
+      "date",
+    ];
+
+    // Search functionality
+    if (search) {
+      query = {
+        $or: [
+          { name: { $regex: search, $options: "i" } },
+          { email: { $regex: search, $options: "i" } },
+          { service: { $regex: search, $options: "i" } },
+          { serviceSlug: { $regex: search, $options: "i" } },
+          { paymentId: { $regex: search, $options: "i" } },
+          { orderId: { $regex: search, $options: "i" } },
+          { phone: { $regex: search, $options: "i" } },
+        ],
+      };
+    }
+
+    // Build sort object
+    const sortOrder = order === "asc" ? 1 : -1;
+    const sortField = allowedSortFields.includes(sortBy) ? sortBy : "createdAt";
+    const sortObj = { [sortField]: sortOrder };
+
+    // Execute query with pagination
+    let bookingsQuery = Booking.find(query).sort(sortObj);
+
+    const parsedSkip = Number.parseInt(skip, 10);
+    const parsedLimit = Number.parseInt(limit, 10);
+    if (Number.isInteger(parsedSkip) && parsedSkip > 0) {
+      bookingsQuery = bookingsQuery.skip(parsedSkip);
+    }
+    if (Number.isInteger(parsedLimit) && parsedLimit > 0) {
+      bookingsQuery = bookingsQuery.limit(parsedLimit);
+    }
+
+    const bookings = await bookingsQuery;
+    const total = await Booking.countDocuments(query);
+
+    res.json({ bookings, total });
+  } catch (error) {
+    console.error("Error fetching bookings:", error);
+    res.status(500).json({ message: "Error fetching bookings" });
+  }
+});
+
+// Get single booking by ID
+router.get("/bookings/:id", auth, async (req, res) => {
+  try {
+    const booking = await Booking.findById(req.params.id);
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found" });
+    }
+    res.json(booking);
+  } catch (error) {
+    console.error("Error fetching booking:", error);
+    res.status(500).json({ message: "Error fetching booking" });
+  }
+});
+
+// Delete booking
+router.delete("/bookings/:id", auth, async (req, res) => {
+  try {
+    const booking = await Booking.findByIdAndDelete(req.params.id);
+
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found" });
+    }
+
+    res.json({ message: "Booking deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting booking:", error);
+    res.status(500).json({ message: "Error deleting booking" });
+  }
+});
+
+// Bulk delete bookings
+router.post("/bookings/bulk-delete", auth, async (req, res) => {
+  try {
+    const { ids } = req.body;
+
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ message: "No booking IDs provided" });
+    }
+
+    const result = await Booking.deleteMany({ _id: { $in: ids } });
+
+    res.json({
+      message: `${result.deletedCount} booking(s) deleted successfully`,
+      deletedCount: result.deletedCount,
+    });
+  } catch (error) {
+    console.error("Error bulk deleting bookings:", error);
+    res.status(500).json({ message: "Error deleting bookings" });
+  }
+});
+
 // Get dashboard stats
 router.get("/stats", auth, async (req, res) => {
   try {
@@ -755,6 +873,7 @@ router.get("/stats", auth, async (req, res) => {
     const promptImproverLogs = await MlLog.countDocuments({
       demoType: "prompt_improver",
     });
+    const totalBookings = await Booking.countDocuments();
     const avgResponseRow = await ChatLog.aggregate([
       { $match: { responseTimeMs: { $type: "number", $gt: 0 } } },
       { $group: { _id: null, avgMs: { $avg: "$responseTimeMs" } } },
@@ -773,6 +892,7 @@ router.get("/stats", auth, async (req, res) => {
       totalMlLogs,
       imageAnalyzerLogs,
       promptImproverLogs,
+      totalBookings,
       avgChatResponseMs,
     });
   } catch (error) {

@@ -344,3 +344,63 @@ export const getMlLogs = async (params = {}) => {
 
   return await response.json();
 };
+
+// ==================== BOOKINGS API ====================
+
+// Get all bookings with optional search and filters
+export const getBookings = async (params = {}) => {
+  const queryString = new URLSearchParams(params).toString();
+  const url = queryString
+    ? `${API_URL}/bookings?${queryString}`
+    : `${API_URL}/bookings`;
+
+  const response = await authFetch(url);
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch bookings");
+  }
+
+  return await response.json();
+};
+
+// Get single booking
+export const getBooking = async (id) => {
+  const response = await authFetch(`${API_URL}/bookings/${id}`);
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch booking");
+  }
+
+  return await response.json();
+};
+
+// Delete single booking
+export const deleteBooking = async (id) => {
+  const response = await authFetch(`${API_URL}/bookings/${id}`, {
+    method: "DELETE",
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || "Failed to delete booking");
+  }
+
+  return data;
+};
+
+// Bulk delete bookings
+export const bulkDeleteBookings = async (ids) => {
+  const response = await authFetch(`${API_URL}/bookings/bulk-delete`, {
+    method: "POST",
+    body: JSON.stringify({ ids }),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || "Failed to delete bookings");
+  }
+
+  return data;
+};
