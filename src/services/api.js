@@ -1,5 +1,5 @@
 const API_URL =
-  import.meta.env.VITE_API_URL || "http://localhost:5001/api/admin";
+  import.meta.env.VITE_API_URL || "http://localhost:5000/api/admin";
 
 // Get token from localStorage
 const getToken = () => {
@@ -20,7 +20,7 @@ const authFetch = async (url, options = {}) => {
 
   if (response.status === 401) {
     localStorage.removeItem("adminToken");
-    window.location.href = "/admin/login";
+    globalThis.location.href = "/admin/login";
     throw new Error("Session expired. Please login again.");
   }
 
@@ -337,12 +337,18 @@ export const getMlLogs = async (params = {}) => {
     : `${API_URL}/mllogs`;
 
   const response = await authFetch(url);
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch ML logs");
+  let data = null;
+  try {
+    data = await response.json();
+  } catch {
+    data = null;
   }
 
-  return await response.json();
+  if (!response.ok) {
+    throw new Error(data?.message || "Failed to fetch ML logs");
+  }
+
+  return data ?? { mllogs: [], total: 0 };
 };
 
 // ==================== BOOKINGS API ====================

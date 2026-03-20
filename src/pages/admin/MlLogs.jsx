@@ -8,6 +8,29 @@ const DEMO_TYPE_OPTIONS = [
   { value: "prompt_improver", label: "Prompt Improver" },
 ];
 
+const normalizeMlLog = (log = {}) => {
+  const topPredictions = Array.isArray(log.topPredictions)
+    ? log.topPredictions
+    : [];
+
+  let normalizedDemoType = log.demoType || "unknown";
+  if (log.demoType === "image-analyzer") {
+    normalizedDemoType = "image_analyzer";
+  }
+  if (log.demoType === "prompt-improver") {
+    normalizedDemoType = "prompt_improver";
+  }
+
+  return {
+    ...log,
+    demoType: normalizedDemoType,
+    predictionLabel: log.predictionLabel || log.prediction || "",
+    inputPrompt: log.inputPrompt || log.prompt || "",
+    improvedPrompt: log.improvedPrompt || log.result || "",
+    topPredictions,
+  };
+};
+
 const MlLogs = () => {
   const [logs, setLogs] = useState([]);
   const [total, setTotal] = useState(0);
@@ -48,12 +71,15 @@ const MlLogs = () => {
       if (eventFilter.trim()) params.event = eventFilter.trim();
 
       const data = await getMlLogs(params);
-      const list = data.mllogs || [];
+      const rawList = Array.isArray(data)
+        ? data
+        : data.mllogs || data.mlLogs || data.logs || [];
+      const list = rawList.map(normalizeMlLog);
       setLogs(list);
-      setTotal(data.total || list.length);
+      setTotal(data?.total || data?.count || list.length);
     } catch (fetchError) {
       console.error("Error fetching ML logs:", fetchError);
-      setError("Failed to load ML logs. Please try again.");
+      setError(fetchError?.message || "Failed to load ML logs. Please try again.");
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -182,9 +208,22 @@ const MlLogs = () => {
           <div className="space-y-4">
             {logs.map((log) => {
               const isImageAnalyzer = log.demoType === "image_analyzer";
-              const typeClass = isImageAnalyzer
-                ? "bg-blue-100 text-blue-700"
-                : "bg-violet-100 text-violet-700";
+              const isPromptImprover = log.demoType === "prompt_improver";
+              let typeClass = "bg-gray-100 text-gray-700";
+              if (isImageAnalyzer) {
+                typeClass = "bg-blue-100 text-blue-700";
+              }
+              if (isPromptImprover) {
+                typeClass = "bg-violet-100 text-violet-700";
+              }
+
+              let typeLabel = "Unknown";
+              if (isImageAnalyzer) {
+                typeLabel = "Image Analyzer";
+              }
+              if (isPromptImprover) {
+                typeLabel = "Prompt Improver";
+              }
 
               return (
                 <div
@@ -196,7 +235,7 @@ const MlLogs = () => {
                       {formatDate(log.createdAt)}
                     </span>
                     <span className={`text-xs px-2 py-1 rounded-full font-semibold ${typeClass}`}>
-                      {isImageAnalyzer ? "Image Analyzer" : "Prompt Improver"}
+                      {typeLabel}
                     </span>
                     <span className="text-xs px-2 py-1 rounded-full bg-amber-100 text-amber-700 font-semibold">
                       {log.event || "run"}
