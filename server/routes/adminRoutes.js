@@ -6,6 +6,7 @@ const Newsletter = require("../models/Newsletter");
 const ChatLog = require("../models/ChatLog");
 const MlLog = require("../models/MlLog");
 const Booking = require("../models/Booking");
+const SupportPayment = require("../models/SupportPayment");
 const auth = require("../middleware/auth");
 
 // ====================================================
@@ -852,6 +853,131 @@ router.post("/bookings/bulk-delete", auth, async (req, res) => {
   }
 });
 
+// ==================== SUPPORT PAYMENTS API ====================
+
+// Get all support payments with filtering, search and pagination
+router.get("/support-payments", auth, async (req, res) => {
+  try {
+    const {
+      search,
+      paymentStatus,
+      paymentProvider,
+      sortBy = "createdAt",
+      order = "desc",
+      limit,
+      skip,
+    } = req.query;
+
+    const allowedSortFields = [
+      "createdAt",
+      "updatedAt",
+      "contributorName",
+      "email",
+      "amount",
+      "orderId",
+      "paymentStatus",
+      "paymentProvider",
+      "paidAt",
+    ];
+
+    const query = {};
+
+    if (search) {
+      query.$or = [
+        { contributorName: { $regex: search, $options: "i" } },
+        { email: { $regex: search, $options: "i" } },
+        { phone: { $regex: search, $options: "i" } },
+        { message: { $regex: search, $options: "i" } },
+        { orderId: { $regex: search, $options: "i" } },
+        { paymentId: { $regex: search, $options: "i" } },
+        { paymentStatus: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    if (paymentStatus && ["created", "pending", "failed", "paid"].includes(paymentStatus)) {
+      query.paymentStatus = paymentStatus;
+    }
+
+    if (paymentProvider && ["cashfree"].includes(paymentProvider)) {
+      query.paymentProvider = paymentProvider;
+    }
+
+    const sortOrder = order === "asc" ? 1 : -1;
+    const sortField = allowedSortFields.includes(sortBy) ? sortBy : "createdAt";
+    const sortObj = { [sortField]: sortOrder };
+
+    let supportPaymentsQuery = SupportPayment.find(query).sort(sortObj);
+
+    const parsedSkip = Number.parseInt(skip, 10);
+    const parsedLimit = Number.parseInt(limit, 10);
+    if (Number.isInteger(parsedSkip) && parsedSkip > 0) {
+      supportPaymentsQuery = supportPaymentsQuery.skip(parsedSkip);
+    }
+    if (Number.isInteger(parsedLimit) && parsedLimit > 0) {
+      supportPaymentsQuery = supportPaymentsQuery.limit(parsedLimit);
+    }
+
+    const supportPayments = await supportPaymentsQuery;
+    const total = await SupportPayment.countDocuments(query);
+
+    res.json({ supportPayments, total });
+  } catch (error) {
+    console.error("Error fetching support payments:", error);
+    res.status(500).json({ message: "Error fetching support payments" });
+  }
+});
+
+// Get single support payment by ID
+router.get("/support-payments/:id", auth, async (req, res) => {
+  try {
+    const supportPayment = await SupportPayment.findById(req.params.id);
+    if (!supportPayment) {
+      return res.status(404).json({ message: "Support payment not found" });
+    }
+    res.json(supportPayment);
+  } catch (error) {
+    console.error("Error fetching support payment:", error);
+    res.status(500).json({ message: "Error fetching support payment" });
+  }
+});
+
+// Delete support payment
+router.delete("/support-payments/:id", auth, async (req, res) => {
+  try {
+    const supportPayment = await SupportPayment.findByIdAndDelete(req.params.id);
+
+    if (!supportPayment) {
+      return res.status(404).json({ message: "Support payment not found" });
+    }
+
+    res.json({ message: "Support payment deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting support payment:", error);
+    res.status(500).json({ message: "Error deleting support payment" });
+  }
+});
+
+// Bulk delete support payments
+router.post("/support-payments/bulk-delete", auth, async (req, res) => {
+  try {
+    const { ids } = req.body;
+
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ message: "No support payment IDs provided" });
+    }
+
+    const result = await SupportPayment.deleteMany({ _id: { $in: ids } });
+
+    res.json({
+      message: `${result.deletedCount} support payment(s) deleted successfully`,
+      deletedCount: result.deletedCount,
+    });
+  } catch (error) {
+    console.error("Error bulk deleting support payments:", error);
+    res.status(500).json({ message: "Error deleting support payments" });
+  }
+});
+
 // Get dashboard stats
 router.get("/stats", auth, async (req, res) => {
   try {
@@ -874,6 +1000,13 @@ router.get("/stats", auth, async (req, res) => {
       demoType: "prompt_improver",
     });
     const totalBookings = await Booking.countDocuments();
+    const createdBookings = await Booking.countDocuments({ paymentStatus: "created" });
+    const pendingBookings = await Booking.countDocuments({ paymentStatus: "pending" });
+    const paidBookings = await Booking.countDocuments({ paymentStatus: "paid" });
+    const failedBookings = await Booking.countDocuments({ paymentStatus: "failed" });
+    const totalSupportPayments = await SupportPayment.countDocuments();
+    const pendingSupportPayments = await SupportPayment.countDocuments({ paymentStatus: "pending" });
+    const paidSupportPayments = await SupportPayment.countDocuments({ paymentStatus: "paid" });
     const avgResponseRow = await ChatLog.aggregate([
       { $match: { responseTimeMs: { $type: "number", $gt: 0 } } },
       { $group: { _id: null, avgMs: { $avg: "$responseTimeMs" } } },
@@ -893,6 +1026,13 @@ router.get("/stats", auth, async (req, res) => {
       imageAnalyzerLogs,
       promptImproverLogs,
       totalBookings,
+      createdBookings,
+      pendingBookings,
+      paidBookings,
+      failedBookings,
+      totalSupportPayments,
+      pendingSupportPayments,
+      paidSupportPayments,
       avgChatResponseMs,
     });
   } catch (error) {

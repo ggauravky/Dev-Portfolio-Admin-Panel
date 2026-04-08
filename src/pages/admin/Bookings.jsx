@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import { useState, useEffect } from 'react';
 import AdminLayout from '../../components/AdminLayout';
 import { getBookings, deleteBooking, bulkDeleteBookings } from '../../services/api';
@@ -24,7 +25,9 @@ const Bookings = () => {
                 (booking.phone || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
                 (booking.service || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
                 (booking.paymentId || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                (booking.orderId || '').toLowerCase().includes(searchTerm.toLowerCase())
+                (booking.orderId || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                (booking.paymentStatus || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                (booking.paymentProvider || '').toLowerCase().includes(searchTerm.toLowerCase())
             );
             setFilteredBookings(filtered);
         } else {
@@ -51,7 +54,7 @@ const Bookings = () => {
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm('Are you sure you want to delete this booking?')) return;
+        if (!globalThis.confirm('Are you sure you want to delete this booking?')) return;
 
         try {
             await deleteBooking(id);
@@ -65,7 +68,7 @@ const Bookings = () => {
 
     const handleBulkDelete = async () => {
         if (selectedBookings.length === 0) return;
-        if (!window.confirm(`Delete ${selectedBookings.length} selected booking(s)?`)) return;
+        if (!globalThis.confirm(`Delete ${selectedBookings.length} selected booking(s)?`)) return;
 
         try {
             await bulkDeleteBookings(selectedBookings);
@@ -178,6 +181,8 @@ const Bookings = () => {
                                 <option value="service">Service</option>
                                 <option value="amount">Amount</option>
                                 <option value="preferredDate">Preferred Date</option>
+                                <option value="paymentStatus">Payment Status</option>
+                                <option value="paymentProvider">Payment Provider</option>
                             </select>
                             <button
                                 onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
@@ -275,6 +280,15 @@ const Bookings = () => {
 
 // Booking Card Component
 const BookingCard = ({ booking, isSelected, onToggleSelect, onDelete, formatDate, formatTime, formatCurrency }) => {
+    const paymentStatusClassMap = {
+        paid: 'bg-emerald-100 text-emerald-800',
+        pending: 'bg-amber-100 text-amber-800',
+        failed: 'bg-red-100 text-red-800',
+        created: 'bg-slate-100 text-slate-700',
+    };
+
+    const paymentStatusClass = paymentStatusClassMap[booking.paymentStatus] || paymentStatusClassMap.created;
+
     return (
         <div className={`bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-all duration-200 ${isSelected ? 'ring-2 ring-emerald-500' : ''}`}>
             <div className="flex items-start gap-4">
@@ -299,6 +313,12 @@ const BookingCard = ({ booking, isSelected, onToggleSelect, onDelete, formatDate
                                 <h3 className="text-lg font-bold text-gray-900">{booking.name || 'Unknown'}</h3>
                                 <span className="text-xs px-3 py-1 rounded-full font-semibold bg-emerald-100 text-emerald-800">
                                     {booking.service || 'Service'}
+                                </span>
+                                <span className={`text-xs px-3 py-1 rounded-full font-semibold ${paymentStatusClass}`}>
+                                    {booking.paymentStatus || 'created'}
+                                </span>
+                                <span className="text-xs px-3 py-1 rounded-full font-semibold bg-cyan-100 text-cyan-800">
+                                    {booking.paymentProvider || 'cashfree'}
                                 </span>
                             </div>
                             
@@ -332,6 +352,10 @@ const BookingCard = ({ booking, isSelected, onToggleSelect, onDelete, formatDate
                                     <div>
                                         <span className="text-gray-600">Payment ID</span>
                                         <p className="font-semibold text-gray-900 truncate">{booking.paymentId || 'N/A'}</p>
+                                    </div>
+                                    <div>
+                                        <span className="text-gray-600">Paid At</span>
+                                        <p className="font-semibold text-gray-900">{formatDate(booking.paidAt)}</p>
                                     </div>
                                 </div>
                             </div>

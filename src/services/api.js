@@ -410,3 +410,63 @@ export const bulkDeleteBookings = async (ids) => {
 
   return data;
 };
+
+// ==================== SUPPORT PAYMENTS API ====================
+
+// Get all support payments with optional search and filters
+export const getSupportPayments = async (params = {}) => {
+  const queryString = new URLSearchParams(params).toString();
+  const url = queryString
+    ? `${API_URL}/support-payments?${queryString}`
+    : `${API_URL}/support-payments`;
+
+  const response = await authFetch(url);
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch support payments");
+  }
+
+  return await response.json();
+};
+
+// Get single support payment
+export const getSupportPayment = async (id) => {
+  const response = await authFetch(`${API_URL}/support-payments/${id}`);
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch support payment");
+  }
+
+  return await response.json();
+};
+
+// Delete single support payment
+export const deleteSupportPayment = async (id) => {
+  const response = await authFetch(`${API_URL}/support-payments/${id}`, {
+    method: "DELETE",
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || "Failed to delete support payment");
+  }
+
+  return data;
+};
+
+// Bulk delete support payments
+export const bulkDeleteSupportPayments = async (ids) => {
+  const response = await authFetch(`${API_URL}/support-payments/bulk-delete`, {
+    method: "POST",
+    body: JSON.stringify({ ids }),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || "Failed to delete support payments");
+  }
+
+  return data;
+};

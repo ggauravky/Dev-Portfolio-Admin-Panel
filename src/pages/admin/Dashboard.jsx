@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import AdminLayout from "../../components/AdminLayout";
@@ -52,7 +53,13 @@ const Dashboard = () => {
     );
   }
 
-  const totalEntities = (stats?.totalContacts || 0) + (stats?.totalNewsletters || 0) + (stats?.totalChats || 0) + (stats?.totalMlLogs || 0) + (stats?.totalBookings || 0);
+  const totalEntities =
+    (stats?.totalContacts || 0) +
+    (stats?.totalNewsletters || 0) +
+    (stats?.totalChats || 0) +
+    (stats?.totalMlLogs || 0) +
+    (stats?.totalBookings || 0) +
+    (stats?.totalSupportPayments || 0);
 
   const cards = [
     {
@@ -67,11 +74,20 @@ const Dashboard = () => {
     {
       title: "Bookings",
       value: stats?.totalBookings || 0,
-      change: "Service bookings",
+      change: `${stats?.paidBookings || 0} paid, ${stats?.pendingBookings || 0} pending`,
       gradient: "from-emerald-500 to-cyan-600",
       icon: "📅",
       color: "emerald",
       path: "/admin/bookings",
+    },
+    {
+      title: "Support Payments",
+      value: stats?.totalSupportPayments || 0,
+      change: `${stats?.paidSupportPayments || 0} paid, ${stats?.pendingSupportPayments || 0} pending`,
+      gradient: "from-amber-500 to-orange-600",
+      icon: "💸",
+      color: "amber",
+      path: "/admin/support-payments",
     },
     {
       title: "Newsletter",
@@ -103,10 +119,10 @@ const Dashboard = () => {
     {
       title: "Fallback",
       value: stats?.fallbackChats || 0,
-      change: `${stats?.avgChatResponseMs ? `${stats.avgChatResponseMs} ms` : "N/A"} avg`,
-      gradient: "from-amber-500 to-orange-600",
+      change: `${stats?.avgChatResponseMs || "N/A"} ms avg`,
+      gradient: "from-slate-500 to-gray-700",
       icon: "⚡",
-      color: "amber",
+      color: "slate",
       path: "/admin/chats",
     },
   ];
@@ -132,7 +148,7 @@ const Dashboard = () => {
                   Dashboard
                 </h1>
                 <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-green-100 text-green-800 text-xs font-semibold">
-                  <span className="w-2 h-2 rounded-full bg-green-600 animate-pulse"></span>
+                  <span className="w-2 h-2 rounded-full bg-green-600 animate-pulse"></span>{" "}
                   Live
                 </span>
               </div>
@@ -179,8 +195,8 @@ const Dashboard = () => {
               <span className="ml-2 font-bold text-gray-900">{stats?.avgChatResponseMs || 0}ms</span>
             </div>
             <div className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 text-sm">
-              <span className="text-gray-600">System Health</span>
-              <span className="ml-2 font-bold text-emerald-600">Optimal</span>
+              <span className="text-gray-600">Paid Bookings</span>
+              <span className="ml-2 font-bold text-emerald-600">{stats?.paidBookings || 0}</span>
             </div>
           </div>
         </div>
@@ -199,7 +215,7 @@ const Dashboard = () => {
 
         {/* Main Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6 gap-5 mb-8">
-          {cards.map((card, idx) => (
+          {cards.map((card) => (
             <Link
               to={card.path}
               key={card.title}
@@ -363,7 +379,7 @@ const SignalRow = ({ label, value, tone, icon }) => {
         <div className="text-xl font-bold">{value}</div>
       </div>
       <div className="mt-2 h-1 rounded-full bg-black/10 overflow-hidden">
-        <div className="h-full bg-current opacity-30 rounded-full" style={{ width: `${Math.min(parseInt(value) / 100 * 100, 100)}%` }}></div>
+        <div className="h-full bg-current opacity-30 rounded-full" style={{ width: `${Math.min(Number.parseInt(value, 10) / 100 * 100, 100)}%` }}></div>
       </div>
     </div>
   );
