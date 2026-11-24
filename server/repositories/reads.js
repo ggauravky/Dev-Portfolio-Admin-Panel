@@ -5,11 +5,8 @@ const contract = require("../contracts/portfolio-schema.json");
 const specs = {
   contacts: { search: "name email subject message", sort: "createdAt updatedAt date name email subject status", filters: { status: ["unread", "read", "replied"] }, exclude: "ipAddress userAgent" },
   newsletters: { search: "email", sort: "createdAt updatedAt email subscribed subscribedAt unsubscribedAt", filters: { subscribed: [true, false] }, exclude: "ipAddress userAgent" },
-  bookings: { search: "name email service serviceSlug paymentId orderId phone", sort: "createdAt updatedAt date preferredDate name email amount paymentStatus paidAt", filters: { paymentStatus: ["created", "pending", "paid", "failed"], paymentProvider: ["razorpay", "cashfree"] }, exclude: "ipAddress userAgent receiptEmailRecipient receiptEmailMessageId receiptEmailError adminEmailMessageId adminEmailError lastReconciliationError" },
-  paymenttransactions: { search: "customerName contributorName email phone internalReference razorpayOrderId razorpayPaymentId receiptNumber", sort: "createdAt updatedAt paidAt amount amountPaise status", filters: { flowType: ["service", "support"], status: ["created", "pending", "authorized", "paid", "failed", "refunded"], provider: ["razorpay"] }, exclude: "ipAddress userAgent metadata receiptEmailMessageId adminEmailMessageId receiptEmailError adminEmailError failureReason" },
   users: { fields: "_id displayName name email emailVerified createdAt lastLoginAt", search: "displayName name email", sort: "createdAt lastLoginAt email" },
   activityevents: { fields: "_id userId actionType domain status title amount currency transactionId createdAt", search: "actionType domain title", sort: "createdAt status", filters: { status: ["success", "pending", "failed", "info"] } },
-  paymentwebhookevents: { fields: "_id eventId eventType provider status transactionId attempts processedAt createdAt", search: "eventId eventType", sort: "createdAt processedAt status", filters: { status: ["processing", "processed", "failed", "ignored"] } },
   blogposts: { fields: "_id title slug supportCount createdAt updatedAt", search: "title slug", sort: "createdAt supportCount title" },
   supports: { fields: "_id userId blogPostId createdAt", sort: "createdAt" },
 };
@@ -115,4 +112,4 @@ function repository(db, collection, fixed = {}) {
   };
 }
 
-module.exports = { repository, listQuery };
+module.exports = { repository, listQuery, identifier };

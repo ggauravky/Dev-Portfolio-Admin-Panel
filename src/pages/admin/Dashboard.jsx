@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import AdminLayout from "../../components/AdminLayout";
 import { getStats } from "../../services/api";
 import { latency, percent } from "./chat/Shared";
+import { formatPaise } from "./finance/money";
 
 const Dashboard = () => {
   const [stats, setStats] = useState(null);
@@ -55,7 +56,7 @@ const Dashboard = () => {
   }
 
   const chat = stats?.chatSummary;
-  const counts = [stats?.totalContacts, stats?.totalNewsletters, stats?.totalBookings, stats?.totalSupportPayments];
+  const counts = [stats?.totalContacts, stats?.totalNewsletters];
   const totalEntities = counts.every(Number.isFinite) ? counts.reduce((sum, count) => sum + count, 0) : "Unavailable";
 
   const cards = [
@@ -69,7 +70,7 @@ const Dashboard = () => {
       path: "/admin/contacts",
     },
     {
-      title: "Bookings",
+      title: "Bookings · 7 days",
       value: stats?.totalBookings ?? "Unavailable",
       change: `${stats?.paidBookings ?? "—"} paid, ${stats?.pendingBookings ?? "—"} pending`,
       gradient: "from-emerald-500 to-cyan-600",
@@ -78,7 +79,7 @@ const Dashboard = () => {
       path: "/admin/bookings",
     },
     {
-      title: "Support Payments",
+      title: "Support Payments · 7 days",
       value: stats?.totalSupportPayments ?? "Unavailable",
       change: `${stats?.paidSupportPayments ?? "—"} paid, ${stats?.pendingSupportPayments ?? "—"} pending`,
       gradient: "from-amber-500 to-orange-600",
@@ -166,16 +167,12 @@ const Dashboard = () => {
           {/* Stats Summary Bar */}
           <div className="flex flex-wrap gap-3">
             <div className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 text-sm">
-              <span className="text-gray-600">Total</span>
+              <span className="text-gray-600">Contacts and subscriptions</span>
               <span className="ml-2 font-bold text-gray-900">{totalEntities.toLocaleString()}</span>
             </div>
             <div className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-50 to-blue-50 border border-cyan-200 text-sm">
               <span className="text-gray-600">Chat storage</span>
               <span className="ml-2 font-bold text-gray-900">{stats?.availability?.chat === "available" ? "Available" : "Unavailable"}</span>
-            </div>
-            <div className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 text-sm">
-              <span className="text-gray-600">Paid Bookings</span>
-              <span className="ml-2 font-bold text-emerald-600">{stats?.paidBookings ?? "Unavailable"}</span>
             </div>
           </div>
         </div>
@@ -234,6 +231,8 @@ const Dashboard = () => {
             </Link>
           ))}
         </div>
+
+        <FinancialSnapshot report={stats?.financialSummary} />
 
         {/* Lower Section - Quick Access & Insights */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -313,6 +312,33 @@ const Dashboard = () => {
     </AdminLayout>
   );
 };
+
+function FinancialSnapshot({ report }) {
+  const payments = report?.transactions?.data;
+  const bookings = report?.bookings?.data;
+  const webhooks = report?.webhooks?.data;
+  const metrics = [
+    ["Paid services", payments && formatPaise(payments.paid.servicePaise), "/admin/financial/transactions"],
+    ["Paid support", payments && formatPaise(payments.paid.supportPaise), "/admin/support-payments"],
+    ["Pending service attempts", payments?.attempts.pendingService, "/admin/financial/transactions"],
+    ["Recorded paid bookings", bookings?.confirmedPaid, "/admin/bookings"],
+    ["Failed customer emails", payments?.attempts.receiptFailures, "/admin/financial/receipts"],
+    ["Failed webhooks", webhooks?.failed, "/admin/financial/webhook-events"],
+  ];
+  return <section className="mb-8 rounded-2xl border border-slate-200 bg-white p-5">
+    <div className="flex flex-wrap items-baseline justify-between gap-2">
+      <h2 className="text-lg font-semibold text-slate-900">Financial snapshot · last 7 days (IST)</h2>
+      <Link className="text-sm font-semibold text-teal-800 underline" to="/admin/financial">Open Financial Control Center</Link>
+    </div>
+    <p className="mt-1 text-sm text-slate-600">Paid totals use recorded payment dates. Razorpay test or live mode is unverified.</p>
+    <dl className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+      {metrics.map(([label, value, path]) => <div key={label} className="rounded-lg border border-slate-200 p-3">
+        <dt className="text-sm"><Link className="text-teal-800 underline" to={path}>{label}</Link></dt>
+        <dd className="mt-1 break-words font-semibold text-slate-900">{value ?? "Unavailable"}</dd>
+      </div>)}
+    </dl>
+  </section>;
+}
 
 const SignalRow = ({ label, value, tone, icon }) => {
   const tones = {

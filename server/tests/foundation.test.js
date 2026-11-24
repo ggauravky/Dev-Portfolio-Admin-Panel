@@ -69,7 +69,9 @@ test("full app protects reads and isolates unavailable chat and financial writes
   assert.equal(calls[0].filter.$or[0].name.$regex, "\\.a");
   assert.equal(calls[0].options.projection.ipAddress, undefined);
   await request("/support-payments?status=paid");
-  assert.deepEqual(calls[1].filter, { flowType: "support", status: "paid" });
+  assert.equal(calls[1].filter.flowType, "support");
+  assert.equal(calls[1].filter.status, "paid");
+  assert.equal(calls[1].filter.provider, "razorpay");
   const stats = await (await request("/stats")).json();
   assert.equal(stats.totalContacts, 51);
   assert.equal(stats.totalChats, null);

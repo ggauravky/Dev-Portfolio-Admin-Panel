@@ -47,8 +47,23 @@ export const logout = (csrfToken) => request("/logout", { method: "POST", csrfTo
 export const getStats = () => request("/stats");
 export const getContacts = list("/contacts");
 export const getNewsletters = list("/newsletters");
-export const getBookings = list("/bookings");
-export const getSupportPayments = list("/support-payments");
+const financialPaths = {
+  transactions: "/transactions", bookings: "/bookings", "support-payments": "/support-payments",
+  receipts: "/receipts", "webhook-events": "/webhook-events", "legacy-payments": "/legacy-payments",
+  reconciliation: "/financial-reconciliation",
+};
+export const getFinancialAnalytics = list("/financial-analytics");
+export function getFinancialRows(query, signal) {
+  const params = new URLSearchParams(query);
+  const path = financialPaths[params.get("endpoint")];
+  params.delete("endpoint");
+  return list(path)(params, signal);
+}
+export async function getFinancialDetail(query, signal) {
+  const params = new URLSearchParams(query);
+  const path = financialPaths[params.get("endpoint")] + "/" + encodeURIComponent(params.get("id"));
+  return { data: await request(path, { signal }) };
+}
 export const getChats = list("/chats");
 export const getChatConversations = list("/chat-conversations");
 export const getChatAnalytics = list("/chat-analytics");

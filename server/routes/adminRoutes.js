@@ -7,24 +7,23 @@ const { createAnalytics } = require("../chat/analytics");
 const { createOperations } = require("../chat/operations");
 const { createKnowledge } = require("../chat/knowledge");
 const { only } = require("../chat/query");
+const { financial } = require("../payments");
 
 const resources = {
   contacts: ["contacts", "contacts"], newsletters: ["newsletters", "newsletters"],
-  bookings: ["bookings", "bookings"],
-  "support-payments": ["paymenttransactions", "supportPayments", { flowType: "support" }],
-  transactions: ["paymenttransactions", "transactions"],
   users: ["users", "users"], activity: ["activityevents", "activity"],
-  "webhook-events": ["paymentwebhookevents", "events"], "blog-posts": ["blogposts", "posts"],
+  "blog-posts": ["blogposts", "posts"],
   "blog-supports": ["supports", "supports"],
 };
 const capabilities = Object.fromEntries(Object.keys(resources).map((path) => [path, { read: true, write: false }]));
 const denied = () => new HttpError(403, "OPERATION_DISABLED", "This operation is disabled");
 
-function createAdminRouter({ config, db, security, now = () => new Date() }) {
+function createAdminRouter({ config, db, security, now = () => new Date(), financialNow = () => new Date() }) {
   const router = express.Router();
   const repositories = {};
   const auth = (req, res, next) => security.authenticate(req).then(() => next(), next);
-  const sessionCapabilities = { ...capabilities, chats: { read: true, write: false }, sessions: { read: true, revoke: true } };
+  const finance = financial(router, { db, auth, security, now: financialNow });
+  const sessionCapabilities = { ...capabilities, ...finance.capabilities, chats: { read: true, write: false }, sessions: { read: true, revoke: true } };
   const access = createChatAccess(db);
   const chat = createConversations(access, now);
   const analytics = createAnalytics(access, now);
@@ -95,22 +94,25 @@ function createAdminRouter({ config, db, security, now = () => new Date() }) {
       totalContacts: count("contacts"), unreadContacts: count("contacts", { status: "unread" }),
       totalNewsletters: count("newsletters", { subscribed: { $ne: false } }),
       unsubscribedNewsletters: count("newsletters", { subscribed: false }),
-      totalBookings: count("bookings"), paidBookings: count("bookings", { paymentStatus: "paid" }),
-      createdBookings: count("bookings", { paymentStatus: "created" }),
-      pendingBookings: count("bookings", { paymentStatus: "pending" }),
-      failedBookings: count("bookings", { paymentStatus: "failed" }),
-      totalSupportPayments: count("support-payments"), paidSupportPayments: count("support-payments", { status: "paid" }),
-      pendingSupportPayments: count("support-payments", { status: "pending" }),
     };
-    const [results, chatSummary] = await Promise.all([
+    const [results, chatSummary, financialSummary] = await Promise.all([
       Promise.allSettled(Object.values(metrics)),
       chatAvailable ? analytics.summary().catch(() => null) : null,
+      finance.summary().catch(() => null),
     ]);
-    if (results.every(({ status }) => status === "rejected")) {
+    if (results.every(({ status }) => status === "rejected") && !chatSummary &&
+        !["transactions", "bookings", "webhooks"].some((key) => financialSummary?.[key]?.status === "available")) {
       throw new HttpError(503, "DEPENDENCY_UNAVAILABLE", "Portfolio statistics are unavailable");
     }
     const values = Object.fromEntries(Object.keys(metrics).map((key, index) => [key, results[index].status === "fulfilled" ? results[index].value : null]));
-    if (!res.headersSent) res.json({ ...values, totalChats: chatSummary?.turns ?? null, chatSummary, availability: db.status(), generatedAt: new Date().toISOString() });
+    const bookings = financialSummary?.bookings.data;
+    const payments = financialSummary?.transactions.data;
+    if (!res.headersSent) res.json({ ...values,
+      totalBookings: bookings?.total ?? null, paidBookings: bookings?.confirmedPaid ?? null,
+      createdBookings: bookings?.created ?? null, pendingBookings: bookings?.pending ?? null, failedBookings: bookings?.failed ?? null,
+      totalSupportPayments: payments?.attempts.supportCount ?? null, paidSupportPayments: payments?.paid.supportCount ?? null,
+      pendingSupportPayments: payments?.attempts.pendingSupport ?? null,
+      totalChats: chatSummary?.turns ?? null, chatSummary, financialSummary, availability: db.status(), generatedAt: new Date().toISOString() });
   }));
   return router;
 }

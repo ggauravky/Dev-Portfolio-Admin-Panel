@@ -54,6 +54,12 @@ A modern, blazing-fast admin panel that gives you:
 - Visual data representation
 - Quick access metrics
 
+### Financial Control Center
+
+- Read-only Razorpay transactions, bookings, receipts, webhook events and reconciliation
+- Seven-day dashboard snapshot with separate checkout and paid-date reporting
+- [Financial data contracts and operating limits](docs/admin-financial-control-phase-5.md)
+
 ### 📬 Contact Management
 
 - View all contact messages
