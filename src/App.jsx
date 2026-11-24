@@ -1,8 +1,9 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/admin/Login';
 import Dashboard from './pages/admin/Dashboard';
-import Contacts from './pages/admin/Contacts';
-import Newsletter from './pages/admin/Newsletter';
+import BusinessPage from './pages/admin/business/Registry';
+import Security from './pages/admin/business/Security';
+import System from './pages/admin/business/System';
 import Chats from './pages/admin/Chats';
 import Finance from './pages/admin/Finance';
 import AdminRoutes from './routes/AdminRoutes';
@@ -19,8 +20,16 @@ function App() {
                 {/* Protected admin routes */}
                 <Route element={<AdminRoutes />}>
                     <Route path="/admin" element={<Dashboard />} />
-                    <Route path="/admin/contacts" element={<Contacts />} />
-                    <Route path="/admin/newsletter" element={<Newsletter />} />
+                    <Route path="/admin/contacts/:id?" element={<BusinessPage kind="contacts" />} />
+                    <Route path="/admin/newsletter/:id?" element={<BusinessPage kind="newsletters" />} />
+                    <Route path="/admin/users/:id?" element={<BusinessPage kind="users" />} />
+                    <Route path="/admin/activity/:id?" element={<BusinessPage kind="activity" />} />
+                    <Route path="/admin/blog-engagement/:id?" element={<BusinessPage kind="blog-posts" />} />
+                    <Route path="/admin/blog-engagement/supports/:id?" element={<BusinessPage kind="blog-supports" />} />
+                    <Route path="/admin/security" element={<Security />} />
+                    <Route path="/admin/security/audit/:id?" element={<Security audit />} />
+                    <Route path="/admin/system" element={<System />} />
+                    <Route path="/admin/settings" element={<System settings />} />
                     <Route path="/admin/chats" element={<Chats />} />
                     <Route path="/admin/financial" element={<Finance />} />
                     <Route path="/admin/financial/:view" element={<Finance />} />

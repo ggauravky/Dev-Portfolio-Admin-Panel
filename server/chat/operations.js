@@ -1,5 +1,6 @@
 const { maxTimeMS, shortCache } = require("./access");
 const config = require("../contracts/portfolio-chat-corpus.json");
+const chatRetention = { turnRetentionDays: 180, cacheRetentionHours: 24 };
 
 const limits = {
   groq: { rpm: 25, rpd: 900, tpm: 7000, tpd: 180000 },
@@ -51,9 +52,9 @@ function createOperations(access, db, now) {
       })),
       section(() => access.run("chat_cache", (collection) => collection.countDocuments({ expireAt: { $gt: at } }, { maxTimeMS }))),
     ]);
-    return { database: db.status().chat, observedAt: at, corpusVersion: config.version, turnRetentionDays: 180, cacheRetentionHours: 24,
+    return { database: db.status().chat, observedAt: at, corpusVersion: config.version, ...chatRetention,
       configured: { providers: limits, generationStartsPer10s: 6 }, quota, cooldowns, cacheEntries };
   });
 }
 
-module.exports = { createOperations, currentWindows };
+module.exports = { createOperations, currentWindows, chatRetention };

@@ -60,6 +60,12 @@ A modern, blazing-fast admin panel that gives you:
 - Seven-day dashboard snapshot with separate checkout and paid-date reporting
 - [Financial data contracts and operating limits](docs/admin-financial-control-phase-5.md)
 
+### Business operations
+
+- Registered users, contact inbox, newsletter subscriptions, and blog engagement
+- Recorded user activity, administrator audit and sessions, and system health
+- [Business reporting definitions and access policy](docs/admin-business-operations-phase-6.md)
+
 ### 📬 Contact Management
 
 - View all contact messages

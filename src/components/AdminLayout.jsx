@@ -112,6 +112,11 @@ const AdminLayout = ({ children }) => {
                                 </svg>
                                 Finance
                             </Link>
+                            <Link to="/admin/users"
+                                className={`inline-flex items-center px-4 py-2 rounded-lg text-sm font-semibold ${/^\/admin\/(users|activity|blog-engagement|security|system|settings)(\/|$)/.test(location.pathname)
+                                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg' : 'text-gray-600 hover:bg-gray-100'}`}>
+                                Operations
+                            </Link>
                         </div>
                         <div className="flex shrink-0 items-center">
                             <button

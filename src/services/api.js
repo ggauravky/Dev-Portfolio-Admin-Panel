@@ -44,9 +44,33 @@ export const login = (email, password) => request("/login", {
 });
 export const getSession = (signal) => request("/me", { signal, notify: false });
 export const logout = (csrfToken) => request("/logout", { method: "POST", csrfToken, notify: false });
-export const getStats = () => request("/stats");
-export const getContacts = list("/contacts");
-export const getNewsletters = list("/newsletters");
+export const getStats = (query, signal) => request("/stats", { signal }).then((data) => ({ data }));
+export const getBusinessAnalytics = list("/business-analytics");
+export const getSystemStatus = (query, signal) => request("/system", { signal });
+export const getAdminSessions = (query, signal) => request("/sessions", { signal });
+export function revokeAdminSessions(scope, id, csrfToken) {
+  const path = scope === "one" ? "/" + encodeURIComponent(id) : "/revoke-" + scope;
+  return request("/sessions" + path, { method: scope === "one" ? "DELETE" : "POST", csrfToken });
+}
+export function clearRevokedSession() {
+  markSessionChanged();
+  window.dispatchEvent(new Event(sessionExpiredEvent));
+}
+const businessEndpoints = new Set(["users", "contacts", "newsletters", "activity", "blog-posts", "blog-supports", "audit-events"]);
+export async function getBusinessRecords(query, signal) {
+  const params = new URLSearchParams(query);
+  const endpoint = params.get("endpoint");
+  const id = params.get("id");
+  const owner = params.get("owner");
+  for (const key of ["endpoint", "id", "owner"]) params.delete(key);
+  if (owner && !["activity", "bookings", "transactions", "blog-supports"].includes(endpoint) || !owner && !businessEndpoints.has(endpoint)) {
+    throw new Error("Invalid business record view.");
+  }
+  const path = (owner ? "/users/" + encodeURIComponent(owner) : "") + "/" + endpoint;
+  if (!id) return list(path)(params, signal);
+  const detail = await request(path + "/" + encodeURIComponent(id), { signal });
+  return endpoint === "audit-events" ? detail : { data: detail };
+}
 const financialPaths = {
   transactions: "/transactions", bookings: "/bookings", "support-payments": "/support-payments",
   receipts: "/receipts", "webhook-events": "/webhook-events", "legacy-payments": "/legacy-payments",

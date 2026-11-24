@@ -1,5 +1,5 @@
 const { mongo: { ObjectId } } = require("mongoose");
-const { invalid, missing, unavailable } = require("../utils/http");
+const { HttpError, invalid, missing, unavailable } = require("../utils/http");
 const contract = require("../contracts/portfolio-schema.json");
 
 const specs = {
@@ -72,23 +72,28 @@ function listQuery(query, spec, fixed) {
   return { filter, sort: { [field]: dir, _id: dir }, skip, page: skip / pageSize + 1, pageSize };
 }
 
-function repository(db, collection, fixed = {}) {
-  const spec = specs[collection];
-  const definition = contract.collections[collection];
-  const fields = spec.fields ? words(spec.fields) : Object.keys(definition.fields).filter((key) => !key.includes(".") && key !== "__v" && !words(spec.exclude).includes(key));
-  const projection = Object.fromEntries(fields.map((field) => [field, 1]));
-  const dependency = definition.database;
-  async function access(operation) {
+function collectionRead(db, collection, dependency = contract.collections[collection].database) {
+  return async function access(operation) {
     await db.connect?.(dependency);
     const database = db.get(dependency);
     if (!database || db.hasCollection?.(dependency, collection) === false) throw unavailable(dependency);
     try {
       return await operation(database.collection(collection));
     } catch (error) {
+      if (error.code === 13) throw new HttpError(503, "READ_PERMISSION", "Collection read permission is unavailable");
       if (/Mongo(Network|ServerSelection|NotConnected)/.test(error.name)) db.invalidate?.(dependency);
       throw unavailable(dependency);
     }
-  }
+  };
+}
+
+function repository(db, collection, fixed = {}) {
+  const spec = specs[collection];
+  const definition = contract.collections[collection];
+  const fields = spec.fields ? words(spec.fields) : Object.keys(definition.fields).filter((key) => !key.includes(".") && key !== "__v" && !words(spec.exclude).includes(key));
+  const projection = Object.fromEntries(fields.map((field) => [field, 1]));
+  const dependency = definition.database;
+  const access = collectionRead(db, collection, dependency);
   return {
     list(query) {
       const { filter, sort, skip, page, pageSize } = listQuery(query, spec, fixed);
@@ -112,4 +117,4 @@ function repository(db, collection, fixed = {}) {
   };
 }
 
-module.exports = { repository, listQuery, identifier };
+module.exports = { repository, collectionRead, listQuery, identifier, maxTimeMS };
