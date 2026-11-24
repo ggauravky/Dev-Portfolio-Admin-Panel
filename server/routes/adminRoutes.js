@@ -1,8 +1,6 @@
 const express = require("express");
-const jwt = require("jsonwebtoken");
-const { timingSafeEqual, createHash } = require("node:crypto");
 const { repository } = require("../repositories/reads");
-const { HttpError, invalid, send, asyncRoute } = require("../utils/http");
+const { HttpError, send, asyncRoute } = require("../utils/http");
 
 const resources = {
   contacts: ["contacts", "contacts"], newsletters: ["newsletters", "newsletters"],
@@ -15,30 +13,27 @@ const resources = {
 };
 const capabilities = Object.fromEntries(Object.keys(resources).map((path) => [path, { read: true, write: false }]));
 const denied = () => new HttpError(403, "OPERATION_DISABLED", "This operation is disabled");
-const unauthenticated = () => new HttpError(401, "UNAUTHENTICATED", "Authentication required");
-const digest = (value) => createHash("sha256").update(value).digest();
 
-function createAdminRouter({ config, db }) {
+function createAdminRouter({ config, db, security }) {
   const router = express.Router();
   const repositories = {};
-  const auth = (req, res, next) => {
-    try {
-      const value = req.get("authorization")?.match(/^Bearer (\S+)$/i)?.[1];
-      if (!value) throw unauthenticated();
-      const decoded = jwt.verify(value, config.jwtSecret, { algorithms: ["HS256"] });
-      if (decoded.email !== config.email) throw unauthenticated();
-      next();
-    } catch {
-      next(unauthenticated());
-    }
-  };
-  router.post("/login", asyncRoute((req, res) => {
-    const { email, password } = req.body || {};
-    if (typeof email !== "string" || typeof password !== "string" || !email.trim() || !password.trim()) throw invalid("Email and password are required");
-    const match = timingSafeEqual(digest(password.trim()), digest(config.password));
-    if (email.trim().toLowerCase() !== config.email || !match) throw new HttpError(401, "UNAUTHENTICATED", "Invalid credentials");
-    res.json({ token: jwt.sign({ email: config.email }, config.jwtSecret, { algorithm: "HS256", expiresIn: "7d" }), message: "Login successful" });
+  const auth = (req, res, next) => security.authenticate(req).then(() => next(), next);
+  const sessionCapabilities = { ...capabilities, sessions: { read: true, revoke: true } };
+  router.post("/login", asyncRoute(async (req, res) => {
+    const data = await security.login(req, res);
+    if (data) send(res, { ...data, capabilities: sessionCapabilities });
   }));
+  router.get("/me", auth, (req, res) => send(res, { ...security.me(req), capabilities: sessionCapabilities }));
+  router.post("/logout", asyncRoute(async (req, res) => {
+    await security.logout(req, res);
+    send(res, { loggedOut: true });
+  }));
+  router.get("/sessions", auth, asyncRoute(async (req, res) => send(res, { items: await security.list(req) })));
+  for (const [method, path, scope] of [
+    ["delete", "/sessions/:id", "one"], ["post", "/sessions/revoke-others", "others"], ["post", "/sessions/revoke-all", "all"],
+  ]) {
+    router[method](path, auth, asyncRoute(async (req, res) => send(res, await security.revokeSessions(req, res, scope))));
+  }
 
   for (const [path, [collection, legacy, fixed]] of Object.entries(resources)) {
     const read = repository(db, collection, fixed);
@@ -52,13 +47,16 @@ function createAdminRouter({ config, db }) {
       if (!res.headersSent) res.json(record);
     }));
     for (const [method, suffix] of [["post", ""], ["post", "/bulk-delete"], ["put", "/:id"], ["patch", "/:id"], ["delete", "/:id"]]) {
-      router[method]("/" + path + suffix, auth, (req, res, next) => next(denied()));
+      router[method]("/" + path + suffix, auth, asyncRoute(async (req) => {
+        await security.authorizationDenied(req);
+        throw denied();
+      }));
     }
   }
   router.get("/system", auth, asyncRoute(async (req, res) => {
     await Promise.all([db.connect?.("primary"), db.connect?.("chat")]);
     const dependencies = db.status();
-    send(res, { dependencies, configuration: "valid", ready: dependencies.primary === "available", readOnly: true, globalReadOnly: config.readOnly, capabilities });
+    send(res, { dependencies, configuration: "valid", ready: dependencies.primary === "available" && dependencies.admin === "available", readOnly: true, globalReadOnly: config.readOnly, capabilities: sessionCapabilities });
   }));
   router.get("/stats", auth, asyncRoute(async (req, res) => {
     const count = (path, filter) => repositories[path].count(filter);

@@ -4,8 +4,10 @@ const helmet = require("helmet");
 const { randomUUID } = require("node:crypto");
 const { createAdminRouter } = require("./routes/adminRoutes");
 const { HttpError, asyncRoute, missing } = require("./utils/http");
+const { createSecurityStore } = require("./auth/store");
+const { createAuthService } = require("./auth/service");
 
-function createApp({ config, db, log = (event) => console.log(JSON.stringify(event)) }) {
+function createApp({ config, db, store = createSecurityStore(db), now, log = (event) => console.log(JSON.stringify(event)) }) {
   const app = express();
   app.disable("x-powered-by");
   app.set("trust proxy", config.proxyHops || false);
@@ -34,11 +36,13 @@ function createApp({ config, db, log = (event) => console.log(JSON.stringify(eve
   app.use(express.json({ limit: "32kb" }));
   app.get("/", (req, res) => res.json({ message: "Admin API running", status: "ok" }));
   app.get("/ready", asyncRoute(async (req, res) => {
-    await db.connect?.("primary");
-    const ready = db.status().primary === "available";
+    await Promise.all([db.connect?.("primary"), db.connect?.("admin")]);
+    const status = db.status();
+    const ready = status.primary === "available" && status.admin === "available";
     if (!res.headersSent) res.status(ready ? 200 : 503).json({ ready });
   }));
-  app.use("/api/admin", createAdminRouter({ config, db }));
+  const security = createAuthService(config, store, { now, log });
+  app.use("/api/admin", security.trustedProxy, createAdminRouter({ config, db, security }));
   app.use((req, res, next) => next(missing()));
   app.use((error, req, res, next) => {
     if (res.headersSent) return;

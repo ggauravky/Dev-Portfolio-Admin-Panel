@@ -1,5 +1,6 @@
 const { mongo: { MongoClient } } = require("mongoose");
 const { isIP } = require("node:net");
+const { validHash } = require("../auth/password");
 
 function fail(key) {
   throw new Error("Invalid or missing configuration: " + key);
@@ -59,19 +60,27 @@ function readConfig(env = process.env) {
   if (mode === "production" && !origins.length) fail("ADMIN_ALLOWED_ORIGINS or FRONTEND_URL");
   if (mode !== "production") origins.push(...[3000, 5173, 5174].map((port) => "http://localhost:" + port));
   if (env.READ_ONLY_MODE !== undefined && !["true", "false"].includes(env.READ_ONLY_MODE)) fail("READ_ONLY_MODE");
-  if (!env.ADMIN_EMAIL?.trim()) fail("ADMIN_EMAIL");
-  if (!env.ADMIN_PASSWORD?.trim()) fail("ADMIN_PASSWORD");
-  if (!env.JWT_SECRET?.trim()) fail("JWT_SECRET");
+  const email = env.ADMIN_EMAIL?.trim().toLowerCase();
+  if (!email || email.length > 254 || !/^[^\s@]+@[^\s@]+$/.test(email)) fail("ADMIN_EMAIL");
+  if (!validHash(env.ADMIN_PASSWORD_HASH)) fail("ADMIN_PASSWORD_HASH");
+  if (!env.ADMIN_DB_NAME) fail("ADMIN_DB_NAME");
+  const databases = readDatabaseConfig(env);
+  const admin = database(env.ADMIN_MONGODB_URI, env.ADMIN_DB_NAME, "ADMIN_MONGODB_URI");
+  if ([databases.primary.name, "portfolio_chat"].includes(admin.name)) fail("ADMIN_DB_NAME must be dedicated");
+  if (mode === "production" && !/^[a-f0-9]{64}$/i.test(env.ADMIN_PROXY_SECRET || "")) fail("ADMIN_PROXY_SECRET");
 
   return {
-    ...readDatabaseConfig(env),
-    mode, origins,
+    ...databases,
+    mode, origins, admin,
     readOnly: env.READ_ONLY_MODE === "true",
     port: integer(env.PORT, 5000, 1, 65535, "PORT"),
     proxyHops: integer(env.TRUST_PROXY_HOPS, 0, 0, 2, "TRUST_PROXY_HOPS"),
-    email: env.ADMIN_EMAIL.trim().toLowerCase(),
-    password: env.ADMIN_PASSWORD.trim(),
-    jwtSecret: env.JWT_SECRET,
+    email,
+    passwordHash: env.ADMIN_PASSWORD_HASH,
+    proxySecret: env.ADMIN_PROXY_SECRET,
+    idleMinutes: integer(env.ADMIN_SESSION_IDLE_MINUTES, 30, 5, 120, "ADMIN_SESSION_IDLE_MINUTES"),
+    maxHours: integer(env.ADMIN_SESSION_MAX_HOURS, 12, 1, 24, "ADMIN_SESSION_MAX_HOURS"),
+    auditDays: integer(env.ADMIN_AUDIT_RETENTION_DAYS, 90, 7, 365, "ADMIN_AUDIT_RETENTION_DAYS"),
   };
 }
 

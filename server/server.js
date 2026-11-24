@@ -16,12 +16,12 @@ function start() {
   }
   if (config.dnsServers.length) require("node:dns").setServers(config.dnsServers);
   const db = createDatabases(config, { log });
-  const server = createApp({ config, db, log }).listen(config.port);
+  const server = createApp({ config, db, log }).listen(config.port, config.mode === "production" ? undefined : "127.0.0.1");
   server.requestTimeout = 15_000;
   server.headersTimeout = 10_000;
   server.once("listening", () => {
     log({ event: "server_started" });
-    void Promise.all([db.connect("primary"), db.connect("chat")]);
+    void Promise.all([db.connect("primary"), db.connect("chat"), db.connect("admin")]);
   });
   let stopping = false;
   async function shutdown() {

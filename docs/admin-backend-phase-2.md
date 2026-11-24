@@ -1,5 +1,7 @@
 # Admin API Phase 2 deployment notes
 
+The authentication configuration and direct frontend API URL below are historical. Use [Phase 3 authentication and rollout](admin-auth-phase-3.md) for the current deployment instructions.
+
 Phase 2 introduces a read-only Admin API on the existing Vercel/Render topology. The Portfolio service still owns all shared writes. No production change is required for local verification.
 
 ## Configuration

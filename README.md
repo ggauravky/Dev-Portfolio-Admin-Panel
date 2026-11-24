@@ -37,7 +37,7 @@ A modern, blazing-fast admin panel that gives you:
 - ✅ **Smart Filtering** - Powerful search, sort, and filter capabilities
 - ✅ **Full Control** - Complete CRUD operations with intuitive UI
 - ✅ **Professional Dashboard** - Beautiful analytics and data visualization
-- ✅ **Secure** - JWT-based authentication with protected routes
+- ✅ **Secure** - Revocable administrator sessions with protected routes
 
 ---
 
@@ -75,7 +75,7 @@ A modern, blazing-fast admin panel that gives you:
 
 ### 🔐 Security & Auth
 
-- Secure JWT authentication
+- Argon2id administrator credentials and server-managed sessions
 - Protected admin routes
 - Session management
 - Role-based access control
@@ -104,7 +104,7 @@ A modern, blazing-fast admin panel that gives you:
 | ![Node.js](https://img.shields.io/badge/Node.js-339933?style=flat&logo=node.js&logoColor=white) | Runtime        |
 | ![Express](https://img.shields.io/badge/Express-000000?style=flat&logo=express&logoColor=white) | Web Framework  |
 | ![MongoDB](https://img.shields.io/badge/MongoDB-47A248?style=flat&logo=mongodb&logoColor=white) | Database       |
-| ![JWT](https://img.shields.io/badge/JWT-000000?style=flat&logo=json-web-tokens&logoColor=white) | Authentication |
+| Argon2id and MongoDB sessions | Authentication |
 
 ### Deployment
 
@@ -149,24 +149,7 @@ npm install
 
 4. **Setup Environment Variables**
 
-**Frontend** - Create `.env.local` in root:
-
-```env
-VITE_API_URL=http://localhost:5000/api/admin
-```
-
-**Backend** - Create `.env` in `server/` folder:
-
-```env
-PORT=5000
-MONGO_URI=your_mongodb_connection_string
-JWT_SECRET=your_jwt_secret_minimum_32_characters
-ADMIN_EMAIL=your_admin_email@example.com
-ADMIN_PASSWORD=your_secure_password
-FRONTEND_URL=http://localhost:5173
-NODE_ENV=development
-READ_ONLY_MODE=false
-```
+The Vite development server proxies `/api/admin` to the backend on port 5000. Copy [server/.env.example](server/.env.example) to the ignored `server/.env`. Generate credentials and provision the isolated Admin database using the [authentication setup guide](docs/admin-auth-phase-3.md).
 
 5. **Run Development Servers**
 
@@ -209,12 +192,9 @@ Portfolio-Admin-Panel/
 │   └── App.jsx                 # Main app component
 │
 ├── 📁 server/                   # Backend source code
-│   ├── 📁 middleware/          # Express middleware
-│   │   ├── auth.js             # JWT authentication
-│   │   └── readOnly.js         # Read-only mode
-│   ├── 📁 models/              # MongoDB schemas
-│   │   ├── Contact.js          # Contact model
-│   │   └── Newsletter.js       # Newsletter model
+│   ├── 📁 auth/                # Credentials and session storage
+│   ├── 📁 config/              # Runtime configuration and MongoDB pools
+│   ├── 📁 repositories/        # Portfolio read projections
 │   ├── 📁 routes/              # API routes
 │   │   └── adminRoutes.js      # Admin endpoints
 │   └── server.js               # Express server
@@ -229,34 +209,7 @@ Portfolio-Admin-Panel/
 
 ## 🌐 Deployment
 
-### Deploy Frontend on Vercel
-
-1. **Connect your GitHub repository to Vercel**
-2. **Set Environment Variables:**
-   ```env
-   VITE_API_URL=https://your-backend-url.onrender.com/api/admin
-   ```
-3. **Deploy!** Vercel will auto-deploy on every push to main
-
-### Deploy Backend on Render
-
-1. **Create a new Web Service on Render**
-2. **Connect your GitHub repository**
-3. **Set Build Command:** `npm install` (in server directory)
-4. **Set Start Command:** `npm start`
-5. **Set Environment Variables:**
-   ```env
-   PORT=5000
-   MONGO_URI=your_mongodb_atlas_connection_string
-   JWT_SECRET=your_secure_jwt_secret_key
-   ADMIN_EMAIL=your_admin_email@example.com
-   ADMIN_PASSWORD=your_secure_password
-   FRONTEND_URL=https://your-vercel-app.vercel.app
-   NODE_ENV=production
-   READ_ONLY_MODE=false
-   ```
-
-> ⚠️ **Important:** Make sure `FRONTEND_URL` matches your Vercel deployment URL (without trailing slash) to avoid CORS issues!
+Deploy the frontend and its same-origin API Function on Vercel. Deploy the Express backend from `server/` on Render. The [authentication rollout guide](docs/admin-auth-phase-3.md) lists the paired environment variables, MongoDB permissions, verification, and rollback steps.
 
 ---
 
@@ -264,11 +217,11 @@ Portfolio-Admin-Panel/
 
 | Feature                      | Description                           |
 | ---------------------------- | ------------------------------------- |
-| 🔒 **JWT Authentication**    | Secure token-based authentication     |
+| 🔒 **Administrator Sessions** | HttpOnly cookies and revocable server-side sessions |
 | 🛡️ **Protected Routes**      | Frontend and backend route protection |
 | 🔑 **Environment Variables** | Sensitive data stored securely        |
 | 🚫 **CORS Configuration**    | Whitelist trusted origins only        |
-| ⏰ **Token Expiration**      | Auto-logout after 7 days              |
+| ⏰ **Session Expiration**    | Idle and absolute expiry             |
 | 🔐 **Helmet.js**             | Security headers protection           |
 
 ---

@@ -7,10 +7,12 @@ import Chats from './pages/admin/Chats';
 import Bookings from './pages/admin/Bookings';
 import SupportPayments from './pages/admin/SupportPayments';
 import AdminRoutes from './routes/AdminRoutes';
+import { AdminAuthProvider } from './context/AdminAuth';
 
 function App() {
     return (
         <BrowserRouter>
+          <AdminAuthProvider>
             <Routes>
                 <Route path="/" element={<Navigate to="/admin" />} />
                 <Route path="/admin/login" element={<Login />} />
@@ -26,6 +28,7 @@ function App() {
                     <Route path="/admin/*" element={<Navigate to="/admin" replace />} />
                 </Route>
             </Routes>
+          </AdminAuthProvider>
         </BrowserRouter>
     );
 }

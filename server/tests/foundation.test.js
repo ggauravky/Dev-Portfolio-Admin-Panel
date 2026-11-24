@@ -1,18 +1,11 @@
 const assert = require("node:assert/strict");
 const { once } = require("node:events");
 const { test } = require("node:test");
-const jwt = require("jsonwebtoken");
+const { fixtureEnv, fixtureStore, email, password, origin } = require("./auth-fixture");
 
-const env = {
-  PORTFOLIO_MONGODB_URI: "mongodb://localhost/fixture",
-  PORTFOLIO_DB_NAME: "fixture",
-  ADMIN_EMAIL: "owner@example.test",
-  ADMIN_PASSWORD: "fixture-password",
-  JWT_SECRET: "fixture-only-signing-secret",
-};
-
-test("configuration binds explicitly and rejects ambiguous database identities", () => {
+test("configuration binds explicitly and rejects ambiguous database identities", async () => {
   const { readConfig } = require("../config/env");
+  const env = await fixtureEnv();
   assert.equal(readConfig(env).primary.name, "fixture");
   for (const overrides of [
     { PORTFOLIO_MONGODB_URI: "" },
@@ -28,7 +21,7 @@ test("full app protects reads and isolates unavailable chat and financial writes
   const { readConfig } = require("../config/env");
   const calls = [];
   const db = {
-    status: () => ({ primary: "available", chat: "not_configured" }),
+    status: () => ({ primary: "available", chat: "not_configured", admin: "available" }),
     hasCollection: (key, name) => key === "primary" && name !== "paymentwebhookevents",
     get: (name) => name === "primary" ? {
       collection: () => ({
@@ -40,13 +33,18 @@ test("full app protects reads and isolates unavailable chat and financial writes
       }),
     } : null,
   };
-  const server = createApp({ config: readConfig(env), db, log: () => {} }).listen(0, "127.0.0.1");
+  const server = createApp({ config: readConfig(await fixtureEnv()), db, store: fixtureStore(), log: () => {} }).listen(0, "127.0.0.1");
   t.after(() => new Promise((resolve) => server.close(resolve)));
   await once(server, "listening");
   const base = `http://127.0.0.1:${server.address().port}`;
-  const token = jwt.sign({ email: env.ADMIN_EMAIL }, env.JWT_SECRET);
+  const login = await fetch(base + "/api/admin/login", {
+    method: "POST", headers: { "Content-Type": "application/json", Origin: origin },
+    body: JSON.stringify({ email, password }),
+  });
+  assert.equal(login.status, 200);
+  const cookie = login.headers.get("set-cookie").split(";")[0];
   const request = (path, method = "GET") => fetch(base + "/api/admin" + path, {
-    method, headers: { Authorization: `Bearer ${token}`, "X-Request-Id": "fixture-request" },
+    method, headers: { Cookie: cookie, "X-Request-Id": "fixture-request" },
   });
   assert.equal((await fetch(base + "/api/admin/contacts")).status, 401);
   assert.equal((await fetch(base + "/ready")).status, 200);
@@ -77,18 +75,13 @@ test("full app protects reads and isolates unavailable chat and financial writes
   assert.equal(stats.totalChats, null);
   assert.equal((await request("/system")).status, 200);
   assert.equal((await request("/newsletters/507f1f77bcf86cd799439011", "PUT")).status, 403);
-  const login = await fetch(base + "/api/admin/login", {
-    method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email: env.ADMIN_EMAIL, password: env.ADMIN_PASSWORD }),
-  });
-  assert.equal(login.status, 200);
-  assert.equal(jwt.verify((await login.json()).token, env.JWT_SECRET).email, env.ADMIN_EMAIL);
 });
 
 test("pools verify existing collections, isolate errors, recover after cooldown and close", async () => {
   const { createDatabases } = require("../config/database");
   const { readConfig } = require("../config/env");
-  const config = readConfig({ ...env, CHAT_MONGODB_URI: "mongodb://localhost/portfolio_chat" });
+  const config = readConfig(await fixtureEnv({ CHAT_MONGODB_URI: "mongodb://localhost/portfolio_chat" }));
+  delete config.admin; // This fixture covers only the Phase 2 pools.
   const selected = [];
   const instances = [];
   let chatAvailable = false;

@@ -1,33 +1,38 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { login } from "../../services/api";
+import { useRef, useState } from "react";
+import { Navigate, useLocation } from "react-router-dom";
+import { useAdminAuth } from "../../context/AdminAuth";
+import { intendedDestination } from "../../routes/AdminRoutes";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
-  const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
+  const submitting = useRef(false);
+  const { signIn, status, message } = useAdminAuth();
+  const location = useLocation();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (submitting.current) return;
+    submitting.current = true;
     setError("");
     setLoading(true);
 
     try {
-      const data = await login(email.trim(), password.trim());
-      localStorage.setItem("adminToken", data.token);
-      if (rememberMe) {
-        localStorage.setItem("rememberedEmail", email.trim());
-      }
-      navigate("/admin");
+      await signIn(email.trim(), password);
+      setPassword("");
     } catch (err) {
       setError(err.message);
     } finally {
+      submitting.current = false;
       setLoading(false);
     }
   };
+
+  if (status === "authenticated") return <Navigate replace to={intendedDestination(location.state?.from)} />;
+  if (status === "checking") return <p role="status" className="p-8">Checking administrator session…</p>;
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 relative overflow-hidden">
@@ -71,7 +76,7 @@ const Login = () => {
                 Control panel for leads, subscriptions, and AI chat analytics.
               </h1>
               <p className="mt-4 text-cyan-100 leading-relaxed">
-                Sign in to monitor visitor activity and manage inbound conversations in real time. Track bookings, manage emails, and analyze AI chat metrics.
+                Sign in to review contacts, subscriptions, bookings, and conversation records.
               </p>
             </div>
 
@@ -79,7 +84,6 @@ const Login = () => {
               <InfoTile label="Contacts" value="Inbox triage" icon="📧" />
               <InfoTile label="Bookings" value="Service tracking" icon="📅" />
               <InfoTile label="AI Chats" value="Conversation logs" icon="💬" />
-              <InfoTile label="Security" value="Token protected" icon="🔒" />
             </div>
           </div>
 
@@ -102,23 +106,22 @@ const Login = () => {
               </div>
 
               {/* Error Alert */}
-              {error && (
-                <div className="mb-6 rounded-xl border border-red-800/50 bg-red-900/30 px-4 py-3 text-red-200 text-sm flex items-start gap-3 animate-in shake">
+              {(error || status === "unavailable") && (
+                <div role="alert" className="mb-6 rounded-xl border border-red-800/50 bg-red-900/30 px-4 py-3 text-red-200 text-sm flex items-start gap-3 animate-in shake">
                   <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                   </svg>
                   <div>
-                    <p className="font-semibold">Login failed</p>
-                    <p className="text-red-100">{error}</p>
+                    <p className="text-red-100">{error || message}</p>
                   </div>
                 </div>
               )}
 
               {/* Form */}
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} aria-busy={loading} className="space-y-4">
                 {/* Email Input */}
                 <div className="group">
-                  <label className="block text-sm font-semibold text-slate-300 mb-2 flex items-center gap-2">
+                  <label htmlFor="admin-email" className="block text-sm font-semibold text-slate-300 mb-2 flex items-center gap-2">
                     <svg className="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
@@ -126,10 +129,15 @@ const Login = () => {
                   </label>
                   <input
                     type="email"
+                    id="admin-email"
+                    name="username"
+                    autoComplete="username"
+                    autoCapitalize="none"
+                    spellCheck={false}
+                    maxLength={254}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="w-full rounded-xl border border-slate-700 bg-slate-800/50 px-4 py-3 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:bg-slate-800 focus:border-cyan-500 transition-all duration-200"
-                    placeholder="admin@portfolio.com"
                     required
                   />
                 </div>
@@ -137,37 +145,31 @@ const Login = () => {
                 {/* Password Input */}
                 <div className="group">
                   <div className="flex items-center justify-between mb-2">
-                    <label className="text-sm font-semibold text-slate-300 flex items-center gap-2">
+                    <label htmlFor="admin-password" className="text-sm font-semibold text-slate-300 flex items-center gap-2">
                       <svg className="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                       </svg>
                       Password
                     </label>
+                    <button type="button" aria-controls="admin-password"
+                      className="text-sm text-cyan-300" onClick={() => setShowPassword((value) => !value)}>
+                      {showPassword ? "Hide password" : "Show password"}
+                    </button>
                   </div>
                   <input
-                    type="password"
+                    type={showPassword ? "text" : "password"}
+                    id="admin-password"
+                    name="password"
+                    autoComplete="current-password"
+                    spellCheck={false}
+                    autoCapitalize="none"
+                    maxLength={256}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="w-full rounded-xl border border-slate-700 bg-slate-800/50 px-4 py-3 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:bg-slate-800 focus:border-cyan-500 transition-all duration-200"
                     placeholder="••••••••"
                     required
                   />
-                </div>
-
-                {/* Remember Me & Forgot Password */}
-                <div className="flex items-center justify-between text-sm">
-                  <label className="flex items-center gap-2 cursor-pointer group">
-                    <input
-                      type="checkbox"
-                      checked={rememberMe}
-                      onChange={(e) => setRememberMe(e.target.checked)}
-                      className="w-4 h-4 rounded border-slate-700 bg-slate-800 checked:bg-cyan-500 checked:border-cyan-500 cursor-pointer"
-                    />
-                    <span className="text-slate-400 group-hover:text-slate-300 transition-colors">Remember me</span>
-                  </label>
-                  <a href="#" className="text-cyan-400 hover:text-cyan-300 font-medium transition-colors">
-                    Forgot password?
-                  </a>
                 </div>
 
                 {/* Submit Button */}
@@ -195,7 +197,7 @@ const Login = () => {
               {/* Footer */}
               <div className="mt-8 pt-6 border-t border-slate-800">
                 <p className="text-center text-xs text-slate-500 mb-3">
-                  Authorized access only. Session is secured with JWT authentication.
+                  Authorized access only.
                 </p>
                 <div className="flex items-center justify-center gap-3">
                   <a
@@ -215,14 +217,6 @@ const Login = () => {
           </div>
         </div>
 
-        {/* Mobile info - shown only on small screens */}
-        <div className="absolute bottom-4 left-4 right-4 lg:hidden z-10">
-          <div className="rounded-2xl bg-slate-900/80 backdrop-blur border border-slate-800 p-4">
-            <p className="text-xs text-slate-400 text-center">
-              📧 Contacts • 📅 Bookings • 💬 AI Chats • 🔒 Secure
-            </p>
-          </div>
-        </div>
       </div>
     </div>
   );

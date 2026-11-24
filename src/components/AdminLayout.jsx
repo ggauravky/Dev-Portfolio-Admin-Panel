@@ -1,13 +1,28 @@
 /* eslint-disable react/prop-types */
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useRef, useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { useAdminAuth } from '../context/AdminAuth';
 
 const AdminLayout = ({ children }) => {
-    const navigate = useNavigate();
     const location = useLocation();
+    const { signOut } = useAdminAuth();
+    const [error, setError] = useState('');
+    const [loggingOut, setLoggingOut] = useState(false);
+    const submitting = useRef(false);
 
-    const handleLogout = () => {
-        localStorage.removeItem('adminToken');
-        navigate('/admin/login');
+    const handleLogout = async () => {
+        if (submitting.current) return;
+        submitting.current = true;
+        setLoggingOut(true);
+        setError('');
+        try {
+            await signOut();
+        } catch (failure) {
+            setError(failure.message);
+        } finally {
+            submitting.current = false;
+            setLoggingOut(false);
+        }
     };
 
     return (
@@ -101,12 +116,14 @@ const AdminLayout = ({ children }) => {
                         <div className="flex items-center">
                             <button
                                 onClick={handleLogout}
+                                type="button"
+                                disabled={loggingOut}
                                 className="flex items-center px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-red-50 hover:text-red-600 rounded-lg transition-all duration-200"
                             >
                                 <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                                 </svg>
-                                Logout
+                                {loggingOut ? 'Signing out…' : 'Logout'}
                             </button>
                         </div>
                     </div>
@@ -115,6 +132,7 @@ const AdminLayout = ({ children }) => {
 
             {/* Main Content */}
             <main className="max-w-7xl mx-auto py-8 sm:px-6 lg:px-8">
+                {error && <p role="alert" className="text-red-700">{error}</p>}
                 {children}
             </main>
         </div>

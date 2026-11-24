@@ -1,17 +1,19 @@
 const { mongo: { MongoClient } } = require("mongoose");
+const { collections: securityCollections, verifySecurityIndexes } = require("../auth/store");
 
 const anchors = { primary: ["contacts", "newsletters", "bookings", "paymenttransactions", "users", "blogposts"], chat: ["chat_turns"] };
 const cooldown = 30_000;
+anchors.admin = Object.values(securityCollections);
 
 function createDatabases(config, { Client = MongoClient, log = () => {}, now = Date.now } = {}) {
   let closing = false;
-  const slots = Object.fromEntries(["primary", "chat"].map((key) => [key, {
+  const slots = Object.fromEntries(["primary", "chat", ...(config.admin ? ["admin"] : [])].map((key) => [key, {
     target: config[key], client: null, database: null, collections: new Set(), pending: null, retryAt: 0, verifiedAt: 0,
   }]));
 
   async function connect(key) {
     const slot = slots[key];
-    if (closing || !slot.target || now() < slot.retryAt) return;
+    if (closing || !slot?.target || now() < slot.retryAt) return;
     if (slot.pending) return slot.pending;
     if (slot.database && now() - slot.verifiedAt < cooldown) return;
 
@@ -25,6 +27,11 @@ function createDatabases(config, { Client = MongoClient, log = () => {}, now = D
             socketTimeoutMS: config.connectTimeout + 3000,
             maxPoolSize: config.poolSize,
             appName: "portfolio-admin",
+            ...(key === "admin" ? {
+              readPreference: "primary",
+              readConcern: { level: "majority" },
+              writeConcern: { w: "majority", wtimeoutMS: config.connectTimeout },
+            } : {}),
           });
           await slot.client.connect();
         }
@@ -35,6 +42,7 @@ function createDatabases(config, { Client = MongoClient, log = () => {}, now = D
         ).toArray();
         const collections = new Set(present.map(({ name }) => name));
         if (!anchors[key].some((name) => collections.has(name)) || database.databaseName !== slot.target.name) throw new Error("identity unverified");
+        if (key === "admin") await verifySecurityIndexes(database);
         if (!slot.database) log({ event: "database_available", dependency: key });
         slot.database = database;
         slot.collections = collections;
@@ -61,7 +69,7 @@ function createDatabases(config, { Client = MongoClient, log = () => {}, now = D
 
   return {
     connect,
-    get: (key) => slots[key].database,
+    get: (key) => slots[key]?.database,
     hasCollection: (key, name) => Boolean(slots[key].database && slots[key].collections.has(name)),
     invalidate,
     status: () => Object.fromEntries(Object.entries(slots).map(([key, slot]) => [
