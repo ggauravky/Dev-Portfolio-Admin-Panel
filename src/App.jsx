@@ -4,7 +4,6 @@ import Dashboard from './pages/admin/Dashboard';
 import Contacts from './pages/admin/Contacts';
 import Newsletter from './pages/admin/Newsletter';
 import Chats from './pages/admin/Chats';
-import MlLogs from './pages/admin/MlLogs';
 import Bookings from './pages/admin/Bookings';
 import SupportPayments from './pages/admin/SupportPayments';
 import AdminRoutes from './routes/AdminRoutes';
@@ -22,9 +21,9 @@ function App() {
                     <Route path="/admin/contacts" element={<Contacts />} />
                     <Route path="/admin/newsletter" element={<Newsletter />} />
                     <Route path="/admin/chats" element={<Chats />} />
-                    <Route path="/admin/mllogs" element={<MlLogs />} />
                     <Route path="/admin/bookings" element={<Bookings />} />
                     <Route path="/admin/support-payments" element={<SupportPayments />} />
+                    <Route path="/admin/*" element={<Navigate to="/admin" replace />} />
                 </Route>
             </Routes>
         </BrowserRouter>

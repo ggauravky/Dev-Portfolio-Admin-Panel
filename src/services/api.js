@@ -327,30 +327,6 @@ export const bulkDeleteChats = async (ids) => {
   return data;
 };
 
-// ==================== ML LOGS API ====================
-
-// Get all ML logs with optional search and filters
-export const getMlLogs = async (params = {}) => {
-  const queryString = new URLSearchParams(params).toString();
-  const url = queryString
-    ? `${API_URL}/mllogs?${queryString}`
-    : `${API_URL}/mllogs`;
-
-  const response = await authFetch(url);
-  let data = null;
-  try {
-    data = await response.json();
-  } catch {
-    data = null;
-  }
-
-  if (!response.ok) {
-    throw new Error(data?.message || "Failed to fetch ML logs");
-  }
-
-  return data ?? { mllogs: [], total: 0 };
-};
-
 // ==================== BOOKINGS API ====================
 
 // Get all bookings with optional search and filters

@@ -57,7 +57,6 @@ const Dashboard = () => {
     (stats?.totalContacts || 0) +
     (stats?.totalNewsletters || 0) +
     (stats?.totalChats || 0) +
-    (stats?.totalMlLogs || 0) +
     (stats?.totalBookings || 0) +
     (stats?.totalSupportPayments || 0);
 
@@ -106,15 +105,6 @@ const Dashboard = () => {
       icon: "💬",
       color: "cyan",
       path: "/admin/chats",
-    },
-    {
-      title: "ML Logs",
-      value: stats?.totalMlLogs || 0,
-      change: `${stats?.imageAnalyzerLogs || 0} image analyzer`,
-      gradient: "from-violet-500 to-indigo-700",
-      icon: "🤖",
-      color: "violet",
-      path: "/admin/mllogs",
     },
     {
       title: "Fallback",
@@ -327,12 +317,6 @@ const Dashboard = () => {
                 icon="🔄"
               />
               <SignalRow
-                label="ML Prompts"
-                value={stats?.promptImproverLogs || 0}
-                tone="violet"
-                icon="🧠"
-              />
-              <SignalRow
                 label="Response Time"
                 value={stats?.avgChatResponseMs ? `${stats.avgChatResponseMs}ms` : "N/A"}
                 tone="emerald"
@@ -365,7 +349,6 @@ const SignalRow = ({ label, value, tone, icon }) => {
     red: "bg-red-50 border-red-200 text-red-800 bg-gradient-to-r from-red-50 to-rose-50",
     blue: "bg-blue-50 border-blue-200 text-blue-800 bg-gradient-to-r from-blue-50 to-cyan-50",
     emerald: "bg-emerald-50 border-emerald-200 text-emerald-800 bg-gradient-to-r from-emerald-50 to-teal-50",
-    violet: "bg-violet-50 border-violet-200 text-violet-800 bg-gradient-to-r from-violet-50 to-purple-50",
     slate: "bg-slate-100 border-slate-200 text-slate-800 bg-gradient-to-r from-slate-50 to-gray-100",
   };
 
