@@ -1,12 +1,14 @@
 const assert = require("node:assert/strict");
 const { once } = require("node:events");
 const { test } = require("node:test");
-const express = require("express");
-const adminRoutes = require("../routes/adminRoutes");
+const { createApp } = require("../app");
 
 test("removed admin routes return 404 while retained routes stay protected", async (t) => {
-  const app = express();
-  app.use("/api/admin", adminRoutes);
+  const app = createApp({
+    config: { origins: [] },
+    db: { get() { throw new Error("Unexpected database access"); } },
+    log: () => {},
+  });
   const server = app.listen(0, "127.0.0.1");
   t.after(
     () => new Promise((resolve, reject) => {

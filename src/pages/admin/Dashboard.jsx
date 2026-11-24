@@ -53,18 +53,14 @@ const Dashboard = () => {
     );
   }
 
-  const totalEntities =
-    (stats?.totalContacts || 0) +
-    (stats?.totalNewsletters || 0) +
-    (stats?.totalChats || 0) +
-    (stats?.totalBookings || 0) +
-    (stats?.totalSupportPayments || 0);
+  const counts = [stats?.totalContacts, stats?.totalNewsletters, stats?.totalChats, stats?.totalBookings, stats?.totalSupportPayments];
+  const totalEntities = counts.every(Number.isFinite) ? counts.reduce((sum, count) => sum + count, 0) : "Unavailable";
 
   const cards = [
     {
       title: "Contacts",
-      value: stats?.totalContacts || 0,
-      change: `${stats?.unreadContacts || 0} unread`,
+      value: stats?.totalContacts ?? "Unavailable",
+      change: `${stats?.unreadContacts ?? "—"} unread`,
       gradient: "from-blue-500 to-indigo-600",
       icon: "📧",
       color: "blue",
@@ -72,8 +68,8 @@ const Dashboard = () => {
     },
     {
       title: "Bookings",
-      value: stats?.totalBookings || 0,
-      change: `${stats?.paidBookings || 0} paid, ${stats?.pendingBookings || 0} pending`,
+      value: stats?.totalBookings ?? "Unavailable",
+      change: `${stats?.paidBookings ?? "—"} paid, ${stats?.pendingBookings ?? "—"} pending`,
       gradient: "from-emerald-500 to-cyan-600",
       icon: "📅",
       color: "emerald",
@@ -81,8 +77,8 @@ const Dashboard = () => {
     },
     {
       title: "Support Payments",
-      value: stats?.totalSupportPayments || 0,
-      change: `${stats?.paidSupportPayments || 0} paid, ${stats?.pendingSupportPayments || 0} pending`,
+      value: stats?.totalSupportPayments ?? "Unavailable",
+      change: `${stats?.paidSupportPayments ?? "—"} paid, ${stats?.pendingSupportPayments ?? "—"} pending`,
       gradient: "from-amber-500 to-orange-600",
       icon: "💸",
       color: "amber",
@@ -90,29 +86,20 @@ const Dashboard = () => {
     },
     {
       title: "Newsletter",
-      value: stats?.totalNewsletters || 0,
-      change: `${stats?.unsubscribedNewsletters || 0} unsubscribed`,
+      value: stats?.totalNewsletters ?? "Unavailable",
+      change: `${stats?.unsubscribedNewsletters ?? "—"} unsubscribed`,
       gradient: "from-emerald-500 to-teal-600",
       icon: "📬",
       color: "teal",
       path: "/admin/newsletter",
     },
     {
-      title: "AI Chats",
-      value: stats?.totalChats || 0,
-      change: `${stats?.degradedChats || 0} degraded`,
+      title: "AI Chat Turns",
+      value: stats?.totalChats ?? "Unavailable",
+      change: stats?.totalChats == null ? "Chat storage unavailable" : "Recorded turns",
       gradient: "from-cyan-500 to-blue-700",
       icon: "💬",
       color: "cyan",
-      path: "/admin/chats",
-    },
-    {
-      title: "Fallback",
-      value: stats?.fallbackChats || 0,
-      change: `${stats?.avgChatResponseMs || "N/A"} ms avg`,
-      gradient: "from-slate-500 to-gray-700",
-      icon: "⚡",
-      color: "slate",
       path: "/admin/chats",
     },
   ];
@@ -181,12 +168,12 @@ const Dashboard = () => {
               <span className="ml-2 font-bold text-gray-900">{totalEntities.toLocaleString()}</span>
             </div>
             <div className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-50 to-blue-50 border border-cyan-200 text-sm">
-              <span className="text-gray-600">Avg Response</span>
-              <span className="ml-2 font-bold text-gray-900">{stats?.avgChatResponseMs || 0}ms</span>
+              <span className="text-gray-600">Chat storage</span>
+              <span className="ml-2 font-bold text-gray-900">{stats?.availability?.chat === "available" ? "Available" : "Unavailable"}</span>
             </div>
             <div className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 text-sm">
               <span className="text-gray-600">Paid Bookings</span>
-              <span className="ml-2 font-bold text-emerald-600">{stats?.paidBookings || 0}</span>
+              <span className="ml-2 font-bold text-emerald-600">{stats?.paidBookings ?? "Unavailable"}</span>
             </div>
           </div>
         </div>
@@ -300,31 +287,13 @@ const Dashboard = () => {
             <div className="space-y-3">
               <SignalRow
                 label="Unread Contacts"
-                value={stats?.unreadContacts || 0}
+                value={stats?.unreadContacts ?? "Unavailable"}
                 tone="amber"
                 icon="📧"
               />
               <SignalRow
-                label="Degraded Chats"
-                value={stats?.degradedChats || 0}
-                tone="red"
-                icon="⚠️"
-              />
-              <SignalRow
-                label="Fallback Uses"
-                value={stats?.fallbackChats || 0}
-                tone="blue"
-                icon="🔄"
-              />
-              <SignalRow
-                label="Response Time"
-                value={stats?.avgChatResponseMs ? `${stats.avgChatResponseMs}ms` : "N/A"}
-                tone="emerald"
-                icon="⏱️"
-              />
-              <SignalRow
                 label="Unsubscribed"
-                value={stats?.unsubscribedNewsletters || 0}
+                value={stats?.unsubscribedNewsletters ?? "Unavailable"}
                 tone="slate"
                 icon="☰"
               />
