@@ -1,10 +1,16 @@
 const express = require("express");
 const { repository } = require("../repositories/reads");
 const { HttpError, send, asyncRoute } = require("../utils/http");
+const { createChatAccess } = require("../chat/access");
+const { createConversations } = require("../chat/conversations");
+const { createAnalytics } = require("../chat/analytics");
+const { createOperations } = require("../chat/operations");
+const { createKnowledge } = require("../chat/knowledge");
+const { only } = require("../chat/query");
 
 const resources = {
   contacts: ["contacts", "contacts"], newsletters: ["newsletters", "newsletters"],
-  bookings: ["bookings", "bookings"], chats: ["chat_turns", "chats"],
+  bookings: ["bookings", "bookings"],
   "support-payments": ["paymenttransactions", "supportPayments", { flowType: "support" }],
   transactions: ["paymenttransactions", "transactions"],
   users: ["users", "users"], activity: ["activityevents", "activity"],
@@ -14,11 +20,16 @@ const resources = {
 const capabilities = Object.fromEntries(Object.keys(resources).map((path) => [path, { read: true, write: false }]));
 const denied = () => new HttpError(403, "OPERATION_DISABLED", "This operation is disabled");
 
-function createAdminRouter({ config, db, security }) {
+function createAdminRouter({ config, db, security, now = () => new Date() }) {
   const router = express.Router();
   const repositories = {};
   const auth = (req, res, next) => security.authenticate(req).then(() => next(), next);
-  const sessionCapabilities = { ...capabilities, sessions: { read: true, revoke: true } };
+  const sessionCapabilities = { ...capabilities, chats: { read: true, write: false }, sessions: { read: true, revoke: true } };
+  const access = createChatAccess(db);
+  const chat = createConversations(access, now);
+  const analytics = createAnalytics(access, now);
+  const operations = createOperations(access, db, now);
+  const knowledge = createKnowledge(access, now);
   router.post("/login", asyncRoute(async (req, res) => {
     const data = await security.login(req, res);
     if (data) send(res, { ...data, capabilities: sessionCapabilities });
@@ -46,6 +57,8 @@ function createAdminRouter({ config, db, security }) {
       const record = await read.detail(req.params.id);
       if (!res.headersSent) res.json(record);
     }));
+  }
+  for (const path of [...Object.keys(resources), "chats"]) {
     for (const [method, suffix] of [["post", ""], ["post", "/bulk-delete"], ["put", "/:id"], ["patch", "/:id"], ["delete", "/:id"]]) {
       router[method]("/" + path + suffix, auth, asyncRoute(async (req) => {
         await security.authorizationDenied(req);
@@ -53,6 +66,22 @@ function createAdminRouter({ config, db, security }) {
       }));
     }
   }
+  router.get("/chats", auth, asyncRoute(async (req, res) => {
+    const data = await chat.turns(req.query);
+    if (!res.headersSent) res.json({ success: true, data, chats: data.items, total: data.total });
+  }));
+  router.get("/chats/:id", auth, asyncRoute(async (req, res) => {
+    const record = await chat.turn(req.params.id);
+    if (!res.headersSent) res.json(record);
+  }));
+  router.get("/chat-conversations", auth, asyncRoute(async (req, res) => send(res, await chat.list(req.query))));
+  router.get("/chat-conversations/:reference", auth, asyncRoute(async (req, res) => send(res, await chat.details(req.params.reference, req.query))));
+  router.get("/chat-analytics", auth, asyncRoute(async (req, res) => send(res, await analytics.full(req.query))));
+  router.get("/chat-operations", auth, asyncRoute(async (req, res) => {
+    only(req.query, []);
+    send(res, await operations());
+  }));
+  router.get("/chat-knowledge", auth, asyncRoute(async (req, res) => send(res, await knowledge(req.query))));
   router.get("/system", auth, asyncRoute(async (req, res) => {
     await Promise.all([db.connect?.("primary"), db.connect?.("chat")]);
     const dependencies = db.status();
@@ -72,14 +101,16 @@ function createAdminRouter({ config, db, security }) {
       failedBookings: count("bookings", { paymentStatus: "failed" }),
       totalSupportPayments: count("support-payments"), paidSupportPayments: count("support-payments", { status: "paid" }),
       pendingSupportPayments: count("support-payments", { status: "pending" }),
-      totalChats: chatAvailable ? count("chats") : Promise.resolve(null),
     };
-    const results = await Promise.allSettled(Object.values(metrics));
-    if (results.slice(0, -1).every(({ status }) => status === "rejected")) {
+    const [results, chatSummary] = await Promise.all([
+      Promise.allSettled(Object.values(metrics)),
+      chatAvailable ? analytics.summary().catch(() => null) : null,
+    ]);
+    if (results.every(({ status }) => status === "rejected")) {
       throw new HttpError(503, "DEPENDENCY_UNAVAILABLE", "Portfolio statistics are unavailable");
     }
     const values = Object.fromEntries(Object.keys(metrics).map((key, index) => [key, results[index].status === "fulfilled" ? results[index].value : null]));
-    if (!res.headersSent) res.json({ ...values, availability: db.status(), generatedAt: new Date().toISOString() });
+    if (!res.headersSent) res.json({ ...values, totalChats: chatSummary?.turns ?? null, chatSummary, availability: db.status(), generatedAt: new Date().toISOString() });
   }));
   return router;
 }

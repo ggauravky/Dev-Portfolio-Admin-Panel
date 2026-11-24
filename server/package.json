@@ -8,6 +8,7 @@
         "dev": "nodemon server.js",
         "test": "node --test",
         "verify:contract": "node contracts/verify.js",
+        "verify:chat-manifest": "node scripts/chat-manifest.js",
         "inspect:db": "node scripts/inspect-database.js",
         "auth:credential": "node scripts/admin-credential.js"
     },

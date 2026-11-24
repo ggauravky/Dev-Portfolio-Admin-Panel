@@ -7,7 +7,7 @@ const { HttpError, asyncRoute, missing } = require("./utils/http");
 const { createSecurityStore } = require("./auth/store");
 const { createAuthService } = require("./auth/service");
 
-function createApp({ config, db, store = createSecurityStore(db), now, log = (event) => console.log(JSON.stringify(event)) }) {
+function createApp({ config, db, store = createSecurityStore(db), now, chatNow, log = (event) => console.log(JSON.stringify(event)) }) {
   const app = express();
   app.disable("x-powered-by");
   app.set("trust proxy", config.proxyHops || false);
@@ -42,7 +42,7 @@ function createApp({ config, db, store = createSecurityStore(db), now, log = (ev
     if (!res.headersSent) res.status(ready ? 200 : 503).json({ ready });
   }));
   const security = createAuthService(config, store, { now, log });
-  app.use("/api/admin", security.trustedProxy, createAdminRouter({ config, db, security }));
+  app.use("/api/admin", security.trustedProxy, createAdminRouter({ config, db, security, now: chatNow }));
   app.use((req, res, next) => next(missing()));
   app.use((error, req, res, next) => {
     if (res.headersSent) return;

@@ -47,6 +47,10 @@ test("Vercel handler forwards only the scoped cookie and approved headers and re
   assert.equal(seen[0].options.redirect, "manual");
   assert.equal((await nativeFetch(base + "/?__admin_path=../outside")).status, 404);
   assert.equal(seen.length, 1);
+  const conversation = "507f1f77-0000-4000-8000-000000000001";
+  assert.equal((await nativeFetch(base + "/?__admin_path=chat-conversations/" + conversation + "&page=2")).status, 200);
+  assert.equal(seen[1].url.pathname, "/api/admin/chat-conversations/" + conversation);
+  assert.equal(seen[1].url.searchParams.get("page"), "2");
   redirects = true;
   assert.equal((await nativeFetch(base + "/?__admin_path=me")).status, 503);
 });

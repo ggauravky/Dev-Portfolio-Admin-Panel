@@ -31,7 +31,7 @@ const AdminLayout = ({ children }) => {
             <nav className="bg-white/80 backdrop-blur-lg shadow-lg border-b border-gray-200/50 sticky top-0 z-50">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between h-16">
-                        <div className="flex items-center space-x-2">
+                        <div className="flex min-w-0 items-center space-x-2 overflow-x-auto whitespace-nowrap [&>a]:shrink-0">
                             {/* Logo */}
                             <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-2 rounded-lg mr-4">
                                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -86,7 +86,7 @@ const AdminLayout = ({ children }) => {
                                 <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-4l-4 4v-4z" />
                                 </svg>
-                                Chats
+                                AI Intelligence
                             </Link>
                             <Link
                                 to="/admin/bookings"
@@ -113,7 +113,7 @@ const AdminLayout = ({ children }) => {
                                 Support Payments
                             </Link>
                         </div>
-                        <div className="flex items-center">
+                        <div className="flex shrink-0 items-center">
                             <button
                                 onClick={handleLogout}
                                 type="button"

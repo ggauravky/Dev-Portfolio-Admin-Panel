@@ -50,3 +50,13 @@ export const getNewsletters = list("/newsletters");
 export const getBookings = list("/bookings");
 export const getSupportPayments = list("/support-payments");
 export const getChats = list("/chats");
+export const getChatConversations = list("/chat-conversations");
+export const getChatAnalytics = list("/chat-analytics");
+export const getChatKnowledge = list("/chat-knowledge");
+export const getChatOperations = list("/chat-operations");
+export function getChatConversation(query, signal) {
+  const params = new URLSearchParams(query);
+  const reference = params.get("reference");
+  params.delete("reference");
+  return request("/chat-conversations/" + encodeURIComponent(reference) + "?" + params, { signal });
+}

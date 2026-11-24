@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import AdminLayout from "../../components/AdminLayout";
 import { getStats } from "../../services/api";
+import { latency, percent } from "./chat/Shared";
 
 const Dashboard = () => {
   const [stats, setStats] = useState(null);
@@ -53,7 +54,8 @@ const Dashboard = () => {
     );
   }
 
-  const counts = [stats?.totalContacts, stats?.totalNewsletters, stats?.totalChats, stats?.totalBookings, stats?.totalSupportPayments];
+  const chat = stats?.chatSummary;
+  const counts = [stats?.totalContacts, stats?.totalNewsletters, stats?.totalBookings, stats?.totalSupportPayments];
   const totalEntities = counts.every(Number.isFinite) ? counts.reduce((sum, count) => sum + count, 0) : "Unavailable";
 
   const cards = [
@@ -94,9 +96,9 @@ const Dashboard = () => {
       path: "/admin/newsletter",
     },
     {
-      title: "AI Chat Turns",
-      value: stats?.totalChats ?? "Unavailable",
-      change: stats?.totalChats == null ? "Chat storage unavailable" : "Recorded turns",
+      title: "Recorded Chat Turns · 7 days",
+      value: chat?.turns ?? "Unavailable",
+      change: chat ? `${chat.conversations} conversations · ${percent(chat.cacheRate)} cache hits · ${latency(chat.medianMs)} median` : "Recorded chat metrics unavailable",
       gradient: "from-cyan-500 to-blue-700",
       icon: "💬",
       color: "cyan",
