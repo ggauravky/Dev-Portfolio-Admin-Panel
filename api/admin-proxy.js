@@ -5,6 +5,7 @@ import { pipeline } from "node:stream/promises";
 
 const allowedMethods = new Set(["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE"]);
 const bodyLimit = 32 * 1024;
+const rewriteParameters = new Set(["__admin_path", "path"]);
 const cookieName = "__Secure-portfolio_admin=";
 
 function error(res, requestId, status, code, message) {
@@ -36,7 +37,9 @@ export default async function adminProxy(req, res) {
 
   upstream.pathname = "/api/admin/" + path;
   for (const [key, value] of Object.entries(req.query)) {
-    if (key === "__admin_path") continue;
+    // Vercel adds the rewrite's own parameters (the destination's __admin_path and the
+    // source's named segment "path") to req.query. They are routing data, never API filters.
+    if (rewriteParameters.has(key)) continue;
     for (const item of [].concat(value)) if (typeof item === "string") upstream.searchParams.append(key, item);
   }
   const headers = new Headers({ "x-admin-proxy-key": secret, "x-request-id": id, accept: "application/json" });

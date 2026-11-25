@@ -63,6 +63,12 @@ test("Vercel handler forwards only the scoped cookie and approved headers and re
   assert.equal((await nativeFetch(base + "/?__admin_path=chat-conversations/" + conversation + "&page=2")).status, 200);
   assert.equal(seen[1].url.pathname, "/api/admin/chat-conversations/" + conversation);
   assert.equal(seen[1].url.searchParams.get("page"), "2");
+  // Vercel adds the rewrite's named segment ("path") to the function query; it must not reach the API.
+  assert.equal((await nativeFetch(base + "/?__admin_path=users&path=users&page=1&pageSize=25")).status, 200);
+  const users = seen.at(-1).url;
+  assert.equal(users.pathname, "/api/admin/users");
+  assert.deepEqual([...users.searchParams.keys()].sort(), ["page", "pageSize"]);
+  seen.pop();
   const logout = base + "/?__admin_path=logout";
   assert.equal((await nativeFetch(logout, { method: "POST", headers: { "Content-Type": "application/octet-stream" } })).status, 200);
   assert.equal(seen[2].options.body, undefined);
