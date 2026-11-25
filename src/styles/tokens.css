@@ -1,0 +1,48 @@
+/* Copyright (c) 2026 Gaurav Kumar Yadav. All Rights Reserved.
+ * Portfolio source: https://github.com/ggauravky/Dev-Portfolio */
+:root {
+  --ink: 14 13 11;
+  --ink-raised: 22 21 18;
+  --rule: 42 40 36;
+  --paper: 237 234 227;
+  --muted: 156 151 140;
+  --accent: 198 244 50;
+  --accent-contrast-text: 14 13 11;
+  --accent-muted: 78 94 25;
+  --font-serif: 'Fraunces', 'Fraunces Fallback', Georgia, serif;
+  --font-sans: 'Geist', 'Geist Fallback', Arial, sans-serif;
+  --font-mono: 'Geist Mono', 'Geist Mono Fallback', 'Courier New', monospace;
+  --space-1: 8px;
+  --space-2: 16px;
+  --space-3: 24px;
+  --space-4: 32px;
+  --space-5: 48px;
+  --space-6: 64px;
+  --space-7: 96px;
+  --space-8: 128px;
+  --radius-0: 0;
+  --radius-control: 4px;
+  --radius-dialog: 8px;
+  --ease-out: cubic-bezier(.22, 1, .36, 1);
+  --dur-fast: 160ms;
+  --dur-base: 280ms;
+  --dur-slow: 520ms;
+  --shadow-dialog: 0 16px 48px rgb(0 0 0 / 0.5);
+
+  /* Admin reading scale, validation and chart contrast. */
+  --text-display: clamp(2rem, 4vw, 2.75rem);
+  --text-h2: 1.5rem;
+  --text-h3: 1.25rem;
+  --text-body: 0.9375rem;
+  --text-small: 0.875rem;
+  --boundary: 118 111 95;
+  --error: 248 163 150;
+  --warning: 226 186 116;
+  --success: 174 204 153;
+  --chart-axis: 123 115 100;
+  --chart-main: 208 198 176;
+  --chart-secondary: 169 140 98;
+  --chart-grid: var(--rule);
+  --chart-track: var(--rule);
+  --scrim: 0 0 0;
+}

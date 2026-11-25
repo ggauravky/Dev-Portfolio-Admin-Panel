@@ -1,15 +1,19 @@
+import { control } from "../../components/ui/Primitives";
+import { dateParams, queryString } from "../../components/data/query";
+import { Distribution, Timeline } from "../../components/data/Charts";
+import { latency, percent, displayDate, words } from "../../components/data/format";
+import { LoadState, Range } from "../../components/data/Controls";
+import { useResource } from "../../hooks/useResource";
+import { Table, linkClass, MetricSection, RecordLink, routes } from "../../components/data/Records";
+import { formatPaise } from "../../components/data/money";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import AdminLayout from "../../components/AdminLayout";
 import { getBusinessAnalytics, getStats } from "../../services/api";
-import { control, dateParams, Distribution, latency, LoadState, percent, queryString, Timeline, useChatResource } from "./chat/Shared";
-import { Range, Table } from "./finance/Shared";
-import { formatPaise } from "./finance/money";
-import { displayDate, linkClass, MetricSection, RecordLink, routes, words } from "./business/Shared";
 
 function Group({ title, fields, link, unavailable, children }) {
   return <MetricSection title={title} fields={fields}>
-    {unavailable && <p className="text-sm text-slate-600">{unavailable}</p>}
+    {unavailable && <p className="text-sm text-muted">{unavailable}</p>}
     {children}
     {link && <Link className={linkClass + " mt-3 inline-block text-sm"} to={link[1]}>{link[0]}</Link>}
   </MetricSection>;
@@ -38,7 +42,7 @@ function BusinessSections({ report }) {
         ["Stored unsubscribe timestamps · period", newsletter?.unsubscribeTimestamps]]} link={["Open newsletter registry", routes.newsletters]} />
       <Group title="Communications" fields={[["Contact messages · current", contacts?.total], ["Unread · current", contacts?.unread],
         ["Incoming messages · period", contacts?.received]]} link={["Open contact inbox", routes.contacts]}>
-        {contacts && <p className="text-sm text-slate-700">{contacts.statuses.map(({ key, count }) => `${words(key)} ${count}`).join(" · ") || "No recorded statuses."}</p>}
+        {contacts && <p className="text-sm text-muted">{contacts.statuses.map(({ key, count }) => `${words(key)} ${count}`).join(" · ") || "No recorded statuses."}</p>}
       </Group>
       <Group title="Content and engagement" fields={[["Support relationships · current", engagement?.total], ["Distinct supporter IDs · current", engagement?.distinctSupporterIds],
         ["Supported articles · current", engagement?.supportedArticles], ["Recorded supports · period", engagement?.received]]} link={["Open blog engagement", routes["blog-posts"]]}>
@@ -54,12 +58,12 @@ function BusinessSections({ report }) {
         ["Event", (item) => <RecordLink kind={item.source} id={item.id}>{item.title}</RecordLink>], ["Time", (item) => displayDate(item.timestamp)],
       ]} />
     </Group>
-    <details className="rounded-xl border border-slate-200 bg-white p-4">
-      <summary className="cursor-pointer font-semibold text-slate-900">Daily trends and activity breakdown</summary>
+    <details className="rounded-control border border-rule bg-ink-raised p-4">
+      <summary className="cursor-pointer font-semibold text-paper">Daily trends and activity breakdown</summary>
       <div className="mt-4 grid gap-4 lg:grid-cols-2">
         {[["Daily registrations", users], ["Daily incoming messages", contacts], ["Daily new subscription records", newsletter],
           ["Daily blog supports", engagement], ["Daily recorded user activity", activity]].map(([title, data]) => data ?
-          <Timeline key={title} title={title} rows={daily(data.daily)} unit="records" series={[{ key: "count", label: "Records", color: "bg-teal-700" }]} /> :
+          <Timeline key={title} title={title} rows={daily(data.daily)} unit="records" series={[{ key: "count", label: "Records", seriesTone: "main" }]} /> :
           <MetricSection key={title} title={title} description="Source unavailable." />)}
         {activity && <>
           <MetricSection title="Recorded activity" fields={[["All stored events", activity.total], ["Events in selected period", activity.recorded], ["Linked users in selected period", activity.linkedUsers.data]]} />
@@ -72,11 +76,11 @@ function BusinessSections({ report }) {
 }
 
 export default function Dashboard() {
-  const stats = useChatResource(getStats);
+  const stats = useResource(getStats);
   const [range, setRange] = useState({ range: "7d" });
   const defaultRange = range.range === "7d";
   const ready = range.range !== "custom" || Boolean(range.from && range.to);
-  const business = useChatResource(getBusinessAnalytics, queryString(dateParams(range)), { enabled: !defaultRange && ready });
+  const business = useResource(getBusinessAnalytics, queryString(dateParams(range)), { enabled: !defaultRange && ready });
   const report = defaultRange ? stats.data?.businessSummary : business.data;
   const ai = stats.data?.chatSummary;
   const finance = stats.data?.financialSummary;
@@ -84,8 +88,8 @@ export default function Dashboard() {
   const availability = stats.data?.availability;
   return <AdminLayout><div className="min-w-0 space-y-5 px-4 sm:px-0">
     <header className="flex flex-wrap items-end justify-between gap-3">
-      <div><h1 className="text-3xl font-bold text-slate-900">Portfolio dashboard</h1>
-        <p className="mt-1 text-sm text-slate-600">Last generated {displayDate(stats.data?.generatedAt)}</p></div>
+      <div><h1 className="ui-page-title">Portfolio dashboard</h1>
+        <p className="mt-1 text-sm text-muted">Last generated {displayDate(stats.data?.generatedAt)}</p></div>
       <button type="button" className={control} onClick={() => { stats.refresh(); business.refresh(); }}>Refresh dashboard</button>
     </header>
     <LoadState resource={stats} />
@@ -101,10 +105,10 @@ export default function Dashboard() {
         link={["Open system health", "/admin/system"]} />
     </div>}
     <section className="space-y-4" aria-label="Business analytics">
-      <div className="flex flex-wrap items-end gap-3 border-b border-slate-200 pb-3">
-        <div className="mr-auto"><h2 className="text-xl font-semibold text-slate-900">Business analytics</h2>
-          <p className="text-sm text-slate-600">The date range applies to period metrics only. Reports use Asia/Kolkata.</p>
-          {report && <p className="mt-1 text-xs text-slate-600">Report generated {displayDate(report.generatedAt)}</p>}</div>
+      <div className="flex flex-wrap items-end gap-3 border-b border-rule pb-3">
+        <div className="mr-auto"><h2 className="ui-heading">Business analytics</h2>
+          <p className="text-sm text-muted">The date range applies to period metrics only. Reports use Asia/Kolkata.</p>
+          {report && <p className="mt-1 text-xs text-muted">Report generated {displayDate(report.generatedAt)}</p>}</div>
         <Range value={range} change={(change) => setRange((old) => ({ ...old, ...change }))} />
       </div>
       {!ready ? <p role="status">Choose both custom dates.</p> : !defaultRange && <LoadState resource={business} />}

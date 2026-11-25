@@ -65,6 +65,7 @@ A modern, blazing-fast admin panel that gives you:
 - Registered users, contact inbox, newsletter subscriptions, and blog engagement
 - Recorded user activity, administrator audit and sessions, and system health
 - [Business reporting definitions and access policy](docs/admin-business-operations-phase-6.md)
+- [Monograph design-system foundation and checks](docs/admin-monograph-phase-7.md)
 
 ### 📬 Contact Management
 

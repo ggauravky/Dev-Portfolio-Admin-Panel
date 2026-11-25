@@ -1,13 +1,16 @@
+import { control } from "../../../components/ui/Primitives";
+import { LoadState } from "../../../components/data/Controls";
+import { useResource } from "../../../hooks/useResource";
+import { Table, linkClass, MetricSection } from "../../../components/data/Records";
+import { displayDate, words } from "../../../components/data/format";
+import { Workspace } from "./Shared";
 import { Link } from "react-router-dom";
 import { getSystemStatus } from "../../../services/api";
-import { control, LoadState, useChatResource } from "../chat/Shared";
-import { Table } from "../finance/Shared";
-import { displayDate, linkClass, MetricSection, words, Workspace } from "./Shared";
 
 const labels = { primary: "Portfolio database", chat: "Chat database", admin: "Admin security database" };
 
 export default function System({ settings = false }) {
-  const resource = useChatResource(getSystemStatus);
+  const resource = useResource(getSystemStatus);
   const report = resource.data;
   const policy = report?.policy;
   const title = settings ? "Settings" : "System health";

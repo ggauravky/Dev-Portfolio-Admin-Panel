@@ -1,13 +1,15 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { lazy } from 'react';
 import Login from './pages/admin/Login';
-import Dashboard from './pages/admin/Dashboard';
-import BusinessPage from './pages/admin/business/Registry';
-import Security from './pages/admin/business/Security';
-import System from './pages/admin/business/System';
-import Chats from './pages/admin/Chats';
-import Finance from './pages/admin/Finance';
 import AdminRoutes from './routes/AdminRoutes';
 import { AdminAuthProvider } from './context/AdminAuth';
+
+const Dashboard = lazy(() => import('./pages/admin/Dashboard'));
+const BusinessPage = lazy(() => import('./pages/admin/business/Registry'));
+const Security = lazy(() => import('./pages/admin/business/Security'));
+const System = lazy(() => import('./pages/admin/business/System'));
+const Chats = lazy(() => import('./pages/admin/Chats'));
+const Finance = lazy(() => import('./pages/admin/Finance'));
 
 function App() {
     return (

@@ -1,0 +1,22 @@
+{
+  "portfolioRevision": "37a9fba56e79119dbb3236bc975103f84f8cf46c",
+  "tokens": {
+    "ink": "14 13 11", "ink-raised": "22 21 18", "rule": "42 40 36", "paper": "237 234 227", "muted": "156 151 140",
+    "accent": "198 244 50", "accent-contrast-text": "14 13 11", "accent-muted": "78 94 25",
+    "font-serif": "'Fraunces', 'Fraunces Fallback', Georgia, serif", "font-sans": "'Geist', 'Geist Fallback', Arial, sans-serif",
+    "font-mono": "'Geist Mono', 'Geist Mono Fallback', 'Courier New', monospace",
+    "space-1": "8px", "space-2": "16px", "space-3": "24px", "space-4": "32px", "space-5": "48px", "space-6": "64px", "space-7": "96px", "space-8": "128px",
+    "radius-0": "0", "radius-control": "4px", "radius-dialog": "8px", "ease-out": "cubic-bezier(.22, 1, .36, 1)",
+    "dur-fast": "160ms", "dur-base": "280ms", "dur-slow": "520ms", "shadow-dialog": "0 16px 48px rgb(0 0 0 / 0.5)"
+  },
+  "assets": {
+    "public/fonts/fraunces-var.woff2": "7234ed860a9cc83045413c4faee63c960a8f2d1917adcf728119307d56e0d783",
+    "public/fonts/geist-var.woff2": "19f9c92546aa300c312235e3125af1b81394d8db9a4bc4a425cd5b641d2d54e1",
+    "public/fonts/geist-var-italic.woff2": "9b10496762af92659f3b05d2b084b0c8f962c3ecdf637aa764e3b7fd17f5acaf",
+    "public/fonts/geist-mono-var.woff2": "684ad5b531f81d43c1e8c7038262d5db7cdc1f68006e04d6c7769efa8d33c8cc",
+    "public/fonts/OFL-fraunces.txt": "cd3384cafac6f2bddc3955273958a2e029f97027c8037ac539ef5744a77b579e",
+    "public/fonts/OFL-geist.txt": "71609cbb5c78b5870d712eab73a31d76622635c6ed034ab5cee3b9ecbda8685f",
+    "public/favicon.svg": "a7ce76a9ea729587677385b7fb6140f75de6dd019aec86df8a141da957bbc4c7",
+    "src/styles/fonts.css": "fb17472d37a2880d41fa4c2be0b8ac9fe964305f7ef93271eae8407e8b6c6d77"
+  }
+}

@@ -1,0 +1,31 @@
+@layer base {
+  html { color-scheme: dark; }
+  html:has(dialog[open]) { overflow: hidden; }
+  body {
+    min-width: 0;
+    background: rgb(var(--ink));
+    color: rgb(var(--paper));
+    font: 400 var(--text-body)/1.55 var(--font-sans);
+    scrollbar-color: rgb(var(--boundary)) rgb(var(--ink));
+  }
+  h1, h2, h3, h4 { font-family: var(--font-serif); font-optical-sizing: auto; }
+  code, time, kbd { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+  ::selection { background: rgb(var(--paper)); color: rgb(var(--ink)); }
+  :focus-visible { outline: 2px solid rgb(var(--accent)); outline-offset: 3px; }
+  input[type='checkbox'], input[type='radio'] { accent-color: rgb(var(--accent)); min-width: 1rem; min-height: 1rem; }
+  option { color: rgb(var(--paper)); background: rgb(var(--ink-raised)); }
+  summary { cursor: pointer; }
+  input::placeholder, textarea::placeholder { color: rgb(var(--muted)); opacity: 1; }
+  [aria-invalid='true'] { border-color: rgb(var(--error)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+}

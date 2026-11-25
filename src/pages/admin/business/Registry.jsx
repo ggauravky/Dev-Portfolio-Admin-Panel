@@ -1,10 +1,14 @@
+import { control, panel } from "../../../components/ui/Primitives";
+import { dateParams, queryString } from "../../../components/data/query";
+import { FilterBar, LoadState, Pager, Range, Select } from "../../../components/data/Controls";
+import { useResource } from "../../../hooks/useResource";
+import { Badge, Box, Fields, Table, linkClass, RecordLink, routes } from "../../../components/data/Records";
+import { formatPaise } from "../../../components/data/money";
+import { displayDate, words } from "../../../components/data/format";
+import { person, status, subscribed, Workspace } from "./Shared";
 import { useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { getBusinessRecords } from "../../../services/api";
-import { control, panel, dateParams, queryString, LoadState, Pager, useChatResource } from "../chat/Shared";
-import { Badge, Box, Fields, Range, Select, Table } from "../finance/Shared";
-import { formatPaise } from "../finance/money";
-import { displayDate, linkClass, person, RecordLink, routes, status, subscribed, words, Workspace } from "./Shared";
 
 const specifications = {
   users: { title: "Registered users", search: "Name or email", sorts: [["createdAt", "Registration"], ["lastLoginAt", "Last recorded login"]],
@@ -28,7 +32,7 @@ const specifications = {
 
 const relatedName = (link, kind) => link?.state === "linked" ?
   <RecordLink kind={kind} id={link.id}>{link.name || link.title || link.reference || "Open record"}</RecordLink> : words(link?.state);
-const fieldDate = (key) => (row) => displayDate(row[key]);
+const fieldDate = (key) => (row) => row[key] ? <time dateTime={row[key]}>{displayDate(row[key])}</time> : "Unknown";
 const first = (kind, resolveLabel) => ["Record", (row) => <RecordLink kind={kind} id={row._id || row.reference}>{resolveLabel(row)}</RecordLink>];
 
 function columns(kind) {
@@ -43,8 +47,8 @@ function columns(kind) {
     case "blog-supports": return [first(kind, () => "Open support record"), ["Article", (r) => r.article?.state === "linked" ? relatedName(r.article, "blog-posts") :
       r.article?.snapshotTitle ? `${r.article.snapshotTitle} (stored snapshot)` : words(r.article?.state)], ["User", (r) => relatedName(r.user, "users")],
       ["Article reference", (r) => r.article?.snapshotMismatch ? "Snapshot differs" : words(r.article?.state)], ["Recorded", fieldDate("createdAt")]];
-    case "audit-events": return [first(kind, (r) => words(r.type)), ["Result", (r) => words(r.result)], ["Request ID", (r) => r.requestId], ["Recorded", fieldDate("createdAt")]];
-    case "transactions": return [first(kind, (r) => r.internalReference || "Transaction"), ["Payment", (r) => words(r.status)], ["Amount", (r) => formatPaise(r.paise)], ["Paid", fieldDate("paidAt")]];
+    case "audit-events": return [first(kind, (r) => words(r.type)), ["Result", (r) => words(r.result)], ["Request ID", (r) => r.requestId, "technical"], ["Recorded", fieldDate("createdAt")]];
+    case "transactions": return [first(kind, (r) => <code>{r.internalReference || "Transaction"}</code>), ["Payment", (r) => words(r.status)], ["Amount", (r) => formatPaise(r.paise), "number"], ["Paid", fieldDate("paidAt")]];
     case "bookings": return [first(kind, (r) => r.service || "Booking"), ["Payment", (r) => words(r.paymentStatus)], ["Preferred date", fieldDate("preferredDate")], ["Time", (r) => r.preferredTime]];
     default: return [];
   }
@@ -52,16 +56,17 @@ function columns(kind) {
 
 export function Registry({ kind, owner, article, user }) {
   const spec = specifications[kind];
-  const [filters, setFilters] = useState({ range: "30d", useDates: kind === "audit-events", page: 1, pageSize: 25 });
+  const defaults = { range: "30d", useDates: kind === "audit-events", page: 1, pageSize: 25 };
+  const [filters, setFilters] = useState(defaults);
   const change = (patch) => setFilters((old) => ({ ...old, page: 1, ...patch }));
   const { useDates, range, from, to, ...query } = filters;
   const enabled = !useDates || range !== "custom" || Boolean(from && to);
   const params = queryString({ ...query, ...(useDates ? dateParams(filters) : {}), endpoint: kind, owner, blogPostId: article, userId: user });
-  const resource = useChatResource(getBusinessRecords, params, { enabled, delay: query.search || query.requestId ? 250 : 0 });
+  const resource = useResource(getBusinessRecords, params, { enabled, delay: query.search || query.requestId ? 250 : 0 });
   const data = resource.data;
   return <div className="space-y-4">
     <section className={panel} aria-label={spec.title + " filters"}>
-      <div className="flex flex-wrap items-end gap-3">
+      <FilterBar refresh={resource.refresh} reset={() => setFilters(defaults)}>
         {spec.search && <label className="grid min-w-0 flex-1 basis-56 gap-1 text-sm">Search<input type="search" maxLength={100} className={control}
           placeholder={spec.search} value={query.search || ""} onChange={(e) => change({ search: e.target.value })} /></label>}
         {kind === "audit-events" && <label className="grid min-w-0 gap-1 text-sm">Request ID<input maxLength={64} className={control}
@@ -70,8 +75,7 @@ export function Registry({ kind, owner, article, user }) {
         <Select name="Sort by" value={query.sortBy || "createdAt"} change={(sortBy) => change({ sortBy })} options={spec.sorts || [["createdAt", "Recorded date"]]} />
         <Select name="Direction" value={query.order || "desc"} change={(order) => change({ order })} options={[["desc", "Newest first"], ["asc", "Oldest first"]]} />
         <Select name="Page size" value={query.pageSize} change={(pageSize) => change({ pageSize })} options={[5, 10, 25, 50]} />
-        <button className={control} type="button" onClick={resource.refresh}>Refresh</button>
-      </div>
+      </FilterBar>
       <div className="mt-3 flex flex-wrap items-end gap-3">
         {kind !== "audit-events" && <label className="flex items-center gap-2 self-center text-sm"><input type="checkbox" checked={useDates}
           onChange={(e) => change({ useDates: e.target.checked, dateField: e.target.checked ? query.dateField : undefined })} />Filter by date</label>}
@@ -109,13 +113,13 @@ function ContactActions({ email, subject, canReply }) {
     {subject && <button type="button" className={control} onClick={() => copy(subject, "Subject")}>Copy subject</button>}
     {reply && <a className={control} href={"mailto:" + encodeURIComponent(email).replace("%40", "@") + (subject ? "?subject=" + encodeURIComponent("Re: " + subject.replace(/[\x00-\x1F\x7F]/g, " ")) : "")}>
       Open email client</a>}
-    {reply && <p className="text-xs text-slate-600">The email client opens separately. The recorded message status stays the same.</p>}
+    {reply && <p className="text-xs text-muted">The email client opens separately. The recorded message status stays the same.</p>}
     {message && <p className="text-sm" role="status">{message}</p>}
   </div>;
 }
 
 export function Inspector({ kind, id }) {
-  const resource = useChatResource(getBusinessRecords, queryString({ endpoint: kind, id }));
+  const resource = useResource(getBusinessRecords, queryString({ endpoint: kind, id }));
   const r = resource.data;
   return <div className="space-y-4">
     <Link to={routes[kind]} className={linkClass}>Back to {specifications[kind].title.toLowerCase()}</Link>
@@ -138,7 +142,7 @@ function RecordDetails({ kind, record: r }) {
     <p className="mt-4 whitespace-pre-wrap break-words [overflow-wrap:anywhere]">{r.message}</p><ContactActions email={r.email} subject={r.subject} canReply /></Box>;
   if (kind === "newsletters") return <Box title={r.email || "Subscription"}><Fields fields={[["State", subscribed(r.subscribed)], ["Subscribed timestamp", displayDate(r.subscribedAt)],
     ["Unsubscribe timestamp", displayDate(r.unsubscribedAt)], ["Record created", displayDate(r.createdAt)], ["Record updated", displayDate(r.updatedAt)]]} />
-    <p className="text-sm text-slate-600">Resubscription can preserve the original subscribed date and clear the unsubscribe date.</p><ContactActions email={r.email} /></Box>;
+    <p className="text-sm text-muted">Resubscription can preserve the original subscribed date and clear the unsubscribe date.</p><ContactActions email={r.email} /></Box>;
   if (kind === "activity") return <Box title={r.title || "Activity event"}><Fields fields={[["Action", words(r.actionType)], ["Domain", words(r.domain)], ["Status", words(r.status)],
     ["User", relatedName(r.user, "users")], ["Transaction", relatedName(r.transaction, "transactions")], ["Recorded", displayDate(r.createdAt)], ["Description", r.description],
     ["Recorded amount", r.amount], ["Currency", r.amount == null ? null : r.currency], ["Order ID", r.orderId], ["Payment ID", r.paymentId], ["Receipt kind", r.receiptKind]]} /></Box>;
@@ -158,7 +162,7 @@ function RelatedUser({ id }) {
   const [kind, setKind] = useState("activity");
   return <div className="space-y-3">
     <Box title="Related records"><Select name="Related view" value={kind} change={setKind} options={[["activity", "Activity"], ["transactions", "Transactions"],
-      ["bookings", "Bookings"], ["blog-supports", "Blog supports"]]} /><p className="mt-2 text-sm text-slate-600">Links use the recorded user ID.</p></Box>
+      ["bookings", "Bookings"], ["blog-supports", "Blog supports"]]} /><p className="mt-2 text-sm text-muted">Links use the recorded user ID.</p></Box>
     <Registry key={kind} kind={kind} owner={id} />
   </div>;
 }

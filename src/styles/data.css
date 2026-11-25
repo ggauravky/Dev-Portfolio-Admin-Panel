@@ -1,0 +1,20 @@
+@layer components {
+  .data-scroll { overflow-x: auto; max-width: 100%; min-width: 0; }
+  .data-scroll:focus-visible { outline-offset: -2px; }
+  .data-table { width: 100%; min-width: max-content; border-collapse: collapse; text-align: left; font-size: var(--text-small); }
+  .data-table :is(th, td) { padding: var(--space-1) 0.75rem; vertical-align: top; }
+  .data-table thead { color: rgb(var(--muted)); border-block: 1px solid rgb(var(--rule)); }
+  .data-table tbody tr { border-bottom: 1px solid rgb(var(--rule)); }
+  .data-table tbody tr:is(:hover, :focus-within) { background: rgb(var(--paper) / 0.055); }
+  .data-table tbody th { font-weight: 500; }
+  .data-table .data-technical { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+  .data-table [data-align='right'] { text-align: right; }
+  .data-meter { overflow: hidden; height: 4px; background: rgb(var(--chart-track)); }
+  .data-meter > span { display: block; height: 100%; background: rgb(var(--chart-main)); }
+  .chart-axis { color: rgb(var(--muted)); font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+  .chart-plot { border-bottom: 1px solid rgb(var(--chart-axis)); border-top: 1px solid rgb(var(--chart-grid)); }
+  .chart-series { background: rgb(var(--chart-main)); }
+  .chart-series[data-series='alternate'] { background: rgb(var(--chart-secondary)); border-inline: 1px solid rgb(var(--ink)); }
+  .chart-series[data-series='emphasis'] { background: rgb(var(--accent)); }
+  .chart-series[data-series='warning'] { background: rgb(var(--error)); border-inline: 1px solid rgb(var(--ink)); }
+}

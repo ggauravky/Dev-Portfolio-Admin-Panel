@@ -1,10 +1,15 @@
+import { useResource } from "../../../hooks/useResource";
+import { queryString } from "../../../components/data/query";
+import { LoadState } from "../../../components/data/Controls";
+import { dateTime } from "../../../components/data/format";
+import { control, panel, heading } from "../../../components/ui/Primitives";
+import { Fields, Badge, Box, Table } from "../../../components/data/Records";
+import { RecordLink, financePath, label } from "./Shared";
+import { formatPaise } from "../../../components/data/money";
 import { Link } from "react-router-dom";
 import { getFinancialDetail } from "../../../services/api";
-import { useChatResource, queryString, LoadState, dateTime, control, panel, heading } from "../chat/Shared";
-import { Fields, Badge, Box, RecordLink, financePath, label, Table } from "./Shared";
-import { formatPaise } from "./money";
 
-const date = (value) => value ? dateTime(value) : null;
+const date = (value) => value ? <time dateTime={value}>{dateTime(value)}</time> : null;
 const preferredDate = (value) => value ? new Intl.DateTimeFormat("en-IN", { dateStyle:"medium", timeZone:"Asia/Kolkata" }).format(new Date(value)) : null;
 const state = (value) => <Badge value={value} />;
 const back = (view) => <Link className={control} to={financePath(view)}>Back to list</Link>;
@@ -12,10 +17,10 @@ const back = (view) => <Link className={control} to={financePath(view)}>Back to 
 function Receipt({ value }) {
   return <Box title="Receipt and email delivery">
     <Fields fields={[["Receipt number",value.number],["Identity generated",date(value.generatedAt)],["Receipt availability",label(value.availability)]]} />
-    <p className="text-sm text-slate-600">Sent is an application record. PDF access is handled by the Portfolio.</p>
+    <p className="text-sm text-muted">Sent is an application record. PDF access is handled by the Portfolio.</p>
     <div className="mt-3 grid gap-3 md:grid-cols-2">
       {[["Customer receipt email",value.customer],["Admin notification email",value.admin]].map(([name, item]) =>
-        <div className="rounded-md border border-slate-200 p-3 min-w-0" key={name}>
+        <div className="rounded-control border border-rule p-3 min-w-0" key={name}>
           <h3 className="font-semibold text-sm">{name}</h3>
           <Fields fields={[["Status",state(item.status)],["Attempts",item.attempts],["Last attempt",date(item.lastAttemptAt)],["Sent",date(item.sentAt)],
             ["Processing claim",date(item.claimedAt)],["Claim state",item.staleClaim === true ? "Past five-minute claim window" : item.staleClaim === false ? "Within claim window" : null]]} />
@@ -36,7 +41,7 @@ function Transaction({ data }) {
   ];
   return <>
     <Box title={data.internalReference || "Transaction"}>
-      <p className="mt-2 text-sm text-slate-600">Database-recorded state. Historical test/live mode is unverified.</p>
+      <p className="mt-2 text-sm text-muted">Database-recorded state. Historical test/live mode is unverified.</p>
       <Fields fields={[
         ["Payment",state(data.status)],["Flow",data.flowType],["Provider",data.provider],
         ["Recorded amount",formatPaise(data.amountPaise)],["Amount validation",data.amountIssue && label(data.amountIssue)],
@@ -46,9 +51,9 @@ function Transaction({ data }) {
       ]} />
     </Box>
     <Box title="Recorded payment lifecycle">
-      <ol className="mt-3 divide-y divide-slate-100 text-sm">
+      <ol className="mt-3 divide-y divide-rule text-sm">
         {stages.map(([name,time,value]) => <li className="grid gap-1 py-2 sm:grid-cols-2" key={name}>
-          <span className="font-medium">{name}</span><span className="text-slate-600 break-words">{time ? date(time) : value ? <>{value} · timestamp not recorded</> : "Not recorded"}</span>
+          <span className="font-medium">{name}</span><span className="text-muted break-words">{time ? date(time) : value ? <>{value} · timestamp not recorded</> : "Not recorded"}</span>
         </li>)}
       </ol>
       <p className="mt-3 text-sm">Booking relationship: {data.booking.status !== "available" ? data.booking.message : label(related?.status) +
@@ -66,8 +71,8 @@ function Transaction({ data }) {
           ["Event", (row) => <RecordLink view="webhook-events" id={row._id}>{row.eventId}</RecordLink>], ["Type",(row) => label(row.eventType)],
           ["Status",(row) => state(row.status)], ["Attempts",(row) => row.attempts], ["Recorded",(row) => date(row.createdAt)],
         ]} empty="No linked events recorded." />
-        <p className="mt-2 text-sm text-slate-600">{data.webhooks.data.more ? "Showing the latest 10 linked events. " : ""}
-          <Link className="text-teal-800 underline" to={financePath("webhook-events") + "?transaction=" + encodeURIComponent(data._id)}>View linked events</Link></p>
+        <p className="mt-2 text-sm text-muted">{data.webhooks.data.more ? "Showing the latest 10 linked events. " : ""}
+          <Link className="text-paper underline" to={financePath("webhook-events") + "?transaction=" + encodeURIComponent(data._id)}>View linked events</Link></p>
       </>}
     </Box>
   </>;
@@ -77,7 +82,7 @@ function Booking({ data }) {
   const related = data.transaction.data;
   return <>
     <Box title={data.service || "Booking record"}>
-      <p className="mt-2 text-sm text-slate-600">Preferred date and time are customer requests.</p>
+      <p className="mt-2 text-sm text-muted">Preferred date and time are customer requests.</p>
       <Fields fields={[
         ["Booking ID",data._id],["Service slug",data.serviceSlug],["Customer",data.name],["Email",data.email],["Phone",data.phone],
         ["Preferred date",preferredDate(data.preferredDate)],["Preferred time",data.preferredTime],["Project brief",data.projectBrief],
@@ -110,12 +115,12 @@ function Webhook({ data }) {
         <RecordLink view="transactions" id={related._id}>{related.internalReference || "Open transaction"}</RecordLink> :
         data.transaction.message || label(related?.status || data.transaction.status)],
     ]} />
-    <p className="text-sm text-slate-600">A retry can update these timestamps. They do not measure gateway latency.</p>
+    <p className="text-sm text-muted">A retry can update these timestamps. They do not measure gateway latency.</p>
   </Box>;
 }
 
 export default function Inspector({ view, id }) {
-  const resource = useChatResource(getFinancialDetail, queryString({ endpoint:view, id }));
+  const resource = useResource(getFinancialDetail, queryString({ endpoint:view, id }));
   const data = resource.data;
   return <div className="space-y-4">
     <div className="flex gap-2 items-center flex-wrap">{back(view)}<button type="button" className={control} onClick={resource.refresh}>Refresh record</button></div>
@@ -126,7 +131,7 @@ export default function Inspector({ view, id }) {
           <Fields fields={[["Payment",state(data.status)],["Paid",date(data.paidAt)],["Linked transaction",<RecordLink view="transactions" id={data._id}>Open transaction</RecordLink>]]} />
         </section><Receipt value={data.receipt} />
       </> : view === "legacy-payments" ? <Box title={data.orderId || "Legacy payment record"}>
-        <p className="mt-2 text-sm text-slate-600">Historical collection. Currency and payment mode cannot be inferred.</p>
+        <p className="mt-2 text-sm text-muted">Historical collection. Currency and payment mode cannot be inferred.</p>
         <Fields fields={[["Provider",data.paymentProvider],["Status",state(data.paymentStatus)],["Recorded major amount",data.amount],
           ["Contributor",data.contributorName],["Email",data.email],["Phone",data.phone],["Message",data.message],
           ["Payment ID",data.paymentId],["Paid",date(data.paidAt)],["Created",date(data.createdAt)]]} />

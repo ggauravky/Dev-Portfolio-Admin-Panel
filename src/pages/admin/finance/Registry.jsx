@@ -1,9 +1,14 @@
+import { useResource } from "../../../hooks/useResource";
+import { queryString, dateParams } from "../../../components/data/query";
+import { FilterBar, LoadState, Pager, Range, Select } from "../../../components/data/Controls";
+import { dateTime } from "../../../components/data/format";
+import { control, panel, heading } from "../../../components/ui/Primitives";
+import { Table, Badge } from "../../../components/data/Records";
+import { RecordLink, label, statusList, emailStates, hookStates, categories, financePath } from "./Shared";
+import { formatPaise } from "../../../components/data/money";
 import { useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { getFinancialRows } from "../../../services/api";
-import { useChatResource, queryString, dateParams, LoadState, Pager, dateTime, control, panel, heading } from "../chat/Shared";
-import { Range, Select, Table, RecordLink, Badge, label, statusList, emailStates, hookStates, categories, financePath } from "./Shared";
-import { formatPaise } from "./money";
 
 const choices = (values, none = "All") => [["", none], ...values];
 const sortChoices = (columns) => columns.map(([value, name]) => [value,name]);
@@ -59,20 +64,20 @@ function tableColumns(view) {
     ["Transaction link", (row) => row.relationship ? <Badge value={row.relationship.status} /> : "Unavailable"],
   ];
   if (view === "receipts") return [
-    ["Reference", (row) => detail(view,row,row.internalReference || short(id(row)))], ["Receipt", (row) => shown(row.receipt.number)],
+    ["Reference", (row) => detail(view,row,row.internalReference || short(id(row))), "technical"], ["Receipt", (row) => shown(row.receipt.number), "technical"],
     ["Payment", (row) => <Badge value={row.status} />], ["Customer email", (row) => <Badge value={row.receipt.customer.status} />],
     ["Customer attempts", (row) => row.receipt.customer.attempts ?? "—"], ["Admin email", (row) => <Badge value={row.receipt.admin.status} />],
-    ["Admin attempts", (row) => row.receipt.admin.attempts ?? "—"], ["Paid", paid],
+    ["Admin attempts", (row) => row.receipt.admin.attempts ?? "—", "number"], ["Paid", paid, "technical"],
   ];
   if (view === "webhook-events") return [
-    ["Event", (row) => detail(view,row,row.eventId || short(id(row)))], ["Type", (row) => label(row.eventType)],
-    ["Status", (row) => <Badge value={row.status} />], ["Attempts", (row) => row.attempts ?? "—"],
+    ["Event", (row) => detail(view,row,row.eventId || short(id(row))), "technical"], ["Type", (row) => label(row.eventType)],
+    ["Status", (row) => <Badge value={row.status} />], ["Attempts", (row) => row.attempts ?? "—", "number"],
     ["Transaction", (row) => row.transactionId ? <RecordLink view="transactions" id={row.transactionId}>Open transaction</RecordLink> : "Not recorded"],
-    ["Recorded", recorded],
+    ["Recorded", recorded, "technical"],
   ];
   if (view === "legacy-payments") return [
     ["Reference", (row) => detail(view,row,row.orderId || short(id(row)))], ["Contributor", (row) => shown(row.contributorName)],
-    ["Provider", (row) => shown(row.paymentProvider)], ["Recorded major units", (row) => row.amount ?? "Not recorded"],
+    ["Provider", (row) => shown(row.paymentProvider)], ["Recorded major units", (row) => row.amount ?? "Not recorded", "number"],
     ["Status", (row) => <Badge value={row.paymentStatus} />], ["Recorded", recorded],
   ];
   if (view === "reconciliation") return [
@@ -82,10 +87,10 @@ function tableColumns(view) {
     ["Record created", (row) => dateTime(row.observedAt)],
   ];
   return [
-    ["Reference", (row) => detail(view,row,row.internalReference || short(id(row)))],
+    ["Reference", (row) => detail(view,row,row.internalReference || short(id(row))), "technical"],
     [view === "support-payments" ? "Contributor" : "Customer", (row) => shown(row.contributorName || row.customerName)],
-    ["Flow", (row) => shown(row.flowType)], ["Recorded amount", amount], ["Payment", (row) => <Badge value={row.status} />],
-    ["Receipt email", (row) => <Badge value={row.receiptEmailStatus} />], ["Created", recorded],
+    ["Flow", (row) => shown(row.flowType)], ["Recorded amount", amount, "number"], ["Payment", (row) => <Badge value={row.status} />],
+    ["Receipt email", (row) => <Badge value={row.receiptEmailStatus} />], ["Created", recorded, "technical"],
   ];
 }
 
@@ -94,7 +99,8 @@ export default function Registry({ view }) {
   const [searchParams] = useSearchParams();
   const linkedReference = searchParams.get("transaction");
   const transactionId = view === "webhook-events" && /^[a-f0-9]{24}$/i.test(linkedReference) ? linkedReference : undefined;
-  const [query, setQuery] = useState({ range: "30d", page: 1, pageSize: 25, view: view === "bookings" ? "recorded" : undefined });
+  const defaults = { range: "30d", page: 1, pageSize: 25, view: view === "bookings" ? "recorded" : undefined };
+  const [query, setQuery] = useState(defaults);
   const upcoming = view === "bookings" && query.view === "upcoming";
   const enabled = transactionId || upcoming || query.range !== "custom" || !!(query.from && query.to);
   const update = (change) => setQuery((old) => ({ ...old, page: 1, ...change }));
@@ -102,14 +108,14 @@ export default function Registry({ view }) {
   const dates = transactionId ? { range: "all" } : upcoming ? {} : dateParams(query);
   const params = { ...filters, ...dates, transactionId, endpoint: view };
   if (view === "bookings" && query.view === "paid") delete params.paymentStatus;
-  const resource = useChatResource(getFinancialRows, queryString(params), { enabled, delay: query.search !== undefined ? 250 : 0 });
+  const resource = useResource(getFinancialRows, queryString(params), { enabled, delay: query.search !== undefined ? 250 : 0 });
   const data = resource.data;
   const links = new Map((data?.links?.data || []).map((item) => [item.id, item]));
   const rows = data?.items.map((item) => view === "bookings" ? { ...item, relationship: item.link || links.get(item._id) } : item) || [];
   return <div className="space-y-4">
     <section className={panel}>
-      <h2 className={heading}>{spec.title}</h2><p className="mt-1 text-sm text-slate-600">{spec.caption}</p>
-      <div className="mt-4 flex flex-wrap gap-3 items-end">
+      <h2 className={heading}>{spec.title}</h2><p className="mt-1 text-sm text-muted">{spec.caption}</p>
+      <FilterBar className="mt-4" refresh={resource.refresh} reset={() => setQuery(defaults)}>
         {spec.placeholder && <label className="grid gap-1 text-sm min-w-0 flex-1 basis-56">Search
           <input className={control} type="search" maxLength={100} value={query.search || ""} placeholder={spec.placeholder} onChange={(e) => update({ search:e.target.value })} />
         </label>}
@@ -117,10 +123,9 @@ export default function Registry({ view }) {
         <Select name="Sort by" value={query.sortBy || "createdAt"} change={(sortBy) => update({ sortBy })} options={spec.sort} />
         <Select name="Direction" value={query.order || "desc"} change={(order) => update({ order })} options={[["desc","Descending"],["asc","Ascending"]]} />
         <Select name="Page size" value={query.pageSize} change={(pageSize) => update({ pageSize })} options={[5,10,25,50]} />
-        <button type="button" className={control} onClick={resource.refresh}>Refresh</button>
-      </div>
+      </FilterBar>
       <details className="mt-4" open={view === "bookings" || view === "reconciliation" || undefined}>
-        <summary className="cursor-pointer text-sm font-medium text-teal-800">Filters</summary>
+        <summary className="cursor-pointer text-sm font-medium text-paper">Filters</summary>
         <div className="mt-2 flex flex-wrap gap-3">
           {spec.filters.filter(([key]) => view !== "bookings" || query.view !== "paid" || key !== "paymentStatus").map(([key,name,options]) =>
             <Select key={key} name={name} value={query[key] || options[0][0]} change={(value) => update(key === "source" ? { source:value, issue:"" } : { [key]:value })} options={options} />)}
@@ -131,13 +136,13 @@ export default function Registry({ view }) {
             change={(issue) => update({ issue })} options={choices(data.issueTypes)} />}
         </div>
       </details>
-      {upcoming && <p className="mt-3 text-xs text-slate-600">Preferred dates from today through the next 180 days.</p>}
-      {view === "bookings" && query.view === "paid" && <p className="mt-3 text-xs text-slate-600">Date range uses the recorded paid date.</p>}
-      {transactionId && <p className="mt-3 text-sm">Showing events for one transaction. <Link className="text-teal-800 underline" to={financePath(view)}>Clear transaction filter</Link></p>}
+      {upcoming && <p className="mt-3 text-xs text-muted">Preferred dates from today through the next 180 days.</p>}
+      {view === "bookings" && query.view === "paid" && <p className="mt-3 text-xs text-muted">Date range uses the recorded paid date.</p>}
+      {transactionId && <p className="mt-3 text-sm">Showing events for one transaction. <Link className="text-paper underline" to={financePath(view)}>Clear transaction filter</Link></p>}
     </section>
     {enabled ? <LoadState resource={resource} /> : <p role="status">Choose both custom dates.</p>}
     {data && <section className={panel}>
-      {view === "reconciliation" && <div className="mb-3 text-sm text-slate-700">
+      {view === "reconciliation" && <div className="mb-3 text-sm text-muted">
         <p>{data.scanned} candidate records checked{data.truncated ? " within the " + data.candidateLimit + "-record scan cap. Narrow the date range for more complete coverage." : "."}</p>
         {Object.entries(data.checks).filter(([,part]) => part.status !== "available").map(([name,part]) => <p key={name}>{label(name)} check unavailable. {part.message}</p>)}
       </div>}

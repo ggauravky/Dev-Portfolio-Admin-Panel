@@ -1,9 +1,15 @@
+import { useResource } from "../../../hooks/useResource";
+import { queryString, dateParams } from "../../../components/data/query";
+import { LoadState, Range } from "../../../components/data/Controls";
+import { Timeline, Distribution } from "../../../components/data/Charts";
+import { number, dateTime } from "../../../components/data/format";
+import { control, panel, heading } from "../../../components/ui/Primitives";
+import { Fields, Box, Table } from "../../../components/data/Records";
+import { financePath } from "./Shared";
+import { formatPaise } from "../../../components/data/money";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { getFinancialAnalytics } from "../../../services/api";
-import { useChatResource, queryString, dateParams, LoadState, Timeline, Distribution, number, dateTime, control, panel, heading } from "../chat/Shared";
-import { Range, Fields, financePath, Box, Table } from "./Shared";
-import { formatPaise } from "./money";
 
 const dayLabel = (value) => new Date(Date.parse(value) + 19800000).toISOString().slice(0,10);
 const rows = (items, fields) => items.map((item) => ({ day:item.key, ...Object.fromEntries(fields.map((field) => [field,item[field]])) }));
@@ -12,7 +18,7 @@ const ratio = (entries, total) => entries.map((row) => ({ ...row, fraction: tota
 export default function Overview() {
   const [range,setRange] = useState({ range:"7d" });
   const enabled = range.range !== "custom" || !!(range.from && range.to);
-  const resource = useChatResource(getFinancialAnalytics, queryString(dateParams(range)), { enabled });
+  const resource = useResource(getFinancialAnalytics, queryString(dateParams(range)), { enabled });
   const report = resource.data;
   const payment = report?.transactions.data;
   const hooks = report?.webhooks.data;
@@ -30,29 +36,29 @@ export default function Overview() {
       <Range value={range} change={(patch) => setRange((previous) => ({ ...previous,...patch }))} />
       <button type="button" className={control} onClick={resource.refresh}>Refresh overview</button>
     </div>
-    <p className="text-sm text-slate-600">Recorded database amounts. Historical test/live mode, settlements, fees, refund amounts and net revenue are unverified or unavailable.</p>
+    <p className="text-sm text-muted">Recorded database amounts. Historical test/live mode, settlements, fees, refund amounts and net revenue are unverified or unavailable.</p>
     {enabled ? <LoadState resource={resource} /> : <p role="status">Choose both custom dates.</p>}
     {report && <>
       <section className={panel}>
         <h2 className={heading}>Financial snapshot</h2>
-        <p className="mt-1 text-xs text-slate-600">{dayLabel(report.dates.from)} through {dayLabel(new Date(Date.parse(report.dates.to)-86400000))} IST · Observed {dateTime(report.observedAt)}</p>
+        <p className="mt-1 text-xs text-muted">{dayLabel(report.dates.from)} through {dayLabel(new Date(Date.parse(report.dates.to)-86400000))} IST · Observed {dateTime(report.observedAt)}</p>
         <dl className="mt-4 grid grid-cols-2 gap-4 lg:grid-cols-3">
-          {metrics.map(([name,value]) => <div key={name} className="min-w-0 border-l border-teal-700 pl-3">
-            <dt className="text-xs text-slate-600">{name}</dt><dd className="mt-1 break-words text-lg font-semibold tabular-nums">{value}</dd>
+          {metrics.map(([name,value], index) => <div key={name} className={`min-w-0 border-l border-rule pl-3 ${index < 3 && value.length > 14 ? "col-span-2 sm:col-span-1" : ""}`}>
+            <dt className="text-xs text-muted">{name}</dt><dd className="mt-1 font-serif text-h2 tabular-nums [overflow-wrap:anywhere]">{value}</dd>
           </div>)}
         </dl>
         {Object.entries({ Transactions:report.transactions, Bookings:report.bookings, Webhooks:report.webhooks }).filter(([,part]) => part.status !== "available")
-          .map(([name,part]) => <p role="status" className="mt-3 text-sm text-red-800" key={name}>{name} unavailable. {part.message}</p>)}
-        {payment && <p className="mt-3 text-sm text-slate-600">
+          .map(([name,part]) => <p role="status" className="mt-3 text-sm text-error" key={name}>{name} unavailable. {part.message}</p>)}
+        {payment && <p className="mt-3 text-sm text-muted">
           {payment.paid.excluded} paid records excluded from INR sums due to an amount or currency check. {payment.paid.invalidFlow} paid records have an unclassified flow.
         </p>}
       </section>
       {payment && <>
         <div className="grid gap-4 lg:grid-cols-2">
           <Timeline title="Checkout records by created date" rows={rows(payment.dailyAttempts,["count","failed"])} unit="records" series={[
-            { key:"count",label:"Recorded attempts",color:"bg-teal-700" },{ key:"failed",label:"Currently failed",color:"bg-rose-500" }]} />
+            { key:"count",label:"Recorded attempts",seriesTone: "main" },{ key:"failed",label:"Currently failed",seriesTone: "warning" }]} />
           <Timeline title="Currently paid records by paid date" rows={rows(payment.dailyPaid,["count"])} unit="records" series={[
-            { key:"count",label:"Recorded paid",color:"bg-teal-700" }]} />
+            { key:"count",label:"Recorded paid",seriesTone: "main" }]} />
         </div>
         <div className="grid gap-4 lg:grid-cols-2">
           <Distribution title="Current status of checkout records" rows={ratio(payment.statuses,payment.attempts.total)} />
@@ -62,10 +68,10 @@ export default function Overview() {
           <Fields fields={[["Failed attempts",payment.attempts.failed],["Refunded state (records)",payment.attempts.refunded],
             ["Recorded pending amount",formatPaise(payment.attempts.pendingPaise)],["Pending records excluded from sums",payment.attempts.pendingInvalid],
             ["Admin notification failures",payment.attempts.adminFailures]]} />
-          <details className="text-sm"><summary className="cursor-pointer text-teal-800">Daily paid amounts</summary>
+          <details className="text-sm"><summary className="cursor-pointer text-paper">Daily paid amounts</summary>
             <Table name="Daily paid amounts" rows={payment.dailyPaid.map((row) => ({ ...row,_id:row.key }))}
-              columns={[["Date (IST)",(row) => row.key],["Recorded amount",(row) => formatPaise(row.paise)],["Paid records",(row) => row.count],
-                ["Excluded",(row) => row.count-row.valid]]} empty="No recorded paid activity." />
+              columns={[["Date (IST)",(row) => row.key,"technical"],["Recorded amount",(row) => formatPaise(row.paise),"number"],["Paid records",(row) => row.count,"number"],
+                ["Excluded",(row) => row.count-row.valid,"number"]]} empty="No recorded paid activity." />
           </details>
         </Box>
       </>}
@@ -74,8 +80,8 @@ export default function Overview() {
           ["Processing",hooks.processing],["Unclassified",hooks.unclassified]]} />
       </Box>}
       <Box title="Reconciliation observations">
-        <p className="mt-2 text-sm text-slate-600">Run a bounded review of links, monetary fields and delivery metadata in the selected record scope.</p>
-        <Link className="mt-2 inline-block text-sm font-medium text-teal-800 underline" to={financePath("reconciliation")}>Open reconciliation</Link>
+        <p className="mt-2 text-sm text-muted">Run a bounded review of links, monetary fields and delivery metadata in the selected record scope.</p>
+        <Link className="mt-2 inline-block text-sm font-medium text-paper underline" to={financePath("reconciliation")}>Open reconciliation</Link>
       </Box>
     </>}
   </div>;
