@@ -9,7 +9,7 @@ test("existing bookmarks, optional IDs and aliases resolve to canonical navigati
   assert.equal(workspaceLocation(`/admin/financial/bookings/${id}`).active, "bookings");
   assert.equal(workspaceLocation(`/admin/bookings/${id}`).crumbs.at(-1).label, "Record details");
   assert.equal(workspaceLocation(`/admin/blog-engagement/supports/${id}`).active, "blog");
-  assert.equal(workspaceLocation(`/admin/security/audit/${id}`).active, "security");
+  assert.equal(workspaceLocation(`/admin/security/audit/${id}`).active, undefined);
   assert.equal(workspaceLocation(financePath("receipts")).active, "finance");
   assert.equal(new Set(workspaceRoutes.map(({ path }) => path)).size, workspaceRoutes.length);
 });

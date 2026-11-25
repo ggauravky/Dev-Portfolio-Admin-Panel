@@ -8,7 +8,7 @@ import { Workspace } from "./Shared";
 import { Link } from "react-router-dom";
 import { getSystemStatus } from "../../../services/api";
 
-const labels = { primary: "Portfolio database", chat: "Chat database", admin: "Admin security database" };
+const labels = { primary: "Portfolio database", chat: "Chat database" };
 
 export default function System({ settings = false }) {
   const resource = useResource(getSystemStatus);
@@ -17,13 +17,14 @@ export default function System({ settings = false }) {
   const title = settings ? "Settings" : "System health";
   return <Workspace title={title} description={settings ? "Read-only configuration for this workspace." : "Dependency availability and operational readiness."}>
     <div className="flex flex-wrap items-center gap-4"><button className={control} type="button" onClick={resource.refresh}>Refresh {settings ? "settings" : "health"}</button>
-      {settings && <><Link className={linkClass} to="/admin/security">Manage sessions</Link><Link className={linkClass} to="/admin/system">Open system health</Link></>}
+      {settings && <Link className={linkClass} to="/admin/system">Open system health</Link>}
     </div>
     <LoadState resource={resource} />
     {report && <>
       {settings ? <EditorialSection title="Configuration summary"><Fields fields={[["Business data", report.readOnly ? "Read-only" : "Unknown"],
-        ["Reporting timezone", policy?.timezone], ["Session idle timeout", policy && `${policy.idleMinutes} minutes`],
-        ["Session absolute timeout", policy && `${policy.maxHours} hours`], ["Audit retention", policy && `${policy.auditDays} days`],
+        ["Reporting timezone", policy?.timezone], ["Session lifetime", policy && `${policy.maxHours} hours, then sign in again`],
+        ["Session storage", policy && "Signed HttpOnly cookie. Not stored in MongoDB. Signing out clears this browser only; changing the password or signing secret ends every session."],
+        ["Security events", "Written to the API host logs only. No persistent audit history."],
         ["Chat turn retention policy", policy?.chatRetention && `${policy.chatRetention.turnRetentionDays} days`],
         ["Chat cache retention policy", policy?.chatRetention && `${policy.chatRetention.cacheRetentionHours} hours`],
         ["Portfolio source revision", policy?.portfolioRevision, true], ["Portfolio contract revision", policy?.contractRevision, true], ["Backend application version", policy?.version, true],
@@ -42,7 +43,7 @@ export default function System({ settings = false }) {
       <MetricSection title="Administrative capabilities">
         <Table name="Administrative capabilities" rows={Object.entries(report.capabilities).map(([name, value]) => ({ id: name, name, ...value }))}
           columns={[["Resource", (row) => row.name], ["Read", (row) => row.read ? "Available" : "Disabled"],
-            ["Actions", (row) => row.revoke ? "Revoke sessions" : row.write ? "Write" : "Read-only"]]} />
+            ["Actions", (row) => row.write ? "Write" : "Read-only"]]} />
       </MetricSection>
     </>}
   </Workspace>;

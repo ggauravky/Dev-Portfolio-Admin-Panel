@@ -1,6 +1,6 @@
 const { HttpError, asyncRoute, send, missing } = require("../utils/http");
 const { createAccess, optional, list, page, maxTimeMS } = require("./access");
-const { transactionQuery, bookingQuery, webhookQuery, legacyQuery, objectId, only } = require("./query");
+const { transactionQuery, bookingQuery, webhookQuery, webhookScope, legacyQuery, objectId, only } = require("./query");
 const { project, pick, transaction, webhook, idString } = require("./model");
 const { txLinks, bookingLinks } = require("./relations");
 const { createDiagnostics, classifyBooking } = require("./diagnostics");
@@ -81,7 +81,7 @@ function financial(router, { db, auth, security, now }) {
     router.get("/" + path + "/:id", auth, asyncRoute(async (req, res) => {
       only(req.query, []);
       const at = now();
-      const queryFixed = kind === "transactions" || kind === "webhooks" ? { provider: "razorpay", ...fixed } : fixed;
+      const queryFixed = kind === "transactions" ? { provider: "razorpay", ...fixed } : kind === "webhooks" ? webhookScope : fixed;
       const row = await getOne(access, kind, req.params.id, path === "receipts" ? receiptProjection() : project(kind, "detail"), queryFixed);
       let data;
       if (path === "receipts") {

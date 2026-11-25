@@ -25,7 +25,9 @@ function day(value) {
   return timestamp;
 }
 
-function reportingRange(query, now = new Date(), defaultRange = "30d", { allowMonth = false, allowHistory = false } = {}) {
+const allTime = new Date(Date.UTC(2000, 0, 1));
+
+function reportingRange(query, now = new Date(), defaultRange = "30d", { allowMonth = false, allowHistory = false, allowAll = false } = {}) {
   const { range, from, to } = query;
   const today = day(istDay.format(now));
   const end = new Date(+today + dayMs);
@@ -38,6 +40,8 @@ function reportingRange(query, now = new Date(), defaultRange = "30d", { allowMo
     stop = new Date(+day(to) + dayMs);
   } else {
     const mode = range === undefined ? defaultRange : range;
+    // Complete recorded history for registries; results stay paginated and query time stays bounded.
+    if (allowAll && mode === "all") return { from: allTime, to: end, timezone: zone, all: true };
     if (allowMonth && mode === "month") start = day(istDay.format(now).slice(0, 7) + "-01");
     else {
       if (typeof mode !== "string" || !Object.hasOwn(preset, mode)) throw invalid("Unsupported report range");

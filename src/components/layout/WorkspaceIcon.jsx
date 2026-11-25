@@ -5,7 +5,7 @@ const paths = {
   chat: "M4 4h16v12H9l-5 4zm4 5h8m-8 3h5", finance: "M3 20h18M6 16v-5m6 5V7m6 9V4",
   transactions: "M4 8h16m-4-4 4 4-4 4M20 16H4m4-4-4 4 4 4", calendar: "M4 6h16v14H4zM8 3v6m8-6v6M4 11h16m-12 4h2m4 0h2",
   support: "M12 20 4.6 12.6A4.6 4.6 0 0 1 11 6l1 1 1-1a4.6 4.6 0 0 1 6.4 6.6Z", article: "M5 4h14v16H5zM8 8h8m-8 4h8m-8 4h5",
-  activity: "M2 12h5l3-7 4 14 3-7h5", shield: "M12 3l8 3v5c0 4-3 7-8 10-5-3-8-6-8-10V6zM9 12l2 2 4-4",
+  activity: "M2 12h5l3-7 4 14 3-7h5",
   system: "M4 4h16v6H4zm0 10h16v6H4zm3-7h.01m0 10h.01m4-10h6m-6 10h6", settings: "M4 6h16M4 12h16M4 18h16M8 4v4m8 2v4m-6 2v4",
   menu: "M3 6h18M3 12h18M3 18h18", panel: "M3 4h18v16H3zm6 0v16m6-12-3 4 3 4", logout: "M10 5H4v14h6m4-12 5 5-5 5m-6-5h11",
 };

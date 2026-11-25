@@ -20,10 +20,10 @@ export function Select({ name, value, change, options }) {
   </label>;
 }
 
-export function Range({ value, change, chat = false }) {
+export function Range({ value, change, chat = false, all = false }) {
   return <>
     <Select name="Date range" value={value.range} change={(range) => change({ range })}
-      options={[["today","Today"],["7d","Last 7 days"],["30d","Last 30 days"],chat ? ["90d","Last 90 days"] : ["month","Current month"],["custom","Custom (IST)"]]} />
+      options={[["today","Today"],["7d","Last 7 days"],["30d","Last 30 days"],chat ? ["90d","Last 90 days"] : ["month","Current month"],...(all ? [["all","All recorded history"]] : []),["custom","Custom (IST)"]]} />
     {value.range === "custom" && <>
       <label className="grid gap-1 text-sm text-muted">From
         <input className={control} type="date" value={value.from || ""} onChange={(e) => change({ from: e.target.value })} />

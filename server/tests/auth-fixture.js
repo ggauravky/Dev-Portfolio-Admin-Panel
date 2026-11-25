@@ -8,69 +8,18 @@ const origin = "https://owner.example.test";
 const proxySecret = "a".repeat(64);
 let credential;
 
+const sessionSecret = "isolated-fixture-session-secret-0123456789";
+
 async function fixtureEnv(extra = {}) {
   credential ??= hashPassword(password);
   return {
-    PORTFOLIO_MONGODB_URI: "mongodb://localhost/fixture",
+    MONGO_URI: "mongodb://localhost/fixture",
     PORTFOLIO_DB_NAME: "fixture",
-    ADMIN_MONGODB_URI: "mongodb://localhost/fixture_admin",
-    ADMIN_DB_NAME: "fixture_admin",
     ADMIN_EMAIL: email,
     ADMIN_PASSWORD_HASH: await credential,
+    ADMIN_SESSION_SECRET: sessionSecret,
     FRONTEND_URL: origin,
-    READ_ONLY_MODE: "true",
     ...extra,
-  };
-}
-
-function fixtureStore() {
-  const sessions = new Map();
-  const counters = new Map();
-  const audits = new Map();
-  let available = true;
-  function assertAvailable() {
-    if (!available) throw require("../auth/store").authUnavailable();
-  }
-  return {
-    sessions, counters, audits,
-    setAvailable: (value) => { available = value; },
-    async create(record) { assertAvailable(); sessions.set(record._id, { ...record }); },
-    async lookup(tokenHash) {
-      assertAvailable();
-      const record = [...sessions.values()].find((item) => item.tokenHash === tokenHash);
-      return record && { ...record };
-    },
-    async touch(id, old, now, expires) {
-      assertAvailable();
-      const record = sessions.get(id);
-      if (!record || record.revokedAt || record.idleExpiresAt <= now || record.expiresAt <= now || +record.lastActivityAt !== +old) return false;
-      Object.assign(record, { lastActivityAt: now, idleExpiresAt: expires });
-      return true;
-    },
-    async list(owner, credentialVersion, now) {
-      assertAvailable();
-      return [...sessions.values()].filter((row) => row.owner === owner && row.credentialVersion === credentialVersion &&
-        !row.revokedAt && row.idleExpiresAt > now && row.expiresAt > now);
-    },
-    async revoke(owner, credentialVersion, selector, now) {
-      assertAvailable();
-      let modifiedCount = 0;
-      for (const row of sessions.values()) {
-        if (row.owner !== owner || row.credentialVersion !== credentialVersion || row.revokedAt) continue;
-        if (typeof selector._id === "string" && selector._id !== row._id || selector._id?.$ne === row._id) continue;
-        row.revokedAt = now;
-        modifiedCount++;
-      }
-      return { modifiedCount };
-    },
-    async reserve(key, limit) {
-      assertAvailable();
-      const count = counters.get(key) || 0;
-      if (count >= limit) return false;
-      counters.set(key, count + 1);
-      return true;
-    },
-    async audit(event) { assertAvailable(); if (!audits.has(event._id)) audits.set(event._id, event); },
   };
 }
 
@@ -102,4 +51,4 @@ async function login(request, options = {}) {
 
 const fixtureConfig = async (extra) => readConfig(await fixtureEnv(extra));
 
-module.exports = { fixtureEnv, fixtureConfig, fixtureStore, http, login, email, password, origin, proxySecret };
+module.exports = { fixtureEnv, fixtureConfig, sessionSecret, http, login, email, password, origin, proxySecret };

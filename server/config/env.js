@@ -1,12 +1,12 @@
 const { mongo: { MongoClient } } = require("mongoose");
 const { isIP } = require("node:net");
-const { validHash } = require("../auth/password");
+const { validHash, validPassword } = require("../auth/password");
 
 function fail(key) {
   throw new Error("Invalid or missing configuration: " + key);
 }
 
-function database(uri, explicitName, key) {
+function database(uri, explicitName, key, fallbackName, strict = true) {
   if (!uri) fail(key);
   let named;
   try {
@@ -17,10 +17,9 @@ function database(uri, explicitName, key) {
   } catch {
     fail(key);
   }
-  const name = explicitName || named;
-  if (!name || !/^[A-Za-z0-9_-]{1,63}$/.test(name) || /^(admin|local|config)$/i.test(name) ||
-      (!explicitName && /^test$/i.test(name))) fail(key + " database identity");
-  if (named && named !== name) fail(key + " database identity mismatch");
+  const name = explicitName || named || fallbackName;
+  if (!name || !/^[A-Za-z0-9_-]{1,63}$/.test(name) || /^(admin|local|config)$/i.test(name)) fail(key + " database identity");
+  if (strict && named && named !== name) fail(key + " database identity mismatch");
   return { uri, name };
 }
 
@@ -32,10 +31,13 @@ function integer(value, fallback, min, max, key) {
 
 function readDatabaseConfig(env = process.env) {
   if (env.PORTFOLIO_MONGODB_URI && env.MONGO_URI && env.PORTFOLIO_MONGODB_URI !== env.MONGO_URI) fail("PORTFOLIO_MONGODB_URI and MONGO_URI conflict");
-  if (env.PORTFOLIO_MONGODB_URI && !env.PORTFOLIO_DB_NAME) fail("PORTFOLIO_DB_NAME");
-  const primary = database(env.PORTFOLIO_MONGODB_URI || env.MONGO_URI, env.PORTFOLIO_DB_NAME, "primary MongoDB");
-  const chat = env.CHAT_MONGODB_URI ? database(env.CHAT_MONGODB_URI, "portfolio_chat", "CHAT_MONGODB_URI") : null;
+  const uri = env.MONGO_URI || env.PORTFOLIO_MONGODB_URI;
+  // The Portfolio stores business records in the existing database named "test".
+  const primary = database(uri, env.PORTFOLIO_DB_NAME, "MONGO_URI", "test");
   if (primary.name.toLowerCase() === "portfolio_chat") fail("primary MongoDB database identity");
+  // The Portfolio chatbot stores turns in "portfolio_chat" on the same cluster. Reuse the primary
+  // connection unless a separate CHAT_MONGODB_URI credential is configured.
+  const chat = { uri: env.CHAT_MONGODB_URI ? database(env.CHAT_MONGODB_URI, "portfolio_chat", "CHAT_MONGODB_URI", null, false).uri : uri, name: "portfolio_chat" };
   const dnsServers = env.DNS_SERVERS ? env.DNS_SERVERS.split(",").map((value) => value.trim()) : [];
   if (dnsServers.some((value) => !isIP(value))) fail("DNS_SERVERS");
   return {
@@ -60,36 +62,29 @@ function readConfig(env = process.env) {
   }
   if (mode === "production" && !origins.length) fail("ADMIN_ALLOWED_ORIGINS or FRONTEND_URL");
   if (mode !== "production") origins.push(...[3000, 5173, 5174].map((port) => "http://localhost:" + port));
-  if (env.READ_ONLY_MODE !== undefined && !["true", "false"].includes(env.READ_ONLY_MODE)) fail("READ_ONLY_MODE");
   const email = env.ADMIN_EMAIL?.trim().toLowerCase();
   if (!email || email.length > 254 || !/^[^\s@]+@[^\s@]+$/.test(email)) fail("ADMIN_EMAIL");
-  if (!validHash(env.ADMIN_PASSWORD_HASH)) fail("ADMIN_PASSWORD_HASH");
+  const passwordHash = env.ADMIN_PASSWORD_HASH || null;
+  if (passwordHash && !validHash(passwordHash)) fail("ADMIN_PASSWORD_HASH");
+  const password = passwordHash ? null : env.ADMIN_PASSWORD;
+  if (!passwordHash && !validPassword(password)) fail("ADMIN_PASSWORD_HASH or ADMIN_PASSWORD");
+  if (!passwordHash && mode === "production" && password.length < 12) fail("ADMIN_PASSWORD must be at least 12 characters");
+  const sessionSecret = env.ADMIN_SESSION_SECRET || env.JWT_SECRET;
+  if (typeof sessionSecret !== "string" || sessionSecret.length < 32 || Buffer.byteLength(sessionSecret) > 512) fail("ADMIN_SESSION_SECRET or JWT_SECRET (at least 32 characters)");
   const databases = readDatabaseConfig(env);
-  const admin = database(env.ADMIN_MONGODB_URI, env.ADMIN_DB_NAME || databases.primary.name, "ADMIN_MONGODB_URI");
-  if (admin.name.toLowerCase() === "portfolio_chat") fail("ADMIN_DB_NAME cannot be the chatbot database");
-  if (admin.name.toLowerCase() === databases.primary.name.toLowerCase()) {
-    const username = ({ uri }) => new MongoClient(uri).options.credentials?.username;
-    const securityUser = username(admin);
-    const portfolioUser = username(databases.primary);
-    if (!securityUser || !portfolioUser || securityUser === portfolioUser ||
-        (databases.chat && securityUser === username(databases.chat))) {
-      fail("co-located Admin security requires distinct MongoDB credentials");
-    }
-  }
   if (mode === "production" && !/^[a-f0-9]{64}$/i.test(env.ADMIN_PROXY_SECRET || "")) fail("ADMIN_PROXY_SECRET");
 
   return {
     ...databases,
-    mode, origins, admin,
-    readOnly: env.READ_ONLY_MODE === "true",
+    mode, origins,
     port: integer(env.PORT, 5000, 1, 65535, "PORT"),
     proxyHops: integer(env.TRUST_PROXY_HOPS, 0, 0, 2, "TRUST_PROXY_HOPS"),
     email,
-    passwordHash: env.ADMIN_PASSWORD_HASH,
+    passwordHash,
+    password,
+    sessionSecret,
     proxySecret: env.ADMIN_PROXY_SECRET,
-    idleMinutes: integer(env.ADMIN_SESSION_IDLE_MINUTES, 30, 5, 120, "ADMIN_SESSION_IDLE_MINUTES"),
-    maxHours: integer(env.ADMIN_SESSION_MAX_HOURS, 12, 1, 24, "ADMIN_SESSION_MAX_HOURS"),
-    auditDays: integer(env.ADMIN_AUDIT_RETENTION_DAYS, 90, 7, 365, "ADMIN_AUDIT_RETENTION_DAYS"),
+    maxHours: integer(env.ADMIN_SESSION_MAX_HOURS, 8, 1, 24, "ADMIN_SESSION_MAX_HOURS"),
   };
 }
 

@@ -44,6 +44,8 @@ const events = [
   event(202, "failed", id(1), { eventType: "order.paid", error: "hidden gateway diagnostics with fixture data", attempts: 3 }),
   event(203, "ignored", null, { eventType: "partition.example", processedAt: at("06:00:06") }),
   event(204, "processing", id(998), {}),
+  // Shape written by an older Portfolio release.
+  { _id: id(205), eventKey: "payment.captured:pay_fixture205", eventName: "payment.captured", orderId: "order_fixture205", paymentId: "pay_fixture205", receivedAt: at() },
 ];
 async function financialFixture(extra) {
   const fixture = await createMongoFixture(extra);

@@ -21,7 +21,7 @@ function start() {
   server.headersTimeout = 10_000;
   server.once("listening", () => {
     log({ event: "server_started" });
-    void Promise.all([db.connect("primary"), db.connect("chat"), db.connect("admin")]);
+    void Promise.all([db.connect("primary"), db.connect("chat")]);
   });
   let stopping = false;
   async function shutdown() {

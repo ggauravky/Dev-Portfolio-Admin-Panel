@@ -1,45 +1,54 @@
 const assert = require("node:assert/strict");
 const { once } = require("node:events");
 const { test } = require("node:test");
-const { fixtureEnv, fixtureStore, email, password, origin } = require("./auth-fixture");
+const { fixtureEnv, email, password, origin } = require("./auth-fixture");
 
 test("configuration binds explicitly and rejects ambiguous database identities", async () => {
   const { readConfig } = require("../config/env");
   const env = await fixtureEnv();
   assert.equal(readConfig(env).primary.name, "fixture");
   for (const overrides of [
-    { PORTFOLIO_MONGODB_URI: "" },
-    { MONGO_URI: "mongodb://localhost/other" },
+    { MONGO_URI: "" },
+    { PORTFOLIO_MONGODB_URI: "mongodb://localhost/other" },
     { PORTFOLIO_DB_NAME: "other" },
-    { PORTFOLIO_MONGODB_URI: "mongodb://localhost", PORTFOLIO_DB_NAME: "" },
+    { MONGO_URI: "mongodb://localhost/fixture", PORTFOLIO_DB_NAME: "portfolio_chat" },
+    { MONGO_URI: "mongodb://localhost/config", PORTFOLIO_DB_NAME: "" },
   ]) assert.throws(() => readConfig({ ...env, ...overrides }));
-  assert.equal(readConfig({ ...env, PORTFOLIO_MONGODB_URI: "", MONGO_URI: "mongodb://localhost/fixture", PORTFOLIO_DB_NAME: "" }).primary.name, "fixture");
+  assert.equal(readConfig({ ...env, MONGO_URI: "", PORTFOLIO_MONGODB_URI: "mongodb://localhost/fixture", PORTFOLIO_DB_NAME: "" }).primary.name, "fixture");
 });
 
-test("explicit test database can host security with a distinct MongoDB identity", async () => {
+test("the existing MONGO_URI selects test and reuses one connection for portfolio_chat", async () => {
   const { readConfig } = require("../config/env");
-  const env = await fixtureEnv({
-    PORTFOLIO_MONGODB_URI: "mongodb://reader:fixture@localhost/test",
-    PORTFOLIO_DB_NAME: "test",
-    ADMIN_MONGODB_URI: "mongodb://security:fixture@localhost/test",
-    ADMIN_DB_NAME: "",
-    CHAT_MONGODB_URI: "mongodb://chat:fixture@localhost/portfolio_chat",
-  });
-  const config = readConfig(env);
+  const legacy = await fixtureEnv({ MONGO_URI: "mongodb://owner:fixture@localhost/test?retryWrites=true", PORTFOLIO_DB_NAME: "" });
+  const config = readConfig(legacy);
   assert.equal(config.primary.name, "test");
-  assert.equal(config.admin.name, "test");
   assert.equal(config.chat.name, "portfolio_chat");
-  assert.notEqual(config.admin.uri, config.primary.uri);
-  assert.equal(readConfig({ ...env, ADMIN_DB_NAME: "test" }).admin.name, "test");
+  assert.equal(config.chat.uri, config.primary.uri);
+  assert.equal(readConfig({ ...legacy, MONGO_URI: "mongodb://owner:fixture@localhost" }).primary.name, "test");
+  assert.equal(readConfig({ ...legacy, PORTFOLIO_DB_NAME: "test" }).primary.name, "test");
+  const separate = readConfig({ ...legacy, CHAT_MONGODB_URI: "mongodb://chat:fixture@localhost/?retryWrites=true" });
+  assert.equal(separate.chat.name, "portfolio_chat");
+  assert.notEqual(separate.chat.uri, separate.primary.uri);
+  assert.throws(() => readConfig({ ...legacy, CHAT_MONGODB_URI: "not-a-uri" }), /CHAT_MONGODB_URI/);
+});
+
+test("authentication configuration reuses legacy variables and validates secrets", async () => {
+  const { readConfig } = require("../config/env");
+  const env = await fixtureEnv();
+  const legacy = { ...env, ADMIN_PASSWORD_HASH: "", ADMIN_PASSWORD: "legacy fixture password", ADMIN_SESSION_SECRET: "", JWT_SECRET: "j".repeat(40) };
+  const config = readConfig(legacy);
+  assert.equal(config.passwordHash, null);
+  assert.equal(config.password, "legacy fixture password");
+  assert.equal(config.sessionSecret, "j".repeat(40));
+  assert.equal(config.maxHours, 8);
   for (const [overrides, message] of [
-    [{ PORTFOLIO_MONGODB_URI: "", MONGO_URI: env.PORTFOLIO_MONGODB_URI, PORTFOLIO_DB_NAME: "" }, /primary MongoDB database identity/],
-    [{ PORTFOLIO_MONGODB_URI: "mongodb://localhost/test" }, /distinct MongoDB credentials/],
-    [{ ADMIN_MONGODB_URI: "mongodb://reader:other@localhost/test?retryWrites=false" }, /distinct MongoDB credentials/],
-    [{ CHAT_MONGODB_URI: "mongodb://security:fixture@localhost/portfolio_chat" }, /distinct MongoDB credentials/],
-    [{ ADMIN_MONGODB_URI: "mongodb://localhost/test" }, /distinct MongoDB credentials/],
-    [{ ADMIN_DB_NAME: "portfolio_chat", ADMIN_MONGODB_URI: env.CHAT_MONGODB_URI }, /ADMIN_DB_NAME/],
-    [{ ADMIN_DB_NAME: "config", ADMIN_MONGODB_URI: "mongodb://localhost/config" }, /database identity/],
-  ]) assert.throws(() => readConfig({ ...env, ...overrides }), message);
+    [{ ADMIN_PASSWORD: "" }, /ADMIN_PASSWORD/],
+    [{ JWT_SECRET: "short" }, /JWT_SECRET/],
+    [{ ADMIN_PASSWORD_HASH: "plaintext" }, /ADMIN_PASSWORD_HASH/],
+    [{ ADMIN_SESSION_MAX_HOURS: "48" }, /ADMIN_SESSION_MAX_HOURS/],
+    [{ NODE_ENV: "production", ADMIN_PROXY_SECRET: "a".repeat(64), ADMIN_PASSWORD: "short" }, /at least 12/],
+    [{ NODE_ENV: "production" }, /ADMIN_PROXY_SECRET/],
+  ]) assert.throws(() => readConfig({ ...legacy, ...overrides }), message);
 });
 
 test("full app protects reads and isolates unavailable chat and financial writes", async (t) => {
@@ -47,7 +56,7 @@ test("full app protects reads and isolates unavailable chat and financial writes
   const { readConfig } = require("../config/env");
   const calls = [];
   const db = {
-    status: () => ({ primary: "available", chat: "not_configured", admin: "available" }),
+    status: () => ({ primary: "available", chat: "not_configured" }),
     hasCollection: (key, name) => key === "primary" && name !== "paymentwebhookevents",
     get: (name) => name === "primary" ? {
       collection: () => ({
@@ -59,7 +68,7 @@ test("full app protects reads and isolates unavailable chat and financial writes
       }),
     } : null,
   };
-  const server = createApp({ config: readConfig(await fixtureEnv()), db, store: fixtureStore(), log: () => {} }).listen(0, "127.0.0.1");
+  const server = createApp({ config: readConfig(await fixtureEnv()), db, log: () => {} }).listen(0, "127.0.0.1");
   t.after(() => new Promise((resolve) => server.close(resolve)));
   await once(server, "listening");
   const base = `http://127.0.0.1:${server.address().port}`;
@@ -109,7 +118,6 @@ test("pools verify existing collections, isolate errors, recover after cooldown 
   const { createDatabases } = require("../config/database");
   const { readConfig } = require("../config/env");
   const config = readConfig(await fixtureEnv({ CHAT_MONGODB_URI: "mongodb://localhost/portfolio_chat" }));
-  delete config.admin; // This fixture covers only the Phase 2 pools.
   const selected = [];
   const instances = [];
   let chatAvailable = false;
@@ -148,6 +156,29 @@ test("pools verify existing collections, isolate errors, recover after cooldown 
   assert.ok(instances.every(({ closed }) => closed));
   await db.connect("chat");
   assert.equal(db.get("chat"), null);
+});
+
+test("one shared client serves test and portfolio_chat when credentials are shared", async () => {
+  const { createDatabases } = require("../config/database");
+  const { readConfig } = require("../config/env");
+  const config = readConfig(await fixtureEnv({ MONGO_URI: "mongodb://owner:fixture@localhost/test", PORTFOLIO_DB_NAME: "" }));
+  const instances = [];
+  class Client {
+    constructor() { instances.push(this); }
+    async connect() {}
+    db(name) {
+      return { databaseName: name, listCollections: () => ({ toArray: async () => [{ name: name === "portfolio_chat" ? "chat_turns" : "contacts" }] }) };
+    }
+    async close() { this.closed = true; }
+  }
+  const db = createDatabases(config, { Client });
+  await Promise.all([db.connect("primary"), db.connect("chat")]);
+  assert.equal(instances.length, 1);
+  assert.equal(db.shared(), true);
+  assert.equal(db.get("primary").databaseName, "test");
+  assert.equal(db.get("chat").databaseName, "portfolio_chat");
+  await db.close();
+  assert.equal(instances[0].closed, true);
 });
 
 test("contract pins the canonical models and fails when evidence is missing or changed", (t) => {

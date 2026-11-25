@@ -1,5 +1,7 @@
 # Phase 6 business operations
 
+> **Superseded (release):** MongoDB-backed sessions, the `admin_*` security collections, audit history and `ADMIN_MONGODB_URI` were removed. Authentication is now a stateless signed cookie and the Admin reads with the existing `MONGO_URI`. See [admin-release-runbook.md](admin-release-runbook.md).
+
 The Admin reads the Portfolio's primary MongoDB database through its existing pools. The reviewed Portfolio revision is `37a9fba56e79119dbb3236bc975103f84f8cf46c`. The Phase 2 schema and write-path fingerprints match the earlier pinned revision. The chat manifest points to the reviewed revision with identical corpus metadata.
 
 ## Modules and relationships

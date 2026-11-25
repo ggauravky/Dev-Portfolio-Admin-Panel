@@ -8,11 +8,10 @@ import { PageHeader, TextLink } from './components/ui/Primitives';
 
 const Dashboard = lazy(() => import('./pages/admin/Dashboard'));
 const BusinessPage = lazy(() => import('./pages/admin/business/Registry'));
-const Security = lazy(() => import('./pages/admin/business/Security'));
 const System = lazy(() => import('./pages/admin/business/System'));
 const Chats = lazy(() => import('./pages/admin/Chats'));
 const Finance = lazy(() => import('./pages/admin/Finance'));
-const pages = { dashboard: Dashboard, business: BusinessPage, security: Security, system: System, chats: Chats, finance: Finance };
+const pages = { dashboard: Dashboard, business: BusinessPage, system: System, chats: Chats, finance: Finance };
 
 function NotFound() {
   return <div className="space-y-5">

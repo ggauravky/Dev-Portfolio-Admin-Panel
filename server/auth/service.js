@@ -1,16 +1,22 @@
-const { createHash, createHmac, randomBytes, randomUUID, timingSafeEqual } = require("node:crypto");
+const { createHmac, randomBytes, timingSafeEqual } = require("node:crypto");
 const { isIP } = require("node:net");
 const { HttpError, invalid } = require("../utils/http");
-const { validPassword, verifyPassword } = require("./password");
+const { hashPassword, validPassword, verifyPassword } = require("./password");
+
+// Stateless administrator sessions for a single owner.
+// A session is an HMAC-SHA256 signed, short-lived cookie: nothing is written to MongoDB.
+// Rotating ADMIN_SESSION_SECRET/JWT_SECRET or the administrator password invalidates every session.
+// Limits: logout clears the browser cookie but cannot revoke a copied token before it expires, and
+// the login rate limit is process-local (it resets on restart and is not shared between instances).
 
 const authenticated = () => new HttpError(401, "UNAUTHENTICATED", "Authentication required");
 const forbidden = () => new HttpError(403, "CSRF_DENIED", "Request origin or verification is invalid");
 const minute = 60_000;
 const windowMs = 5 * minute;
-const hash = (value) => createHash("sha256").update(value).digest();
-const equal = (a, b) => typeof a === "string" && typeof b === "string" && timingSafeEqual(hash(a), hash(b));
-const tokenPattern = /^[A-Za-z0-9_-]{43}$/;
-const sessionId = /^[\da-f]{8}-[\da-f]{4}-4[\da-f]{3}-[89ab][\da-f]{3}-[\da-f]{12}$/;
+const tokenPattern = /^[A-Za-z0-9_-]{20,400}\.[A-Za-z0-9_-]{43}$/;
+const digest = (key, value) => createHmac("sha256", key).update(value).digest();
+const equal = (a, b) => typeof a === "string" && typeof b === "string" &&
+  timingSafeEqual(digest("compare", a), digest("compare", b));
 
 function networkGroup(input) {
   const ip = (input || "").replace(/^::ffff:(?=\d)/i, "");
@@ -32,17 +38,49 @@ function networkGroup(input) {
   return parts.slice(0, 4).join(":") + "/64";
 }
 
-function createAuthService(config, store, { now = Date.now, verify = verifyPassword, log = () => {} } = {}) {
+function createRateLimiter(now, limits) {
+  const counters = new Map();
+  return function reserve(keys) {
+    const bucket = Math.floor(now() / windowMs);
+    if (counters.size > 5000) {
+      for (const [key, entry] of counters) if (entry.bucket !== bucket) counters.delete(key);
+    }
+    const entries = keys.map((key) => {
+      const current = counters.get(key);
+      return [key, current?.bucket === bucket ? current : { bucket, count: 0 }];
+    });
+    if (entries.some(([key, entry]) => entry.count >= limits[key.split(":")[0]])) return { allowed: false, resetAt: (bucket + 1) * windowMs };
+    for (const [key, entry] of entries) {
+      entry.count++;
+      counters.set(key, entry);
+    }
+    return { allowed: true };
+  };
+}
+
+function createAuthService(config, { now = Date.now, verify = verifyPassword, hash = hashPassword, log = () => {} } = {}) {
   const owner = config.email;
-  const secret = config.passwordHash;
   const secure = config.mode === "production";
   const cookieName = secure ? "__Secure-portfolio_admin" : "portfolio_admin";
   const cookieOptions = { httpOnly: true, secure, sameSite: "strict", path: "/api/admin" };
-  const sign = (purpose, value) => createHmac("sha256", secret).update(purpose + "\0" + value).digest("base64url");
+  const signingKey = digest(config.sessionSecret, "portfolio-admin-session-v2");
+  const sign = (purpose, value) => createHmac("sha256", signingKey).update(purpose + "\0" + value).digest("base64url");
+  // Binds sessions to the current credential: a new password invalidates existing cookies.
+  const credentialVersion = sign("credential", owner + "\0" + (config.passwordHash || config.password)).slice(0, 22);
+  const lifetime = config.maxHours * 60 * minute;
+  const reserve = createRateLimiter(now, { global: 60, network: 8, owner: 20 });
+  let storedHash = config.passwordHash ? Promise.resolve(config.passwordHash) : null;
   let working = 0;
-  const credentialVersion = secret && sign("credential-version", owner);
-  const deadline = (at, duration) => new Date(+at + duration);
-  const rejectedEvents = new Map();
+
+  // Without ADMIN_PASSWORD_HASH, the legacy ADMIN_PASSWORD is hashed once in memory with Argon2id.
+  const passwordHash = () => {
+    if (!storedHash) storedHash = hash(config.password).catch((error) => { storedHash = null; throw error; });
+    return storedHash;
+  };
+
+  function event(req, type, result) {
+    log({ event: "security", type, result, requestId: req.id });
+  }
 
   function trustedProxy(req, res, next) {
     if (secure && !equal(req.get("x-admin-proxy-key"), config.proxySecret)) {
@@ -61,71 +99,36 @@ function createAuthService(config, store, { now = Date.now, verify = verifyPassw
     return values.length === 1 && tokenPattern.test(values[0]) ? values[0] : null;
   }
 
-  async function audit(req, type, result, { actor, target, category, id = randomUUID() } = {}) {
-    const at = new Date(now());
-    await store.audit({ _id: id, type, result, requestId: req.id, createdAt: at, expiresAt: deadline(at, config.auditDays * 86400000),
-      ...(actor ? { actor } : {}), ...(target ? { target } : {}), ...(category ? { category } : {}) });
+  function issue() {
+    const issuedAt = now();
+    const claims = { sub: owner, v: credentialVersion, iat: issuedAt, exp: issuedAt + lifetime, n: randomBytes(9).toString("base64url") };
+    const payload = Buffer.from(JSON.stringify(claims)).toString("base64url");
+    return { token: payload + "." + sign("session", payload), claims };
   }
 
-  async function sampledAudit(req, event, id, options) {
-    const bucket = Math.floor(now() / windowMs);
-    if (rejectedEvents.get(event) === bucket) return;
-    rejectedEvents.set(event, bucket);
-    await audit(req, event, "denied", { ...options, id: id + ":" + bucket }).catch(() =>
-      log({ event: "security_audit_unavailable", requestId: req.id, operation: event }));
+  function read(req) {
+    const token = cookie(req);
+    if (!token) return null;
+    const [payload, signature] = token.split(".");
+    if (!equal(signature, sign("session", payload))) return null;
+    let claims;
+    try { claims = JSON.parse(Buffer.from(payload, "base64url").toString("utf8")); } catch { return null; }
+    if (!claims || claims.sub !== owner || claims.v !== credentialVersion || !Number.isSafeInteger(claims.exp) ||
+        !Number.isSafeInteger(claims.iat) || claims.exp - claims.iat > lifetime || claims.exp <= now() || claims.iat > now() + minute) return null;
+    return { token, claims };
   }
 
-  async function rateLimit(req, res) {
-    const at = now();
-    const bucket = Math.floor(at / windowMs);
-    const end = (bucket + 1) * windowMs;
-    const expiresAt = new Date(end + windowMs);
-    const ip = secure ? req.get("x-admin-client-ip") : req.socket.remoteAddress;
-    const group = sign("network", networkGroup(ip));
-    const limits = [["global", 60], ["network:" + group, 8], ["owner", 20]];
-    for (const [key, max] of limits) {
-      if (await store.reserve(key + ":" + bucket, max, expiresAt)) continue;
-      await sampledAudit(req, "login_rate_limited", "rate-rejected");
-      res.set("Retry-After", String(Math.max(1, Math.ceil((end - now()) / 1000))));
-      throw new HttpError(429, "LOGIN_RATE_LIMITED", "Too many attempts. Try again later.");
-    }
-  }
-
-  function publicSession(session, token) {
+  function publicSession({ token, claims }) {
     return {
       administrator: { email: owner },
-      session: { id: session._id, idleExpiresAt: session.idleExpiresAt, expiresAt: session.expiresAt },
+      session: { issuedAt: new Date(claims.iat), expiresAt: new Date(claims.exp), storage: "signed-cookie" },
       csrfToken: sign("csrf", token),
     };
   }
 
-  async function find(req) {
-    const token = cookie(req);
-    if (!token) return null;
-    const session = await store.lookup(sign("session", token));
-    if (!session || session.owner !== owner || session.credentialVersion !== credentialVersion || session.revokedAt) return null;
-    const at = new Date(now());
-    if (session.idleExpiresAt <= at || session.expiresAt <= at) {
-      await audit(req, "session_expired", "denied", { actor: owner, target: session._id, id: "expired:" + session._id }).catch(() =>
-        log({ event: "security_audit_unavailable", requestId: req.id, operation: "session_expired" }));
-      return null;
-    }
-    return { token, session };
-  }
-
   async function authenticate(req) {
-    let current = await find(req);
+    const current = read(req);
     if (!current) throw authenticated();
-    const at = new Date(now());
-    if (+at - +current.session.lastActivityAt >= minute) {
-      const idle = new Date(Math.min(+current.session.expiresAt, +at + config.idleMinutes * minute));
-      if (await store.touch(current.session._id, current.session.lastActivityAt, at, idle)) {
-        current.session = { ...current.session, lastActivityAt: at, idleExpiresAt: idle };
-      } else {
-        current = await find(req);
-        if (!current) throw authenticated();
-      }
-    }
     req.admin = current;
   }
 
@@ -134,83 +137,50 @@ function createAuthService(config, store, { now = Date.now, verify = verifyPassw
     if (!equal(req.get("x-admin-csrf"), sign("csrf", current.token))) throw forbidden();
   }
 
+  function rateLimit(req, res) {
+    const ip = secure ? req.get("x-admin-client-ip") : req.socket.remoteAddress;
+    const result = reserve(["global", "network:" + sign("network", networkGroup(ip)), "owner"]);
+    if (result.allowed) return;
+    event(req, "login_rate_limited", "denied");
+    res.set("Retry-After", String(Math.max(1, Math.ceil((result.resetAt - now()) / 1000))));
+    throw new HttpError(429, "LOGIN_RATE_LIMITED", "Too many attempts. Try again later.");
+  }
+
   async function login(req, res) {
     origin(req);
     if (!req.is("application/json")) throw invalid("JSON credentials are required");
     const { email, password } = req.body || {};
     if (typeof email !== "string" || email.length > 254 || !/^[^\s@]+@[^\s@]+$/.test(email.trim()) || !validPassword(password)) throw invalid("Invalid email or password format");
-    await rateLimit(req, res);
+    rateLimit(req, res);
     if (working >= 2) {
       res.set("Retry-After", "2");
       throw new HttpError(429, "LOGIN_BUSY", "Too many attempts. Try again later.");
     }
     let valid;
     working++;
-    try { valid = await verify(secret, password); } finally { working--; }
+    try { valid = await verify(await passwordHash(), password); } finally { working--; }
     if (!valid || !equal(email.trim().toLowerCase(), owner)) {
-      await audit(req, "login_failed", "denied");
+      event(req, "login_failed", "denied");
       throw new HttpError(401, "UNAUTHENTICATED", "Invalid email or password");
     }
     if (res.headersSent) return;
-    const previous = await find(req);
-    const createdAt = new Date(now());
-    const expiresAt = deadline(createdAt, config.maxHours * 60 * minute);
-    const token = randomBytes(32).toString("base64url");
-    const session = {
-      _id: randomUUID(), tokenHash: sign("session", token), owner, credentialVersion, createdAt,
-      lastActivityAt: createdAt, idleExpiresAt: new Date(Math.min(+expiresAt, +createdAt + config.idleMinutes * minute)),
-      expiresAt, revokedAt: null,
-    };
-    await store.create(session);
-    try {
-      if (previous) await store.revoke(owner, credentialVersion, { _id: previous.session._id }, createdAt);
-      await audit(req, "credential_version_observed", "allowed", { actor: owner, id: "credential:" + sign("audit-credential", owner) });
-      await audit(req, "login_succeeded", "allowed", { actor: owner, target: session._id });
-    } catch (error) {
-      await store.revoke(owner, credentialVersion, { _id: session._id }, createdAt).catch(() => {});
-      throw error;
-    }
-    if (res.headersSent) return;
-    res.cookie(cookieName, token, { ...cookieOptions, expires: expiresAt });
-    return publicSession(session, token);
-  }
-
-  async function revoke(req, selector, event, target) {
-    // Audit before mutation. Failure leaves the session unchanged and visible.
-    await audit(req, event, "requested", { actor: owner, target });
-    const result = await store.revoke(owner, credentialVersion, selector, new Date(now()));
-    await audit(req, event, "completed", { actor: owner, target }).catch(() =>
-      log({ event: "security_audit_unavailable", requestId: req.id, operation: event }));
-    return result.modifiedCount;
+    const session = issue();
+    event(req, "login_succeeded", "allowed");
+    res.cookie(cookieName, session.token, { ...cookieOptions, expires: new Date(session.claims.exp) });
+    return publicSession(session);
   }
 
   return {
     authenticate, trustedProxy, verifyMutation,
-    authorizationDenied: (req) => sampledAudit(req, "authorization_denied", "authorization-denied", { actor: owner, category: "shared_write" }),
+    authorizationDenied: async (req) => event(req, "authorization_denied", "denied"),
     login,
-    me(req) { return publicSession(req.admin.session, req.admin.token); },
+    me: (req) => publicSession(req.admin),
     async logout(req, res) {
       origin(req);
-      const current = await find(req);
-      if (current) {
-        verifyMutation(req, current);
-        await revoke(req, { _id: current.session._id }, "logout", current.session._id);
-      }
+      const current = read(req);
+      if (current) verifyMutation(req, current);
+      event(req, "logout", "allowed");
       if (!res.headersSent) res.clearCookie(cookieName, cookieOptions);
-    },
-    async list(req) {
-      const rows = await store.list(owner, credentialVersion, new Date(now()));
-      return rows.map((row) => ({ id: row._id, current: row._id === req.admin.session._id, createdAt: row.createdAt,
-        lastActivityAt: row.lastActivityAt, idleExpiresAt: row.idleExpiresAt, expiresAt: row.expiresAt }));
-    },
-    async revokeSessions(req, res, scope) {
-      verifyMutation(req, req.admin);
-      const id = req.params.id;
-      if (scope === "one" && !sessionId.test(id || "")) throw invalid("Invalid session ID");
-      const selector = scope === "one" ? { _id: id } : scope === "others" ? { _id: { $ne: req.admin.session._id } } : {};
-      const count = await revoke(req, selector, "session_revocation", scope === "one" ? id : scope);
-      if ((scope === "all" || id === req.admin.session._id) && !res.headersSent) res.clearCookie(cookieName, cookieOptions);
-      return { revoked: count };
     },
   };
 }

@@ -23,7 +23,7 @@ const projections = {
     link: "_id service paymentProvider paymentStatus amount orderId paymentId paidAt createdAt",
   },
   webhooks: {
-    list: "_id eventId provider eventType status attempts transactionId processedAt createdAt updatedAt",
+    list: "_id eventId provider eventType status attempts transactionId processedAt createdAt updatedAt eventKey eventName receivedAt",
     extra: "error",
   },
   legacy: {
@@ -76,8 +76,12 @@ const knownWebhookErrors = {
   "Captured payment was missing from webhook payload": "Captured payment data was missing.",
   "Webhook payment is not captured": "The recorded webhook payment was not captured.",
 };
-function webhook(record, details) {
-  const item = { ...pick(record, project("webhooks")), status: known(record.status, webhookStatus) };
+function webhook(input, details) {
+  // Older Portfolio webhook records: map their fields onto the current shape without inventing a status.
+  const legacy = input.provider === undefined && typeof input.eventKey === "string";
+  const record = legacy ? { ...input, eventId: input.eventKey, eventType: input.eventName, createdAt: input.receivedAt } : input;
+  const { eventKey, eventName, receivedAt, ...fields } = pick(record, project("webhooks"));
+  const item = { ...fields, status: known(record.status, webhookStatus), ...(legacy ? { schema: "legacy" } : {}) };
   item.eventType = webhookTypes.includes(record.eventType) ? record.eventType : "other_recorded_type";
   if (details) item.failure = Object.hasOwn(knownWebhookErrors, record.error) ? knownWebhookErrors[record.error] :
     record.status === "failed" || nonEmpty(record.error) ? "Processing error recorded. Raw diagnostic text is withheld." : null;

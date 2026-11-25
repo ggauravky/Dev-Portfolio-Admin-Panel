@@ -58,8 +58,8 @@ export function AdminAuthProvider({ children }) {
 
   useEffect(() => {
     if (state.status !== "authenticated") return;
-    // Revalidate even while the tab is idle, but avoid periodic requests that extend idle time.
-    const endsAt = Math.min(Date.parse(state.details.session.expiresAt), Date.parse(state.details.session.idleExpiresAt));
+    // Return to sign-in when the signed session reaches its fixed expiry.
+    const endsAt = Date.parse(state.details.session.expiresAt);
     const timeout = setTimeout(() => { void restore(); }, Math.max(1000, endsAt - Date.now() + 1000));
     return () => clearTimeout(timeout);
   }, [state, restore]);

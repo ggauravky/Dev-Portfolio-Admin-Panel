@@ -38,7 +38,7 @@ test("isolated MongoDB financial reports, links, diagnostics and privacy", {
   assert.equal(paid.servicePaise, "12445");
   assert.equal(paid.supportPaise, "2002");
   assert.equal(rollup.bookings.data.confirmedPaid, 2);
-  assert.equal(rollup.webhooks.data.total, 4);
+  assert.equal(rollup.webhooks.data.total, 5); // four current events and one legacy-shaped event
   assert.equal(rollup.transactions.data.paymentMode, "unverified");
   assert.equal(rollup.transactions.data.refundAmountPaise, null);
   assert.equal(rollup.transactions.data.netRevenuePaise, null);
@@ -79,8 +79,17 @@ test("isolated MongoDB financial reports, links, diagnostics and privacy", {
   assert.equal(hook.transaction.data.internalReference, detail.internalReference);
   assert.match(hook.failure, /withheld/);
   assert.equal((await get("/webhook-events?range=all&transactionId=" + id(1) + "&pageSize=1&page=2")).total, 2);
-  await get("/webhook-events?range=all", 400);
+  assert.ok((await get("/webhook-events?range=all")).total >= 2);
+  await get("/webhook-events?range=forever", 400);
   assert.equal((await get("/webhook-events?status=ignored")).total, 1);
+  const legacyHook = await get("/webhook-events/" + id(205));
+  assert.equal(legacyHook.schema, "legacy");
+  assert.equal(legacyHook.eventId, "payment.captured:pay_fixture205");
+  assert.equal(legacyHook.eventType, "payment.captured");
+  assert.equal(legacyHook.status, null);
+  assert.ok(legacyHook.createdAt);
+  assert.equal(legacyHook.eventKey, undefined);
+  assert.ok((await get("/webhook-events")).items.some((item) => item.schema === "legacy"));
   assert.equal((await get("/legacy-payments")).items[0].paymentProvider, "cashfree");
   assert.ok((await get("/financial-reconciliation?issue=booking_link_missing")).items.some((row) => row.id === id(6).toHexString()));
   assert.ok((await get("/financial-reconciliation?issue=duplicate_identifier")).total >= 2);

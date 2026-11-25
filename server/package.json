@@ -10,8 +10,7 @@
         "verify:contract": "node contracts/verify.js",
         "verify:chat-manifest": "node scripts/chat-manifest.js",
         "inspect:db": "node scripts/inspect-database.js",
-        "auth:credential": "node scripts/admin-credential.js",
-        "auth:provision": "node scripts/provision-admin-security.js"
+        "auth:credential": "node scripts/admin-credential.js"
     },
     "keywords": [],
     "author": "",

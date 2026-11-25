@@ -1,5 +1,7 @@
 # Administrator authentication and rollout
 
+> **Superseded (release):** MongoDB-backed sessions, the `admin_*` security collections, audit history and `ADMIN_MONGODB_URI` were removed. Authentication is now a stateless signed cookie and the Admin reads with the existing `MONGO_URI`. See [admin-release-runbook.md](admin-release-runbook.md).
+
 Phase 3 uses a single configured administrator, Argon2id, and MongoDB-backed opaque sessions. Portfolio Google credentials have no Admin privileges. The Admin browser uses same-origin `/api/admin`. Vercel rewrites those requests to the dedicated Node Function before the SPA route. The Function talks to a configured HTTPS Render origin and forwards only its scoped cookie, selected request headers and bounded JSON. It authenticates to Render with a separate shared secret, rejects upstream redirects and disables caching. Vite provides an equivalent localhost proxy for development and preview.
 
 ## Configuration

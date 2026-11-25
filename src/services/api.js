@@ -47,16 +47,7 @@ export const logout = (csrfToken) => request("/logout", { method: "POST", csrfTo
 export const getStats = (query, signal) => request("/stats", { signal }).then((data) => ({ data }));
 export const getBusinessAnalytics = list("/business-analytics");
 export const getSystemStatus = (query, signal) => request("/system", { signal });
-export const getAdminSessions = (query, signal) => request("/sessions", { signal });
-export function revokeAdminSessions(scope, id, csrfToken) {
-  const path = scope === "one" ? "/" + encodeURIComponent(id) : "/revoke-" + scope;
-  return request("/sessions" + path, { method: scope === "one" ? "DELETE" : "POST", csrfToken });
-}
-export function clearRevokedSession() {
-  markSessionChanged();
-  window.dispatchEvent(new Event(sessionExpiredEvent));
-}
-const businessEndpoints = new Set(["users", "contacts", "newsletters", "activity", "blog-posts", "blog-supports", "audit-events"]);
+const businessEndpoints = new Set(["users", "contacts", "newsletters", "activity", "blog-posts", "blog-supports"]);
 export async function getBusinessRecords(query, signal) {
   const params = new URLSearchParams(query);
   const endpoint = params.get("endpoint");
@@ -69,7 +60,7 @@ export async function getBusinessRecords(query, signal) {
   const path = (owner ? "/users/" + encodeURIComponent(owner) : "") + "/" + endpoint;
   if (!id) return list(path)(params, signal);
   const detail = await request(path + "/" + encodeURIComponent(id), { signal });
-  return endpoint === "audit-events" ? detail : { data: detail };
+  return { data: detail };
 }
 const financialPaths = {
   transactions: "/transactions", bookings: "/bookings", "support-payments": "/support-payments",

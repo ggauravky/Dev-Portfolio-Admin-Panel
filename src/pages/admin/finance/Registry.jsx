@@ -100,7 +100,7 @@ export default function Registry({ view }) {
   const [searchParams] = useSearchParams();
   const linkedReference = searchParams.get("transaction");
   const transactionId = view === "webhook-events" && /^[a-f0-9]{24}$/i.test(linkedReference) ? linkedReference : undefined;
-  const defaults = { range: "30d", page: 1, pageSize: 25, view: view === "bookings" ? "recorded" : undefined };
+  const defaults = { range: "all", page: 1, pageSize: 25, view: view === "bookings" ? "recorded" : undefined };
   const [query, setQuery] = useState(defaults);
   const upcoming = view === "bookings" && query.view === "upcoming";
   const enabled = transactionId || upcoming || query.range !== "custom" || !!(query.from && query.to);
@@ -120,7 +120,7 @@ export default function Registry({ view }) {
         {spec.placeholder && <label className="grid gap-1 text-sm min-w-0 flex-1 basis-56">Search
           <input className={control} type="search" maxLength={100} value={query.search || ""} placeholder={spec.placeholder} onChange={(e) => update({ search:e.target.value })} />
         </label>}
-        {!upcoming && !transactionId && <Range value={query} change={update} />}
+        {!upcoming && !transactionId && <Range all value={query} change={update} />}
         <Select name="Sort by" value={query.sortBy || "createdAt"} change={(sortBy) => update({ sortBy })} options={spec.sort} />
         <Select name="Direction" value={query.order || "desc"} change={(order) => update({ order })} options={[["desc","Descending"],["asc","Ascending"]]} />
         <Select name="Page size" value={query.pageSize} change={(pageSize) => update({ pageSize })} options={[5,10,25,50]} />

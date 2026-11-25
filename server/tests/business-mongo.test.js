@@ -6,7 +6,7 @@ const { login, http } = require("./auth-fixture");
 const { createMongoFixture } = require("./mongo-fixture");
 const { businessFixture, id, now, today } = require("./business-fixture");
 
-test("isolated MongoDB verifies business records, analytics, audit privacy and session revocation", {
+test("isolated MongoDB verifies business records, analytics and read-only access", {
   skip: process.env.RUN_ADMIN_MONGO_TEST !== "1", timeout: 30_000,
 }, async (t) => {
   const fixture = await businessFixture();
@@ -78,32 +78,14 @@ test("isolated MongoDB verifies business records, analytics, audit privacy and s
   assert.equal((await get("/stats")).totalNewsletters, 1);
   assert.equal((await get("/system")).optionalCollections.supportpayments, "unknown");
 
-  const audit = await get("/audit-events?type=login_succeeded&result=allowed&requestId=business-owner-fixture&pageSize=1");
-  assert.equal(audit.total, 1);
-  assert.match(audit.items[0].reference, /^[0-9a-f]+$/);
-  const detail = await get("/audit-events/" + audit.items[0].reference);
-  assert.equal(detail.requestId, "business-owner-fixture");
-  assert.equal(detail.target, undefined);
-  assert.equal(detail._id, undefined);
-  for (const [path, method] of [["/contacts/" + id(411), "PATCH"], ["/newsletters/" + id(421), "DELETE"], ["/blog-posts/" + id(431), "PUT"], ["/audit-events/" + audit.items[0].reference, "DELETE"]]) {
+  for (const [path, method] of [["/contacts/" + id(411), "PATCH"], ["/newsletters/" + id(421), "DELETE"], ["/blog-posts/" + id(431), "PUT"]]) {
     assert.equal((await request(path, { method, cookie: owner.cookie, csrf: owner.csrf, json: { status: "replied" } })).status, 403);
   }
   assert.equal((await get("/contacts/" + id(411))).status, "unread");
   assert.equal((await get("/blog-posts/" + id(431))).supportCount, 3);
-  const other = await login(request);
-  const sessions = await get("/sessions");
-  assert.equal(sessions.items.length, 2);
-  const otherId = sessions.items.find((row) => !row.current).id;
-  assert.equal((await request("/sessions/" + otherId, { method: "DELETE", cookie: owner.cookie })).status, 403);
-  assert.equal((await request("/sessions/" + otherId, { method: "DELETE", cookie: owner.cookie, csrf: owner.csrf })).status, 200);
-  assert.equal((await request("/audit-events", { cookie: other.cookie })).status, 401);
-  const third = await login(request);
-  assert.equal((await request("/sessions/revoke-others", { method: "POST", cookie: owner.cookie, csrf: owner.csrf })).status, 200);
-  assert.equal((await request("/sessions", { cookie: third.cookie })).status, 401);
-  const all = await request("/sessions/revoke-all", { method: "POST", cookie: owner.cookie, csrf: owner.csrf });
-  assert.equal(all.status, 200);
-  assert.ok(all.headers.get("set-cookie"));
-  assert.equal((await request("/system", { cookie: owner.cookie })).status, 401);
+  const logout = await request("/logout", { method: "POST", cookie: owner.cookie, csrf: owner.csrf });
+  assert.equal(logout.status, 200);
+  assert.ok(logout.headers.get("set-cookie"));
 });
 
 test("an empty readable business source stays distinct from missing sources", {

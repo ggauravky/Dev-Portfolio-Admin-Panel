@@ -1,34 +1,65 @@
-# Admin V2 release runbook
+# Admin release runbook
 
-## Setup and required configuration
+## Architecture
 
-Use Node 22.12+ on the 22.x line or 24.x for the frontend and Function. The Express backend requires Node 22 or later. Install from the two lockfiles with `npm ci` and `npm --prefix server ci`. Verify the actual hosting settings and native Argon2 installation on the paired staging deploy.
+```
+Visitor → Portfolio website/backend ──writes──▶ MongoDB cluster0
+                                                ├─ test            (contacts, users, bookings, paymenttransactions, …)
+                                                └─ portfolio_chat  (chat_turns, chat_cache, chat_rate, chat_locks)
 
-| Host | Required settings |
-| --- | --- |
-| Vercel | Repository root, `npm run build`, `dist`, same-origin `/api/admin` rewrite to the Node Function before the SPA rewrite. Set server-only `ADMIN_API_UPSTREAM` to the exact Render HTTPS origin and set `ADMIN_PROXY_SECRET`. Use separate Preview settings scoped to the staging pair. |
-| Render | Root `server` or equivalent commands, `npm ci`, `npm start`, platform-supplied `PORT`, and health check `/ready`. Set `NODE_ENV=production`, `FRONTEND_URL` to the exact Admin frontend origin, `READ_ONLY_MODE=true`, `ADMIN_EMAIL`, `ADMIN_PASSWORD_HASH`, and the matching `ADMIN_PROXY_SECRET`. |
-| Atlas | Reuse Cluster0. Set `PORTFOLIO_DB_NAME=test`, `PORTFOLIO_MONGODB_URI` for business reads, `CHAT_MONGODB_URI` for `portfolio_chat` reads, and `ADMIN_MONGODB_URI` for the security-only credential in `test`. Leave `ADMIN_DB_NAME` unset to use `test`. |
+Owner → ggauravkyadmin.vercel.app ──/api/admin/*──▶ Vercel function api/admin-proxy.js
+        (adds ADMIN_PROXY_SECRET, forwards only the admin cookie)
+      → Render: dev-portfolio-admin-panel.onrender.com ──reads only──▶ test + portfolio_chat
+        (one MongoClient from MONGO_URI serves both databases)
+```
 
-Use the [authentication guide](admin-auth-phase-3.md) for the provisioning command, scoped permissions, and interactive owner credential setup. The runtime needs `find` on `admin_security_audit`. Use distinct credentials and authorized name-only collection visibility. Verify chat access to `chat_turns`, `chat_rate`, `chat_cache`, and `chat_locks` for the full AI operations experience. Keep the proxy secret and owner password hash out of browser variables, logs, and release evidence.
+The Admin never writes to MongoDB. Read-only access is enforced by the application (no write
+routes, no write calls; `server/tests/retired-routes.test.js` checks this). The existing Mongo
+user may have broader database rights, so MongoDB itself does not enforce read-only access.
 
-## Mandatory pre-merge checklist
+## Authentication
 
-- [ ] **Source and dependencies.** Fetch both branches. Verify ancestry, expected divergence, clean worktree, no unintended tracked artifacts, and an unchanged Portfolio checkout. Reproduce both lockfile installs and check frontend, production-only frontend, and backend audits.
-- [ ] **Automated checks.** Start a disposable MongoDB instance on `127.0.0.1:39173` and set `RUN_ADMIN_MONGO_TEST=1` for `npm --prefix server test`. Require zero skips. Run `npm run test:workspace`, `npm run test:design`, `npm run check:design`, `npm run build`, and `git diff --check`. Run Portfolio schema verification against the latest source and verify corpus and design provenance against their pinned source. Compare newer corpus and design content when the latest revision differs.
-- [ ] **Browser checks.** Test sign-in, all feature routes, session expiry and revocation, deep-link refresh, and responsive layouts on the build. Check keyboard operation, reduced motion, 200% zoom-equivalent reflow, automated accessibility, and Safari or WebKit coverage. Record the actual browser and device tested.
-- [ ] **Atlas.** Verify both database identities and all three runtime credentials, including required collection visibility, Admin indexes, and audit history read access. Run `npm --prefix server run inspect:db -- --confirm-read-only` only from a correctly configured inspection environment with authorized read-only business and chat credentials. Investigate missing or denied results. Check representative plans with bounded read-only explains, using execution statistics only where necessary. Leave business and chatbot indexes unchanged.
-- [ ] **Hosting and staging.** Verify both projects' repository, production branch, runtime, settings, deployment permissions, and auto-deploy behavior. Against an existing isolated Vercel and Render pair, verify HTTPS login, Secure/HttpOnly/SameSite cookies, session restore and revocation, CSRF, direct backend admission, no-store API responses, protected deep links, read-only endpoints, and dependency degradation. Keep preview credentials, sessions, and origins separate.
-- [ ] **Recovery.** Record the tested Git SHA, current main SHA, existing Vercel and Render deployment IDs, runtime versions, configuration references, and how to restrict access. Confirm the paired cutover and rollback can be performed with existing access. Leave unknown or failed checks open and keep main unchanged until the required gates pass.
+- One administrator: `ADMIN_EMAIL` + `ADMIN_PASSWORD_HASH` (Argon2id) or the legacy `ADMIN_PASSWORD`
+  (hashed in memory with Argon2id at first sign-in).
+- Session: HMAC-SHA256 signed cookie `__Secure-portfolio_admin` (HttpOnly, Secure, SameSite=Strict,
+  Path=/api/admin), fixed lifetime `ADMIN_SESSION_MAX_HOURS` (default 8). Nothing is stored in MongoDB.
+- Logout requires the CSRF token and clears the cookie in this browser. A copied cookie stays valid until
+  it expires. To end every session immediately, change `JWT_SECRET` (or `ADMIN_SESSION_SECRET`) or the password on Render.
+- Login rate limit is held in process memory: it resets when Render restarts the service.
+- Security events go to Render logs only. There is no persistent audit history.
 
-## Paired cutover and smoke test
+## Environment
 
-1. Fetch again and confirm the exact tested commit and current main ancestry. Follow the repository's merge protections. Preserve the feature branch.
-2. Coordinate a restricted-access window before a merge that triggers production deployment. Verify both deploy the reviewed main revision, including the Vercel Function and Render environment. Keep the previous images recoverable. The legacy bearer API and V2 cookie API require matching frontend and backend versions.
-3. Check Render liveness and `/ready`, then verify direct backend rejection for private endpoints. Check the frontend deep link and same-origin `/api/admin/me` response. Verify an unauthenticated request returns JSON 401 with no-store, then use an owner-controlled login to confirm session restoration, cookie attributes, CSRF, and logout.
-4. Check every module using existing records and verify chat, primary data, and the Admin audit collection independently. Perform revocation only against a release test session. Record statuses and sanitized counts, omitting private data from evidence.
-5. After post-release checks pass, retire `ADMIN_PASSWORD`, `JWT_SECRET` and `VITE_API_URL` through approved environment changes. Keep compatible recovery information in the hosting secret store.
+| Platform | Variable | Value | Status |
+|---|---|---|---|
+| Render | `MONGO_URI` | existing Portfolio connection string | existing |
+| Render | `ADMIN_EMAIL` | administrator email | existing |
+| Render | `ADMIN_PASSWORD` or `ADMIN_PASSWORD_HASH` | password, or hash from `npm --prefix server run auth:credential` | existing / optional upgrade |
+| Render | `JWT_SECRET` | existing (≥ 32 characters), used as the session signing secret | existing |
+| Render | `FRONTEND_URL` | `https://ggauravkyadmin.vercel.app` | existing |
+| Render | `NODE_ENV` | `production` | existing |
+| Render | `ADMIN_PROXY_SECRET` | 64 hex characters | new |
+| Vercel | `ADMIN_API_UPSTREAM` | `https://dev-portfolio-admin-panel.onrender.com` | new |
+| Vercel | `ADMIN_PROXY_SECRET` | same value as Render | new |
 
-## Recovery
+No longer used (remove after a successful release): `READ_ONLY_MODE` (Render), `VITE_API_URL` (Vercel),
+and the V2-draft `ADMIN_MONGODB_URI`, `ADMIN_DB_NAME`, `ADMIN_SESSION_IDLE_MINUTES`, `ADMIN_AUDIT_RETENTION_DAYS`.
+Generate the proxy secret with `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`.
 
-Restrict administrator access if authentication, proxy routing, or dependency readiness fails. Prefer a small forward fix. If rollback is required, restore the recorded Vercel and Render deployments together with their matching configuration while access remains restricted. Keep legacy bearer endpoints inaccessible to the public during recovery. Verify the protected path and dependency states before reopening access. Leave business and chatbot data unchanged.
+## Checks
+
+```
+npm --prefix server test                        # set RUN_ADMIN_MONGO_TEST=1 with a disposable mongod on 127.0.0.1:39173
+npm run test:workspace && npm run test:design && npm run check:design && npm run build
+npm --prefix server run inspect:db -- --confirm-read-only   # sanitized counts against the real databases
+git diff --check
+```
+
+## Release and rollback
+
+1. Set the new variables on Render and Vercel (Production).
+2. Merge `feat/admin-v2-overhaul` into `main` and push. Render and Vercel deploy `main` automatically.
+3. Verify: `https://dev-portfolio-admin-panel.onrender.com/` returns `status: ok`;
+   `https://ggauravkyadmin.vercel.app/api/admin/me` returns 401; sign in and open each workspace.
+4. Rollback: `git revert -m 1 <merge commit>` on `main` and push, or redeploy the previous deployment
+   from the Render and Vercel dashboards. The previous version still uses the existing variables.

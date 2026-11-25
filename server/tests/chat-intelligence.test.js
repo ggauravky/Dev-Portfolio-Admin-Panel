@@ -76,21 +76,21 @@ test("partial analytics preserve successful volume, and timeouts are explicit", 
   await assert.rejects(timeout.aggregate([]), (error) => error.code === "CHAT_TIMEOUT" && !error.message.includes("private timeout"));
 });
 
-test("Phase 3 sessions protect every intelligence endpoint, including expired and revoked sessions", async (t) => {
+test("Phase 3 sessions protect every intelligence endpoint, including expired and tampered sessions", async (t) => {
   const { createApp } = require("../app");
-  const { fixtureConfig, fixtureStore, http, login } = require("./auth-fixture");
-  const store = fixtureStore();
+  const { fixtureConfig, http, login } = require("./auth-fixture");
+
   let clock = Date.now();
-  const request = await http(t, createApp({ config: await fixtureConfig(), store, now: () => clock,
+  const request = await http(t, createApp({ config: await fixtureConfig(), now: () => clock,
     db: { status: () => ({ chat: "not_configured" }), get: () => null }, log: () => {} }));
   const paths = ["/chat-analytics", "/chat-conversations", "/chat-conversations/507f1f77-0000-4000-8000-000000000001",
     "/chats", "/chats/507f1f77-0000-4000-8000-000000000001", "/chat-operations", "/chat-knowledge"];
   const expired = await login(request);
-  const revoked = await login(request);
-  await request("/logout", { method: "POST", cookie: revoked.cookie, csrf: revoked.csrf });
-  clock += 31 * 60000;
+  const [name, token] = expired.cookie.split("=");
+  const tampered = name + "=" + token.slice(0, -2) + (token.endsWith("AA") ? "BB" : "AA");
+  clock += 8 * 60 * 60000 + 1;
   for (const path of paths) {
-    for (const input of [{}, { headers: { Authorization: "Bearer obsolete-fixture" } }, { cookie: expired.cookie }, { cookie: revoked.cookie }]) {
+    for (const input of [{}, { headers: { Authorization: "Bearer obsolete-fixture" } }, { cookie: expired.cookie }, { cookie: tampered }]) {
       const response = await request(path, input);
       assert.equal(response.status, 401, path);
       assert.equal(response.headers.get("cache-control"), "no-store");
@@ -100,9 +100,9 @@ test("Phase 3 sessions protect every intelligence endpoint, including expired an
 
 test("production proxy admission applies to intelligence routes even with a valid session", async (t) => {
   const { createApp } = require("../app");
-  const { fixtureConfig, fixtureStore, http, login, proxySecret } = require("./auth-fixture");
+  const { fixtureConfig, http, login, proxySecret } = require("./auth-fixture");
   const config = await fixtureConfig({ NODE_ENV: "production", ADMIN_PROXY_SECRET: proxySecret });
-  const request = await http(t, createApp({ config, store: fixtureStore(),
+  const request = await http(t, createApp({ config,
     db: { status: () => ({ chat: "not_configured" }), get: () => null }, log: () => {} }));
   const headers = { "X-Admin-Proxy-Key": proxySecret };
   const { cookie } = await login(request, { headers });

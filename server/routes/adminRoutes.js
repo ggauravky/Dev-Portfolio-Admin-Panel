@@ -20,7 +20,7 @@ function createAdminRouter({ config, db, security, now = () => new Date(), finan
   const contacts = repository(db, "contacts");
   const newsletters = repository(db, "newsletters");
   const sessionCapabilities = { ...portfolio.capabilities, ...finance.capabilities, chats: { read: true, write: false },
-    system: { read: true, write: false }, sessions: { read: true, revoke: true } };
+    system: { read: true, write: false } };
   const access = createChatAccess(db);
   const chat = createConversations(access, now);
   const analytics = createAnalytics(access, now);
@@ -35,12 +35,6 @@ function createAdminRouter({ config, db, security, now = () => new Date(), finan
     await security.logout(req, res);
     send(res, { loggedOut: true });
   }));
-  router.get("/sessions", auth, asyncRoute(async (req, res) => send(res, { items: await security.list(req) })));
-  for (const [method, path, scope] of [
-    ["delete", "/sessions/:id", "one"], ["post", "/sessions/revoke-others", "others"], ["post", "/sessions/revoke-all", "all"],
-  ]) {
-    router[method](path, auth, asyncRoute(async (req, res) => send(res, await security.revokeSessions(req, res, scope))));
-  }
 
   for (const path of ["chats", "system"]) {
     for (const [method, suffix] of [["post", ""], ["post", "/bulk-delete"], ["put", "/:id"], ["patch", "/:id"], ["delete", "/:id"]]) {

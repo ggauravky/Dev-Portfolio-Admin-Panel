@@ -13,7 +13,7 @@ const bookingSpec = { search: "name service", sort: "createdAt date paidAt prefe
 const webhookSpec = { sort: "createdAt processedAt attempts updatedAt status", filters: { status: webhookStatus, eventType: [...webhookTypes, "other"] } };
 const legacySpec = { search: "contributorName", sort: "createdAt paidAt amount paymentStatus", filters: bookingSpec.filters };
 const ageAt = (now, ms) => new Date(+now - ms);
-const financialRange = (query, now) => reportingRange(query, now, "30d", { allowMonth: true, allowHistory: true });
+const financialRange = (query, now) => reportingRange(query, now, "30d", { allowMonth: true, allowHistory: true, allowAll: true });
 const rangeFilter = (range) => ({ $gte: range.from, $lt: range.to });
 const objectId = (value) => identifier(value, "primary");
 const safeText = /^[A-Za-z0-9:_-]{1,160}$/;
@@ -105,7 +105,19 @@ function parse(query, specification, finalFixed, now, type) {
 }
 const transactionQuery = (query, now, fixed = {}) => parse(query, txSpec, { provider: "razorpay", ...fixed }, now, "transactions");
 const bookingQuery = (query, now) => parse(query, bookingSpec, {}, now, "bookings");
-const webhookQuery = (query, now) => parse(query, webhookSpec, { provider: "razorpay" }, now, "webhooks");
+// Older Portfolio releases stored webhook events as { eventKey, eventName, orderId, paymentId, receivedAt }
+// without provider, status or timestamps. Those records are matched read-only alongside current events.
+const legacyWebhook = { provider: { $exists: false }, eventKey: { $type: "string" } };
+const webhookScope = { $or: [{ provider: "razorpay" }, legacyWebhook] };
+function webhookQuery(query, now) {
+  const result = parse(query, webhookSpec, { provider: "razorpay" }, now, "webhooks");
+  const { provider, createdAt, ...rest } = result.filter;
+  const current = { provider, ...(createdAt ? { createdAt } : {}) };
+  const legacy = { ...legacyWebhook, ...(createdAt ? { receivedAt: createdAt } : {}) };
+  // Status, type, event ID and transaction filters only exist on current records.
+  const filter = Object.keys(rest).length ? { ...rest, ...current } : { $or: [current, legacy] };
+  return { ...result, filter };
+}
 const legacyQuery = (query, now) => parse(query, legacySpec, {}, now, "legacy");
 
-module.exports = { financialRange, transactionQuery, bookingQuery, webhookQuery, legacyQuery, rangeFilter, objectId, only };
+module.exports = { webhookScope, financialRange, transactionQuery, bookingQuery, webhookQuery, legacyQuery, rangeFilter, objectId, only };

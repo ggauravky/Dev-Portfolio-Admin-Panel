@@ -1,18 +1,15 @@
 const { createRegistry, specs, id, portfolioRevision } = require("./registry");
 const { collectionRead, maxTimeMS } = require("../repositories/reads");
 const { createBusinessAnalytics } = require("./analytics");
-const { createAudit } = require("./audit");
 const { HttpError, asyncRoute, send } = require("../utils/http");
 const { only } = require("../chat/query");
-const { collections } = require("../auth/store");
 const { chatRetention } = require("../chat/operations");
 
 function business(router, { db, auth, security, now }) {
   const registry = createRegistry(db, now);
   const analytics = createBusinessAnalytics(registry, now);
-  const audit = createAudit(db, now);
   const resources = Object.entries(specs).filter(([, spec]) => spec.alias);
-  const paths = [...resources.map(([path]) => path), "business-analytics", "audit-events"];
+  const paths = [...resources.map(([path]) => path), "business-analytics"];
   for (const path of paths) {
     router.use("/" + path, (req, res, next) => {
       if (["GET", "HEAD", "OPTIONS"].includes(req.method)) return next();
@@ -40,17 +37,15 @@ function business(router, { db, auth, security, now }) {
     }));
   }
   router.get("/business-analytics", auth, asyncRoute(async (req, res) => send(res, await analytics(req.query))));
-  router.get("/audit-events", auth, asyncRoute(async (req, res) => send(res, await audit.list(req.query))));
-  router.get("/audit-events/:id", auth, asyncRoute(async (req, res) => send(res, await audit.detail(req.params.id, req.query))));
   return { analytics, capabilities: Object.fromEntries(paths.map((path) => [path, { read: true, write: false }])) };
 }
 
 async function systemStatus(db, config, capabilities, query) {
   only(query, []);
-  await Promise.all([db.connect?.("primary"), db.connect?.("chat"), db.connect?.("admin")]);
+  await Promise.all([db.connect?.("primary"), db.connect?.("chat")]);
   const dependencies = db.status();
   const targets = { activityevents: ["primary", "activityevents"], supports: ["primary", "supports"], blogposts: ["primary", "blogposts"],
-    supportpayments: ["primary", "supportpayments"], audit: ["admin", collections.audit] };
+    supportpayments: ["primary", "supportpayments"] };
   const optionalCollections = Object.fromEntries(await Promise.all(Object.entries(targets).map(async ([key, [dependency, name]]) => {
     if (dependencies[dependency] !== "available") return [key, dependencies[dependency] || "unknown"];
     if (!db.hasCollection?.(dependency, name)) return [key, "unknown"];
@@ -59,10 +54,10 @@ async function systemStatus(db, config, capabilities, query) {
       return [key, "available"];
     } catch (error) { return [key, error.code === "READ_PERMISSION" ? "insufficient_permission" : "unavailable"]; }
   })));
-  return { dependencies, configuration: "valid", ready: dependencies.primary === "available" && dependencies.admin === "available", readOnly: true,
-    globalReadOnly: config.readOnly, capabilities, checkedAt: new Date(), process: "available",
+  return { dependencies, configuration: "valid", ready: dependencies.primary === "available", readOnly: true,
+    capabilities, checkedAt: new Date(), process: "available",
     optionalCollections,
-    policy: { timezone: "Asia/Kolkata", idleMinutes: config.idleMinutes, maxHours: config.maxHours, auditDays: config.auditDays, chatRetention,
+    policy: { timezone: "Asia/Kolkata", maxHours: config.maxHours, sessionStorage: "stateless-signed-cookie", chatRetention,
       portfolioRevision, contractRevision: require("../contracts/portfolio-schema.json").revision, version: require("../package.json").version } };
 }
 

@@ -17,7 +17,7 @@ const rows = (items, fields) => items.map((item) => ({ day:item.key, ...Object.f
 const ratio = (entries, total) => entries.map((row) => ({ ...row, fraction: total ? row.count / total : 0 }));
 
 export default function Overview() {
-  const [range,setRange] = useState({ range:"7d" });
+  const [range,setRange] = useState({ range:"all" });
   const enabled = range.range !== "custom" || !!(range.from && range.to);
   const resource = useResource(getFinancialAnalytics, queryString(dateParams(range)), { enabled });
   const report = resource.data;
@@ -34,7 +34,7 @@ export default function Overview() {
   ];
   return <div className="space-y-4">
     <div className="flex items-end flex-wrap gap-3">
-      <Range value={range} change={(patch) => setRange((previous) => ({ ...previous,...patch }))} />
+      <Range all value={range} change={(patch) => setRange((previous) => ({ ...previous,...patch }))} />
       <button type="button" className={control} onClick={resource.refresh}>Refresh overview</button>
     </div>
     <p className="text-sm text-muted">Recorded database amounts. Historical test/live mode, settlements, fees, refund amounts and net revenue are unverified or unavailable.</p>

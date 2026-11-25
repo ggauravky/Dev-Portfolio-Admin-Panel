@@ -46,16 +46,16 @@ test("booking links reject conflicting identifiers and give recent paid records 
   assert.equal(classifyTransaction(payment, { status: "missing" }, new Date(+now() + 360_000)).find((item) => item.code === "booking_link_missing").severity, "needs_review");
 });
 
-test("financial routes enforce proxy admission and reject absent, idle and revoked sessions", async (t) => {
+test("financial routes enforce proxy admission and reject absent, expired and tampered sessions", async (t) => {
   const { createApp } = require("../app");
-  const { fixtureConfig, fixtureStore, http, login, proxySecret } = require("./auth-fixture");
-  const store = fixtureStore();
+  const { fixtureConfig, http, login, proxySecret } = require("./auth-fixture");
   let clock = Date.now();
   const request = await http(t, createApp({ config: await fixtureConfig({ NODE_ENV: "production", ADMIN_PROXY_SECRET: proxySecret }),
-    store, now: () => clock, db: { status: () => ({ chat: "not_configured" }), get: () => null }, log: () => {} }));
+    now: () => clock, db: { status: () => ({ chat: "not_configured" }), get: () => null }, log: () => {} }));
   const headers = { "X-Admin-Proxy-Key": proxySecret };
   const expired = await login(request, { headers });
-  const revoked = await login(request, { headers });
+  const other = await login(request, { headers });
+  const tampered = other.cookie.replace(/\.[^.]+$/, "." + "A".repeat(43));
   const paths = ["transactions", "bookings", "support-payments", "receipts", "webhook-events", "legacy-payments"];
   const scopes = [...paths, ...paths.map((path) => path + "/507f1f77bcf86cd799439011"), "financial-analytics", "financial-reconciliation"];
   assert.equal((await request("/financial-analytics", { cookie: expired.cookie })).status, 403);
@@ -63,13 +63,25 @@ test("financial routes enforce proxy admission and reject absent, idle and revok
   assert.equal(report.status, 200);
   assert.equal((await report.json()).data.transactions.status, "unavailable");
   assert.equal((await request("/legacy-payments", { cookie: expired.cookie, headers })).status, 503);
-  assert.equal((await request("/logout", { method: "POST", cookie: revoked.cookie, csrf: revoked.csrf, headers })).status, 200);
-  clock += 31 * 60_000;
+  assert.equal((await request("/logout", { method: "POST", cookie: other.cookie, csrf: other.csrf, headers })).status, 200);
+  clock += 8 * 60 * 60_000 + 1;
   for (const path of scopes) {
-    for (const cookie of [undefined, expired.cookie, revoked.cookie]) {
+    for (const cookie of [undefined, expired.cookie, tampered]) {
       const response = await request("/" + path, { cookie, headers });
       assert.equal(response.status, 401, path);
       assert.equal(response.headers.get("cache-control"), "no-store");
     }
   }
+});
+
+test("financial registries can show the complete recorded history while other reports stay bounded", () => {
+  const { financialRange } = require("../payments/query");
+  const { reportingRange } = require("../chat/query");
+  const at = new Date("2026-11-25T10:00:00Z");
+  const all = financialRange({ range: "all" }, at);
+  assert.equal(all.all, true);
+  assert.ok(all.from < new Date("2020-01-01"));
+  assert.ok(all.to > at);
+  assert.throws(() => reportingRange({ range: "all" }, at), /Unsupported report range/);
+  assert.throws(() => financialRange({ range: "all", from: "2026-01-01", to: "2026-01-02" }, at));
 });

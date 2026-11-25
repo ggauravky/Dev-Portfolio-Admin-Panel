@@ -26,8 +26,6 @@ const specifications = {
     ["actionType", "Action", ["login_success", "logout_success", "payment_success", "payment_failed", "receipt_downloaded", "unclassified"]]] },
   "blog-posts": { title: "Recorded articles", search: "Recorded title or slug", sorts: [["createdAt", "Record created"], ["supportCount", "Stored counter"], ["title", "Title"]] },
   "blog-supports": { title: "Blog support relationships" },
-  "audit-events": { title: "Security audit", filters: [["type", "Event type", ["login_succeeded", "login_failed", "login_rate_limited", "logout", "session_expired", "session_revocation", "credential_version_observed", "authorization_denied"]],
-    ["result", "Result", ["allowed", "denied", "requested", "completed"]]] },
   transactions: { title: "Related Razorpay transactions", sorts: [["createdAt", "Record created"], ["paidAt", "Recorded paid date"]] },
   bookings: { title: "Related bookings", sorts: [["createdAt", "Record created"], ["preferredDate", "Preferred date"]] },
 };
@@ -52,7 +50,6 @@ function columns(kind) {
     case "blog-supports": return [first(kind, () => "Open support record"), ["Article", (r) => r.article?.state === "linked" ? relatedName(r.article, "blog-posts") :
       r.article?.snapshotTitle ? `${r.article.snapshotTitle} (stored snapshot)` : words(r.article?.state)], ["User", (r) => relatedName(r.user, "users")],
       ["Article reference", (r) => r.article?.snapshotMismatch ? "Snapshot differs" : words(r.article?.state)], ["Recorded", fieldDate("createdAt")]];
-    case "audit-events": return [first(kind, (r) => words(r.type)), ["Result", (r) => words(r.result)], ["Request ID", (r) => r.requestId, "technical"], ["Recorded", fieldDate("createdAt")]];
     case "transactions": return [first(kind, (r) => <code>{r.internalReference || "Transaction"}</code>), ["Payment", (r) => words(r.status)], ["Amount", (r) => formatPaise(r.paise), "number"], ["Paid", fieldDate("paidAt")]];
     case "bookings": return [first(kind, (r) => r.service || "Booking"), ["Payment", (r) => words(r.paymentStatus)], ["Preferred date", fieldDate("preferredDate")], ["Time", (r) => r.preferredTime]];
     default: return [];
@@ -103,29 +100,27 @@ function NewsletterSummary() {
 
 export function Registry({ kind, owner, article, user }) {
   const spec = specifications[kind];
-  const defaults = { range: "30d", useDates: kind === "audit-events", page: 1, pageSize: 25 };
+  const defaults = { range: "30d", useDates: false, page: 1, pageSize: 25 };
   const [filters, setFilters] = useState(defaults);
   const change = (patch) => setFilters((old) => ({ ...old, page: 1, ...patch }));
   const { useDates, range, from, to, ...query } = filters;
   const enabled = !useDates || range !== "custom" || Boolean(from && to);
   const params = queryString({ ...query, ...(useDates ? dateParams(filters) : {}), endpoint: kind, owner, blogPostId: article, userId: user });
-  const resource = useResource(getBusinessRecords, params, { enabled, delay: query.search || query.requestId ? 250 : 0 });
+  const resource = useResource(getBusinessRecords, params, { enabled, delay: query.search ? 250 : 0 });
   const data = resource.data;
   return <div className="space-y-4">
     <section className={panel} aria-label={spec.title + " filters"}>
       <FilterBar refresh={resource.refresh} reset={() => setFilters(defaults)}>
         {spec.search && <label className="grid min-w-0 flex-1 basis-56 gap-1 text-sm">Search<input type="search" maxLength={100} className={control}
           placeholder={spec.search} value={query.search || ""} onChange={(e) => change({ search: e.target.value })} /></label>}
-        {kind === "audit-events" && <label className="grid min-w-0 gap-1 text-sm">Request ID<input maxLength={64} className={control}
-          value={query.requestId || ""} onChange={(e) => change({ requestId: e.target.value.trim() })} /></label>}
         {(spec.filters || []).map(([key, name, options]) => <Select key={key} name={name} value={query[key]} change={(value) => change({ [key]: value })} options={[["", "All"], ...options]} />)}
         <Select name="Sort by" value={query.sortBy || "createdAt"} change={(sortBy) => change({ sortBy })} options={spec.sorts || [["createdAt", "Recorded date"]]} />
         <Select name="Direction" value={query.order || "desc"} change={(order) => change({ order })} options={[["desc", "Newest first"], ["asc", "Oldest first"]]} />
         <Select name="Page size" value={query.pageSize} change={(pageSize) => change({ pageSize })} options={[5, 10, 25, 50]} />
       </FilterBar>
       <div className="mt-3 flex flex-wrap items-end gap-3">
-        {kind !== "audit-events" && <label className="flex items-center gap-2 self-center text-sm"><input type="checkbox" checked={useDates}
-          onChange={(e) => change({ useDates: e.target.checked, dateField: e.target.checked ? query.dateField : undefined })} />Filter by date</label>}
+        <label className="flex items-center gap-2 self-center text-sm"><input type="checkbox" checked={useDates}
+          onChange={(e) => change({ useDates: e.target.checked, dateField: e.target.checked ? query.dateField : undefined })} />Filter by date</label>
         {useDates && <>{spec.dates && <Select name="Date field" value={query.dateField || "createdAt"} change={(dateField) => change({ dateField })} options={spec.dates} />}
           <Range value={filters} change={change} /></>}
         {kind === "activity" && !owner && <UserFilter value={user} />}
@@ -200,8 +195,7 @@ function RecordDetails({ kind, record: r }) {
   </>;
   if (kind === "blog-supports") return <Box title="Recorded blog support"><Fields fields={[["Article", relatedName(r.article, "blog-posts")], ["User", relatedName(r.user, "users")],
     ["Recorded", displayDate(r.createdAt)], ["Stored article snapshot", r.article?.snapshotTitle], ["Snapshot comparison", r.article?.snapshotMismatch ? "Differs from the stored article" : null]]} /></Box>;
-  return <Box title={words(r.type)}><Fields fields={[["Result", words(r.result)], ["Request ID", r.requestId], ["Category", r.category],
-    ["Recorded", displayDate(r.createdAt)], ["Expires", displayDate(r.expiresAt)]]} /></Box>;
+  return null;
 }
 
 function RelatedUser({ id }) {

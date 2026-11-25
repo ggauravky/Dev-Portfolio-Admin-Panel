@@ -92,7 +92,8 @@ function createFinancialAnalytics(access, now) {
             ...Object.fromEntries(["created", "pending", "failed"].map((state) => [state, observed.find((row) => row._id === state)?.count || 0])) };
         }),
         optional(async () => {
-          const rows = await access.aggregate("webhooks", [{ $match: { provider: "razorpay", createdAt: filter } }, ...group("status", webhookStatus)]);
+          const rows = await access.aggregate("webhooks", [{ $match: { $or: [{ provider: "razorpay", createdAt: filter },
+            { provider: { $exists: false }, eventKey: { $type: "string" }, receivedAt: filter }] } }, ...group("status", webhookStatus)]);
           const states = Object.fromEntries(rows.map((row) => [row._id, row.count]));
           return { total: rows.reduce((sum, row) => sum + row.count, 0), ...Object.fromEntries(webhookStatus.map((state) => [state, states[state] || 0])), unclassified: states.unclassified || 0 };
         }),

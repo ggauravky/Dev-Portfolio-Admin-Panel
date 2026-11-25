@@ -38,8 +38,6 @@ export const workspaceRoutes = [
   route("blog", "Blog engagement", record("/admin/blog-engagement"), "Engagement", "article", "business", { kind: "blog-posts" }),
   route("blog-supports", "Support relationships", record("/admin/blog-engagement/supports"), null, null, "business", { kind: "blog-supports" }, "blog"),
   route("activity", "User activity", record("/admin/activity"), "Engagement", "activity", "business", { kind: "activity" }),
-  route("security", "Security", "/admin/security", "System", "shield", "security"),
-  route("audit", "Audit history", record("/admin/security/audit"), null, null, "security", { audit: true }, "security"),
   route("system", "System health", "/admin/system", "System", "system", "system"),
   route("settings", "Settings", "/admin/settings", "System", "settings", "system", { settings: true }),
 ];
@@ -48,7 +46,7 @@ export const navigation = workspaceRoutes.filter((entry) => entry.group);
 const links = new Map(workspaceRoutes.slice().reverse().map((entry) => [entry.name, entry]));
 export const linkFor = (entry) => entry.path.replace(/\/:id\?$/, "");
 const recordKinds = { users: "users", contacts: "contacts", newsletters: "newsletter", activity: "activity", "blog-posts": "blog",
-  "blog-supports": "blog-supports", "audit-events": "audit", bookings: "bookings", transactions: "transactions" };
+  "blog-supports": "blog-supports", bookings: "bookings", transactions: "transactions" };
 export const recordPaths = Object.fromEntries(Object.entries(recordKinds).map(([kind, name]) => [kind, linkFor(links.get(name))]));
 
 export function workspaceLocation(pathname, search = "") {
