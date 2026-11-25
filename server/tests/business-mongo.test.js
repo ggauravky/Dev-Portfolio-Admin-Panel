@@ -3,6 +3,7 @@ const { test } = require("node:test");
 const { createApp } = require("../app");
 const { createDatabases } = require("../config/database");
 const { login, http } = require("./auth-fixture");
+const { createMongoFixture } = require("./mongo-fixture");
 const { businessFixture, id, now, today } = require("./business-fixture");
 
 test("isolated MongoDB verifies business records, analytics, audit privacy and session revocation", {
@@ -103,4 +104,22 @@ test("isolated MongoDB verifies business records, analytics, audit privacy and s
   assert.equal(all.status, 200);
   assert.ok(all.headers.get("set-cookie"));
   assert.equal((await request("/system", { cookie: owner.cookie })).status, 401);
+});
+
+test("an empty readable business source stays distinct from missing sources", {
+  skip: process.env.RUN_ADMIN_MONGO_TEST !== "1", timeout: 30_000,
+}, async (t) => {
+  const fixture = await createMongoFixture();
+  const db = createDatabases(fixture.config);
+  t.after(async () => { await db.close(); await fixture.client.close(); });
+  const request = await http(t, createApp({ config: fixture.config, db, businessNow: now, log: () => {} }));
+  const { cookie } = await login(request);
+  const response = await request("/business-analytics?range=today", { cookie });
+  assert.equal(response.status, 200);
+  const { data } = await response.json();
+  assert.equal(data.contacts.status, "available");
+  assert.equal(data.contacts.data.total, 0);
+  assert.equal(data.users.status, "unavailable");
+  assert.equal(data.engagement.status, "unavailable");
+  assert.deepEqual(data.timeline, []);
 });
