@@ -1,7 +1,9 @@
-import { Navigate, Outlet, useLocation } from "react-router-dom";
-import { Suspense } from "react";
+import { Navigate, useLocation } from "react-router-dom";
+import { lazy, Suspense } from "react";
 import { useAdminAuth } from "../context/AdminAuth";
 import { Button, InlineAlert } from "../components/ui/Primitives";
+
+const WorkspaceShell = lazy(() => import("../components/layout/WorkspaceShell"));
 
 export function intendedDestination(value) {
   if (typeof value !== "string" || !/^\/admin(?:\/[a-z0-9/-]*)?(?:[?#][^\\\r\n]*)?$/i.test(value) ||
@@ -23,5 +25,5 @@ export default function AdminRoutes() {
     const from = intendedDestination(location.pathname + location.search + location.hash);
     return <Navigate to="/admin/login" replace state={{ from }} />;
   }
-  return <Suspense fallback={<main className="admin-wrap py-step-4"><InlineAlert>Loading workspace…</InlineAlert></main>}><Outlet /></Suspense>;
+  return <Suspense fallback={<main className="admin-wrap py-step-4"><InlineAlert>Loading workspace…</InlineAlert></main>}><WorkspaceShell /></Suspense>;
 }

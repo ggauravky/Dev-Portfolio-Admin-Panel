@@ -1,8 +1,9 @@
-import { Button, control, heading, InlineAlert, panel } from "../../../components/ui/Primitives";
+import { Button, InlineAlert } from "../../../components/ui/Primitives";
 import { ConfirmDialog } from "../../../components/ui/Dialog";
 import { LoadState } from "../../../components/data/Controls";
 import { useResource } from "../../../hooks/useResource";
 import { Table } from "../../../components/data/Records";
+import { EditorialSection } from "../../../components/data/Editorial";
 import { displayDate } from "../../../components/data/format";
 import { Workspace } from "./Shared";
 import { useRef, useState } from "react";
@@ -41,9 +42,7 @@ function Sessions() {
       if (error.status !== 401) resource.refresh();
     } finally { active.current = false; setPending(false); }
   }
-  return <section className={panel}>
-    <h2 className={heading}>Active administrator sessions</h2>
-    <p className="mt-1 text-sm text-muted">Up to 100 active sessions. Revoking the current session returns you to sign-in.</p>
+  return <EditorialSection title="Active administrator sessions" description="Up to 100 sessions. Revoking the current session returns you to sign-in.">
     <div className="my-4 flex flex-wrap gap-2">
       <Button onClick={resource.refresh} disabled={pending}>Refresh sessions</Button>
       <Button onClick={() => requestRevocation("others")} disabled={pending || !resource.data}>Revoke other sessions</Button>
@@ -52,7 +51,7 @@ function Sessions() {
     {notice && <InlineAlert className="mb-2" tone={notice.error ? "error" : "info"}>{notice.text}</InlineAlert>}
     <LoadState resource={resource} />
     {resource.data && <Table name="Active sessions" rows={resource.data.items} empty="No active sessions were returned." columns={[
-      ["Session", (row) => row.current ? "Current session" : "Other session"], ["Created", (row) => displayDate(row.createdAt), "technical"],
+      ["Session", (row) => row.current ? <span className="session-current">Current session</span> : "Other session"], ["Created", (row) => displayDate(row.createdAt), "technical"],
       ["Last activity", (row) => displayDate(row.lastActivityAt), "technical"], ["Idle expiration", (row) => displayDate(row.idleExpiresAt), "technical"],
       ["Absolute expiration", (row) => displayDate(row.expiresAt), "technical"],
       ["Action", (row) => <Button disabled={pending} onClick={() => requestRevocation("one", row)}>{row.current ? "Revoke current session" : "Revoke session"}</Button>],
@@ -61,15 +60,15 @@ function Sessions() {
       description="This signs you out and returns you to sign-in."
       action={confirmation.scope === "all" ? "Revoke all sessions" : "Revoke current session"}
       onDismiss={() => setConfirmation(null)} onConfirm={() => { setConfirmation(null); void revoke(confirmation.scope, confirmation.row); }} />}
-  </section>;
+  </EditorialSection>;
 }
 
 export default function Security({ audit = false }) {
   const { id } = useParams();
-  return <Workspace title="Administrator security" current={base}>
-    <nav aria-label="Security views" className="flex flex-wrap gap-2">
-      <Link className={control} to={base} aria-current={!audit ? "page" : undefined}>Active sessions</Link>
-      <Link className={control} to={base + "/audit"} aria-current={audit ? "page" : undefined}>Audit events</Link>
+  return <Workspace title="Administrator security">
+    <nav aria-label="Security views" className="workspace-tabs">
+      <Link to={base} aria-current={!audit ? "page" : undefined}>Active sessions</Link>
+      <Link to={base + "/audit"} aria-current={audit ? id ? "location" : "page" : undefined}>Audit history</Link>
     </nav>
     {!audit ? <Sessions /> : id ? <Inspector key={id} kind="audit-events" id={id} /> : <Registry kind="audit-events" />}
   </Workspace>;

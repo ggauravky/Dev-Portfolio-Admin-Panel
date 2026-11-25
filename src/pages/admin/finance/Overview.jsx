@@ -3,7 +3,8 @@ import { queryString, dateParams } from "../../../components/data/query";
 import { LoadState, Range } from "../../../components/data/Controls";
 import { Timeline, Distribution } from "../../../components/data/Charts";
 import { number, dateTime } from "../../../components/data/format";
-import { control, panel, heading } from "../../../components/ui/Primitives";
+import { control } from "../../../components/ui/Primitives";
+import { EditorialSection, MetricStrip } from "../../../components/data/Editorial";
 import { Fields, Box, Table } from "../../../components/data/Records";
 import { financePath } from "./Shared";
 import { formatPaise } from "../../../components/data/money";
@@ -27,7 +28,7 @@ export default function Overview() {
   const metrics = [
     ["Recorded amount, currently paid",formatPaise(payment?.paid.totalPaise)],
     ["Service payments",formatPaise(payment?.paid.servicePaise)], ["Support payments",formatPaise(payment?.paid.supportPaise)],
-    ["Recorded paid transactions",value(payment?.paid.count)],["Pending attempts",value(payment?.attempts.pending)],
+    ["Recorded paid transactions",value(payment?.paid.count)],["Pending attempts",value(payment?.attempts.pending)], ["Failed attempts",value(payment?.attempts.failed)],
     ["Authorized attempts",value(payment?.attempts.authorized)],["Recorded paid bookings",value(paidBookings?.confirmedPaid)],
     ["Customer receipt email failures",value(payment?.attempts.receiptFailures)],["Webhook failures",value(hooks?.failed)],
   ];
@@ -39,20 +40,15 @@ export default function Overview() {
     <p className="text-sm text-muted">Recorded database amounts. Historical test/live mode, settlements, fees, refund amounts and net revenue are unverified or unavailable.</p>
     {enabled ? <LoadState resource={resource} /> : <p role="status">Choose both custom dates.</p>}
     {report && <>
-      <section className={panel}>
-        <h2 className={heading}>Financial snapshot</h2>
-        <p className="mt-1 text-xs text-muted">{dayLabel(report.dates.from)} through {dayLabel(new Date(Date.parse(report.dates.to)-86400000))} IST · Observed {dateTime(report.observedAt)}</p>
-        <dl className="mt-4 grid grid-cols-2 gap-4 lg:grid-cols-3">
-          {metrics.map(([name,value], index) => <div key={name} className={`min-w-0 border-l border-rule pl-3 ${index < 3 && value.length > 14 ? "col-span-2 sm:col-span-1" : ""}`}>
-            <dt className="text-xs text-muted">{name}</dt><dd className="mt-1 font-serif text-h2 tabular-nums [overflow-wrap:anywhere]">{value}</dd>
-          </div>)}
-        </dl>
+      <EditorialSection title="Financial snapshot" description={`${dayLabel(report.dates.from)} through ${dayLabel(new Date(Date.parse(report.dates.to)-86400000))} IST · Observed ${dateTime(report.observedAt)}`}>
+        <MetricStrip label="Recorded payment totals" items={metrics.slice(0, 4).map(([title, value]) => ({ title, value, wide: value.length > 15 }))} />
+        <div className="mt-3"><Fields fields={metrics.slice(4)} /></div>
         {Object.entries({ Transactions:report.transactions, Bookings:report.bookings, Webhooks:report.webhooks }).filter(([,part]) => part.status !== "available")
           .map(([name,part]) => <p role="status" className="mt-3 text-sm text-error" key={name}>{name} unavailable. {part.message}</p>)}
         {payment && <p className="mt-3 text-sm text-muted">
           {payment.paid.excluded} paid records excluded from INR sums due to an amount or currency check. {payment.paid.invalidFlow} paid records have an unclassified flow.
         </p>}
-      </section>
+      </EditorialSection>
       {payment && <>
         <div className="grid gap-4 lg:grid-cols-2">
           <Timeline title="Checkout records by created date" rows={rows(payment.dailyAttempts,["count","failed"])} unit="records" series={[

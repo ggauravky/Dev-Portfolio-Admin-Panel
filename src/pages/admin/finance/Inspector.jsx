@@ -6,6 +6,8 @@ import { control, panel, heading } from "../../../components/ui/Primitives";
 import { Fields, Badge, Box, Table } from "../../../components/data/Records";
 import { RecordLink, financePath, label } from "./Shared";
 import { formatPaise } from "../../../components/data/money";
+import { EditorialSection } from "../../../components/data/Editorial";
+import { CopyAction } from "../../../components/ui/CopyAction";
 import { Link } from "react-router-dom";
 import { getFinancialDetail } from "../../../services/api";
 
@@ -40,25 +42,31 @@ function Transaction({ data }) {
     ["Customer receipt email sent", data.receipt.customer.sentAt], ["Admin notification sent", data.receipt.admin.sentAt],
   ];
   return <>
-    <Box title={data.internalReference || "Transaction"}>
-      <p className="mt-2 text-sm text-muted">Database-recorded state. Historical test/live mode is unverified.</p>
+    <EditorialSection title="Transaction identity" description="Historical test/live mode is unverified." action={<CopyAction label="Reference" value={data.internalReference} />}>
+      <div className="record-header">
+        <div><code className="record-reference">{data.internalReference || "Reference unavailable"}</code><div className="mt-2">{state(data.status)}</div></div>
+        <div><p className="workspace-kicker">Recorded amount</p><p className="record-amount">{formatPaise(data.amountPaise)}</p></div>
+      </div>
       <Fields fields={[
-        ["Payment",state(data.status)],["Flow",data.flowType],["Provider",data.provider],
-        ["Recorded amount",formatPaise(data.amountPaise)],["Amount validation",data.amountIssue && label(data.amountIssue)],
-        ["Service",data.serviceName],["Customer",data.customerName],["Contributor",data.contributorName],["Email",data.email],["Phone",data.phone],
-        ["Preferred date",preferredDate(data.preferredDate)],["Preferred time",data.preferredTime],["Order ID",data.razorpayOrderId],["Payment ID",data.razorpayPaymentId],
-        ["Project brief",data.projectBrief],["Contributor message",data.message],
+        ["Flow",data.flowType],["Provider",data.provider],["Amount validation",data.amountIssue && label(data.amountIssue)],
+        ["Order ID",data.razorpayOrderId,true],["Payment ID",data.razorpayPaymentId,true],
       ]} />
-    </Box>
-    <Box title="Recorded payment lifecycle">
-      <ol className="mt-3 divide-y divide-rule text-sm">
-        {stages.map(([name,time,value]) => <li className="grid gap-1 py-2 sm:grid-cols-2" key={name}>
+    </EditorialSection>
+    <EditorialSection title="Customer and service">
+      <Fields fields={[["Service",data.serviceName],["Customer",data.customerName],["Contributor",data.contributorName],["Email",data.email],["Phone",data.phone],
+        ["Preferred date",preferredDate(data.preferredDate)],["Preferred time",data.preferredTime],["Project brief",data.projectBrief],["Contributor message",data.message]]} />
+    </EditorialSection>
+    <EditorialSection title="Recorded payment lifecycle">
+      <ol className="record-timeline">
+        {stages.map(([name,time,value]) => <li className="grid gap-1 py-2 sm:grid-cols-2" key={name} data-recorded={time ? "true" : undefined}>
           <span className="font-medium">{name}</span><span className="text-muted break-words">{time ? date(time) : value ? <>{value} · timestamp not recorded</> : "Not recorded"}</span>
         </li>)}
       </ol>
-      <p className="mt-3 text-sm">Booking relationship: {data.booking.status !== "available" ? data.booking.message : label(related?.status) +
-        (related?.reason ? " · " + label(related.reason) : "")}</p>
-    </Box>
+      </EditorialSection>
+      <EditorialSection title="Linked booking">
+        <p className="text-sm">{data.booking.status !== "available" ? data.booking.message : label(related?.status) + (related?.reason ? " · " + label(related.reason) : "")}</p>
+        {related?.status === "linked" && <RecordLink view="bookings" id={related.record._id}>View booking record</RecordLink>}
+      </EditorialSection>
     {data.failure.description && <Box title="Recorded payment failure">
       <p className="mt-2 text-sm">{data.failure.description} A failed record does not establish a bank debit.</p>
       <Fields fields={[["Recorded code",label(data.failure.code)],["Category",label(data.failure.category)],

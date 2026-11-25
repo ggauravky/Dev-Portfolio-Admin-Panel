@@ -54,10 +54,7 @@
   .ui-drawer { margin: 0 0 0 auto; min-height: 100dvh; }
   @keyframes ui-enter { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
   .admin-wrap { width: min(100%, 1280px); margin-inline: auto; padding-inline: var(--space-2); }
-  .admin-nav { display: flex; gap: var(--space-2); overflow-x: auto; padding: 4px; }
-  .admin-nav a { flex: none; }
-  .admin-nav a[aria-current='page'] { color: rgb(var(--paper)); text-decoration: underline; text-decoration-color: rgb(var(--accent)); text-underline-offset: 0.55em; }
   @media (min-width: 640px) { .admin-wrap { padding-inline: var(--space-3); } .ui-panel { padding: var(--space-3); } }
-  @media (pointer: coarse) { .ui-control, .admin-nav a { min-height: 44px; } }
+  @media (pointer: coarse) { .ui-control { min-height: 44px; } }
   @media (max-width: 639px) { .ui-control { min-height: 44px; } }
 }

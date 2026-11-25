@@ -1,23 +1,21 @@
-import { control, PageHeader } from "../../components/ui/Primitives";
-import { useState } from "react";
-import AdminLayout from "../../components/AdminLayout";
+import { PageHeader } from "../../components/ui/Primitives";
+import { Link, useLocation } from "react-router-dom";
+import { aiView, aiViews } from "../../routes/workspace";
 import Overview from "./chat/Overview";
 import Conversations from "./chat/Conversations";
 import Operations from "./chat/Operations";
 
-const views = { Overview, Conversations, Operations };
+const views = { overview: Overview, conversations: Conversations, operations: Operations };
 
 export default function Chats() {
-  const [tab, setTab] = useState("Overview");
+  const { search } = useLocation();
+  const tab = aiView(search);
   const View = views[tab];
-  return <AdminLayout>
-    <div className="space-y-5">
-      <PageHeader title="AI Intelligence" description="Review recorded assistant conversations, retrieval activity, and shared operational signals." />
-      <nav aria-label="AI Intelligence views" className="flex flex-wrap gap-2 border-b border-rule pb-3">
-        {Object.keys(views).map((name) => <button type="button" key={name} className={control}
-          aria-pressed={tab === name} onClick={() => setTab(name)}>{name}</button>)}
+  return <div className="workspace-page">
+      <PageHeader title="AI Intelligence" description="Assistant conversations, retrieval, and operating signals." />
+      <nav aria-label="AI Intelligence views" className="workspace-tabs">
+        {Object.entries(aiViews).map(([key, label]) => <Link key={key} to={`?view=${key}`} aria-current={tab === key ? "page" : undefined}>{label}</Link>)}
       </nav>
-      <section aria-label={tab}><View /></section>
-    </div>
-  </AdminLayout>;
+      <section aria-label={aiViews[tab]}><View /></section>
+    </div>;
 }

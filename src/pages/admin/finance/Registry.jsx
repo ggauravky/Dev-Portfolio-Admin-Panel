@@ -60,7 +60,8 @@ function tableColumns(view) {
   if (view === "bookings") return [
     ["Booking", (row) => detail(view,row,row.service || short(id(row)))], ["Customer", (row) => shown(row.name)],
     ["Preferred date", (row) => row.preferredDate ? new Intl.DateTimeFormat("en-IN",{dateStyle:"medium", timeZone:"Asia/Kolkata"}).format(new Date(row.preferredDate)) + (row.preferredTime ? " · " + row.preferredTime : "") : "Not recorded"],
-    ["Payment", (row) => <Badge value={row.paymentStatus} />], ["Provider", (row) => shown(row.paymentProvider)],
+    ["Payment", (row) => <Badge value={row.paymentStatus} />], ["Recorded amount (major units)", (row) => row.amount ?? "Not recorded", "number"],
+    ["Provider", (row) => shown(row.paymentProvider)],
     ["Transaction link", (row) => row.relationship ? <Badge value={row.relationship.status} /> : "Unavailable"],
   ];
   if (view === "receipts") return [

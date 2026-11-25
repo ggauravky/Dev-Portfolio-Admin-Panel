@@ -18,7 +18,7 @@ export default function Operations() {
     <LoadState resource={resource} />
     {report && <>
       <section className={panel}>
-        <h3 className={heading}>Storage and freshness</h3>
+        <h2 className={heading}>Storage and freshness</h2>
         <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-3">
           <div><dt className="text-muted">Chat database connection</dt><dd className="font-semibold">{report.database.replaceAll("_", " ")}</dd></div>
           <div><dt className="text-muted">Repository corpus</dt><dd><code>{report.corpusVersion}</code></dd></div>
@@ -27,7 +27,7 @@ export default function Operations() {
         <p className="mt-3 text-sm text-muted">Configured turn retention: {report.turnRetentionDays} days. Cache retention: {report.cacheRetentionHours} hours.</p>
       </section>
       <section className={panel}>
-        <h3 className={heading}>Application-side quota windows</h3>
+        <h2 className={heading}>Application-side quota windows</h2>
         <p className="mt-2 text-sm text-muted">Repository limits alongside observed shared counters. UTC windows. Counts may include refusals and unsettled reservations. Provider account-wide limits, actual API calls, and tokens saved are unavailable.</p>
         {report.quota.status !== "available" ? <Unavailable part={report.quota} /> :
           <div className="mt-3"><Table name="Quota windows" rows={report.quota.data.map((row) => ({ ...row, _id: row.label + ":" + row.metric }))} columns={[

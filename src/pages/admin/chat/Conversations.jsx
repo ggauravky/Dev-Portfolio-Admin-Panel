@@ -8,13 +8,18 @@ import { getChatConversation, getChatConversations, getChats } from "../../../se
 import taxonomy from "../../../../server/contracts/chat-values.json";
 import { Source } from "./Overview";
 
-function Turn({ item }) {
-  return <details className="rounded-control border border-rule p-3">
-    <summary className="cursor-pointer break-words font-medium text-paper">
-      {item.question || "Question unavailable"} <span className="ml-1 text-xs font-normal text-muted">· {item.provider || "Unknown response"}</span>
-    </summary>
-    <div className="mt-3 border-t border-rule pt-3 space-y-3">
-      <p className="whitespace-pre-wrap break-words text-sm text-paper">{item.answer || "Answer unavailable."}</p>
+function Turn({ item, transcript = false }) {
+  if (!transcript) return <details className="editorial-disclosure">
+    <summary className="break-words">{item.question || "Question unavailable"}</summary>
+    <Turn item={item} transcript />
+  </details>;
+  return <article className="transcript-turn">
+    <header className="transcript-label"><h3>Question</h3><time dateTime={item.createdAt}>{dateTime(item.createdAt)}</time></header>
+    <p className="transcript-text">{item.question || "Question unavailable"}</p>
+    <h3 className="transcript-label mt-4">Recorded assistant response</h3>
+    <p className="transcript-text">{item.answer || "Answer unavailable."}</p>
+    <details className="editorial-disclosure mt-3">
+      <summary>Technical details</summary>
       <dl className="grid grid-cols-2 gap-x-2 gap-y-2 text-xs text-muted sm:grid-cols-4">
         {[
           ["Recorded", dateTime(item.createdAt)], ["Intent", item.intent || "Unknown"], ["Response type", item.provider || "Unknown"],
@@ -27,8 +32,8 @@ function Turn({ item }) {
         <ul className="mt-1 space-y-1">{item.sources.map((source, index) => <li key={source.id + ":" + index}><Source item={source} /> <code className="break-all text-muted">{source.id}</code></li>)}</ul>
         <p className="mt-2 text-muted">Stored retrieval does not confirm citation in the answer.</p>
       </div>}
-    </div>
-  </details>;
+    </details>
+  </article>;
 }
 
 function Inspector({ reference, date, close }) {
@@ -37,13 +42,13 @@ function Inspector({ reference, date, close }) {
   const resource = useResource(getChatConversation, queryString({ ...dateParams(date), page, reference }));
   return <section className={panel} aria-label="Conversation inspector">
     <div className="flex justify-between items-center gap-2">
-      <h3 className={heading}>Conversation {title}</h3>
-      <button type="button" className={control} onClick={close} autoFocus>Close inspector</button>
+      <h2 className={heading}>Conversation <code className="text-small">{title}</code></h2>
+      <button type="button" className={control} onClick={close} autoFocus>Back to conversations</button>
     </div>
-    <p className="my-2 text-xs text-muted">Turns in chronological order for the chosen date range. Expand a question to see its answer.</p>
+    <p className="my-2 text-xs text-muted">Chronological transcript for the selected date range.</p>
     <LoadState resource={resource} />
     {resource.data && <>
-      <div className="my-3 space-y-2">{resource.data.items.map((item) => <Turn key={item._id} item={item} />)}</div>
+      <div className="my-3">{resource.data.items.map((item) => <Turn key={item._id} item={item} transcript />)}</div>
       {!resource.data.total && <p>No turns in this date range.</p>}
       <Pager data={resource.data} change={setPage} label="Turns" />
     </>}
@@ -70,14 +75,15 @@ export default function Conversations() {
   const resource = useResource(mode === "conversations" ? getChatConversations : getChats, queryString(request), { enabled, delay: 250 });
   const data = resource.data;
   const change = (value) => { setQuery((old) => ({ ...old, page: 1, ...value })); setReference(null); };
-  const close = () => { setReference(null); returnFocus.current?.focus(); };
-  return <div className="space-y-4">
-    <section className={panel}>
+  const close = () => { setReference(null); requestAnimationFrame(() => returnFocus.current?.focus()); };
+  return <div className="space-y-4" data-conversation-open={reference ? "true" : undefined}>
+    <section className={`${panel} conversation-filters`}>
       <div className="flex flex-wrap gap-2">
         {[["conversations", "Conversations"], ["turns", "Individual turns"]].map(([key, label]) => <button key={key} type="button"
           aria-pressed={mode === key} className={control}
           onClick={() => { if (key !== mode) { setMode(key); change({ sortBy: undefined }); } }}>{label}</button>)}
         <button type="button" className={control} onClick={resource.refresh}>Refresh</button>
+        <button type="button" className={control} onClick={() => { setQuery({ range: "30d", page: 1 }); setReference(null); }}>Clear filters</button>
       </div>
       <div className="mt-4 flex flex-wrap gap-3 items-end">
         <label className="grid gap-1 text-sm min-w-0 flex-1 basis-52">Search question or answer
@@ -115,14 +121,14 @@ export default function Conversations() {
       </details>
     </section>
     {enabled ? <LoadState resource={resource} /> : <p role="status">Choose both custom dates.</p>}
-    {data && <>
-      <section className={panel}>
-        <h3 className={heading}>{mode === "conversations" ? "Matching conversations" : "Matching turns"}</h3>
+    {data && <div className="conversation-split">
+      <section className={`${panel} conversation-list`}>
+        <h2 className={heading}>{mode === "conversations" ? "Matching conversations" : "Matching turns"}</h2>
         <p className="text-xs text-muted mt-1">Conversation counts cover turns matching current filters. A conversation reference represents a recorded context.</p>
         {!data.items.length ? <p className="mt-3">No matching records.</p> :
-          <ul className="my-3 space-y-2">
+          <ul className="conversation-results my-3">
             {data.items.map((item) => <li key={item.reference || item._id}>
-              {mode === "turns" ? <Turn item={item} /> : <button type="button" className="w-full rounded-control border border-rule p-3 text-left hover:bg-paper/5 focus-visible:outline focus-visible:outline-accent"
+              {mode === "turns" ? <Turn item={item} /> : <button type="button" className="conversation-row"
                 aria-expanded={reference === item.reference} onClick={(event) => {
                   returnFocus.current = event.currentTarget;
                   setReference((value) => value === item.reference ? null : item.reference);
@@ -138,6 +144,6 @@ export default function Conversations() {
         <Pager data={data} change={(page) => change({ page })} label={mode === "conversations" ? "Conversations" : "Turns"} />
       </section>
       {reference && <Inspector key={reference} reference={reference} date={query} close={close} />}
-    </>}
+    </div>}
   </div>;
 }

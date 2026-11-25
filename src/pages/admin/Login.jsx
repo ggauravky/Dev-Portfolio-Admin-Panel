@@ -2,8 +2,8 @@ import { useRef, useState } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAdminAuth } from "../../context/AdminAuth";
 import { intendedDestination } from "../../routes/AdminRoutes";
-import { PortfolioLink } from "../../components/AdminLayout";
-import { Button, Field, Icon, InlineAlert, PageHeader, Rule, SkipLink, heading, panel } from "../../components/ui/Primitives";
+import { PortfolioLink } from "../../components/layout/Identity";
+import { Button, Field, Icon, InlineAlert, SkipLink, heading } from "../../components/ui/Primitives";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -29,21 +29,22 @@ export default function Login() {
   if (status === "authenticated") return <Navigate replace to={intendedDestination(location.state?.from)} />;
   if (status === "checking") return <main className="admin-wrap py-step-4"><InlineAlert>Checking administrator session…</InlineAlert></main>;
 
-  return <div className="min-h-screen">
+  return <div className="login-workspace">
     <SkipLink />
     <header className="border-b border-rule"><div className="admin-wrap flex flex-wrap items-center justify-between gap-x-4 py-2">
       <span className="py-2 font-serif text-h3">Gaurav Kumar Yadav</span><PortfolioLink />
     </div></header>
-    <main id="main-content" tabIndex={-1} className="admin-wrap grid min-h-[70dvh] items-center py-step-5">
-      <div className="mx-auto grid w-full max-w-4xl gap-step-3 lg:grid-cols-2 lg:items-stretch">
-        <div className="self-center lg:pr-step-4">
-          <PageHeader title="Portfolio Admin" description="Private workspace for portfolio operations." />
+    <main id="main-content" tabIndex={-1} className="admin-wrap login-main">
+      <div className="login-spread">
+        <div className="login-masthead">
+          <p className="workspace-kicker">Portfolio Admin</p>
+          <h1 className="login-title">Control.</h1>
+          <p className="mt-3 max-w-prose text-muted">Your portfolio, behind the scenes.</p>
         </div>
-        <section className={panel} aria-labelledby="sign-in-heading">
+        <section className="login-panel" aria-labelledby="sign-in-heading">
           <h2 id="sign-in-heading" className={heading}>Sign in</h2>
-          <Rule className="my-step-2" />
           {(error || status === "unavailable") && <InlineAlert tone="error" className="mb-4" id="sign-in-error">{error || message}</InlineAlert>}
-          <form onSubmit={handleSubmit} aria-busy={loading} aria-describedby={error ? "sign-in-error" : undefined} className="space-y-4">
+          <form onSubmit={handleSubmit} aria-busy={loading} aria-describedby={error || status === "unavailable" ? "sign-in-error" : undefined} className="mt-4 space-y-4">
             <Field label="Email address" id="admin-email" type="email" name="username" autoComplete="username" autoCapitalize="none"
               spellCheck={false} maxLength={254} value={email} onChange={(event) => setEmail(event.target.value)} required />
             <Field label="Password" id="admin-password" type={showPassword ? "text" : "password"} name="password" autoComplete="current-password"
@@ -57,5 +58,6 @@ export default function Login() {
         </section>
       </div>
     </main>
+    <footer className="border-t border-rule"><div className="admin-wrap py-step-2 font-mono text-xs text-muted">Private workspace</div></footer>
   </div>;
 }

@@ -88,15 +88,12 @@ export default function Overview() {
     <p className="text-sm text-muted">Asia/Kolkata calendar days. Counts cover durable chat turns only. Provider labels describe the recorded answer type.</p>
     {enabled ? <LoadState resource={resource} /> : <p role="status">Choose both custom dates.</p>}
     {report && <>
-      <section className={panel}>
-        <h3 className={heading}>Recorded activity</h3>
-        <dl className="mt-3 grid grid-cols-2 gap-4 lg:grid-cols-6">
-          {kpis.map(([label, value]) => <div key={label}><dt className="text-xs text-muted">{label}</dt><dd className="mt-1 text-xl font-semibold tabular-nums text-paper">{value}</dd></div>)}
-        </dl>
+      <EditorialSection title="Recorded activity">
+        <MetricStrip label="Recorded AI metrics" columns="three" items={kpis.map(([title, value]) => ({ title, value }))} />
         {report.core.message && <p className="mt-3 text-sm text-error" role="status">{report.core.message}</p>}
         {report.latency.message && <p className="mt-3 text-sm text-error" role="status">{report.latency.message}</p>}
         <p className="mt-3 text-xs text-muted">{dateTime(report.core.observedAt || report.latency.observedAt)} · Percentiles use 50 ms buckets and exclude aborted turns.</p>
-      </section>
+      </EditorialSection>
       {core && <>
         <div className="grid gap-4 lg:grid-cols-2">
           <Timeline title="Daily recorded activity" rows={core.turns ? daily : []} unit="count" series={[{ key: "turns", label: "Turns", seriesTone: "main" }, { key: "conversations", label: "Conversations", seriesTone: "alternate" }]} />
@@ -129,3 +126,4 @@ export default function Overview() {
   </div>;
 }
 import { Table } from "../../../components/data/Records";
+import { EditorialSection, MetricStrip } from "../../../components/data/Editorial";

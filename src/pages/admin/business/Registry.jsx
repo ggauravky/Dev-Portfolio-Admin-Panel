@@ -8,7 +8,9 @@ import { displayDate, words } from "../../../components/data/format";
 import { person, status, subscribed, Workspace } from "./Shared";
 import { useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
-import { getBusinessRecords } from "../../../services/api";
+import { getBusinessAnalytics, getBusinessRecords } from "../../../services/api";
+import { EditorialSection, MetricStrip } from "../../../components/data/Editorial";
+import { CopyAction } from "../../../components/ui/CopyAction";
 
 const specifications = {
   users: { title: "Registered users", search: "Name or email", sorts: [["createdAt", "Registration"], ["lastLoginAt", "Last recorded login"]],
@@ -34,16 +36,19 @@ const relatedName = (link, kind) => link?.state === "linked" ?
   <RecordLink kind={kind} id={link.id}>{link.name || link.title || link.reference || "Open record"}</RecordLink> : words(link?.state);
 const fieldDate = (key) => (row) => row[key] ? <time dateTime={row[key]}>{displayDate(row[key])}</time> : "Unknown";
 const first = (kind, resolveLabel) => ["Record", (row) => <RecordLink kind={kind} id={row._id || row.reference}>{resolveLabel(row)}</RecordLink>];
+const initials = (row) => person(row).split(/\s+/).filter(Boolean).slice(0, 2).map((word) => [...word][0].toUpperCase()).join("");
+const verification = (value) => <Badge value={status(value).toLowerCase()} />;
+const subscription = (value) => <Badge value={subscribed(value).toLowerCase()} />;
 
 function columns(kind) {
   switch (kind) {
-    case "users": return [first(kind, person), ["Email", (r) => r.email], ["Verification", (r) => status(r.emailVerified)], ["Registered", fieldDate("createdAt")], ["Last login", fieldDate("lastLoginAt")]];
-    case "contacts": return [first(kind, (r) => r.subject || "Message"), ["Sender", (r) => r.name], ["Preview", (r) => r.preview], ["Status", (r) => <Badge value={r.status} />], ["Received", fieldDate("createdAt")]];
-    case "newsletters": return [first(kind, (r) => r.email || "Subscription"), ["State", (r) => subscribed(r.subscribed)], ["Subscribed", fieldDate("subscribedAt")], ["Unsubscribed", fieldDate("unsubscribedAt")], ["Created", fieldDate("createdAt")]];
-    case "activity": return [first(kind, (r) => r.title || "Activity event"), ["Action", (r) => words(r.actionType)], ["Domain", (r) => words(r.domain)],
-      ["Status", (r) => <Badge value={r.status} />], ["User", (r) => relatedName(r.user, "users")], ["Recorded", fieldDate("createdAt")]];
-    case "blog-posts": return [first(kind, (r) => r.title || r.slug || "Article"), ["Slug", (r) => r.slug], ["Stored", (r) => r.supportCount ?? "Unknown"],
-      ["Relationships", (r) => r.actualSupportCount ?? "Unavailable"], ["Consistency", (r) => words(r.consistency)], ["Created", fieldDate("createdAt")]];
+    case "users": return [["Name", (r) => <span className="directory-identity"><span className="identity-initials" aria-hidden="true">{initials(r)}</span>
+      <RecordLink kind={kind} id={r._id}>{person(r)}</RecordLink></span>], ["Email", (r) => r.email], ["Verification", (r) => verification(r.emailVerified)],
+      ["Registered", fieldDate("createdAt")], ["Last recorded login", fieldDate("lastLoginAt")]];
+    case "newsletters": return [first(kind, (r) => r.email || "Subscription"), ["State", (r) => subscription(r.subscribed)], ["Subscribed", fieldDate("subscribedAt")], ["Unsubscribed", fieldDate("unsubscribedAt")], ["Created", fieldDate("createdAt")]];
+    case "blog-posts": return [["Recorded article", (r) => <div><RecordLink kind={kind} id={r._id}>{r.title || r.slug || "Article"}</RecordLink><div className="mt-1 font-mono text-xs text-muted">{r.slug}</div></div>],
+      ["Stored", (r) => r.supportCount ?? "Unknown", "number"], ["Relationships", (r) => r.actualSupportCount ?? "Unavailable", "number"],
+      ["Consistency", (r) => words(r.consistency)], ["Created", fieldDate("createdAt")]];
     case "blog-supports": return [first(kind, () => "Open support record"), ["Article", (r) => r.article?.state === "linked" ? relatedName(r.article, "blog-posts") :
       r.article?.snapshotTitle ? `${r.article.snapshotTitle} (stored snapshot)` : words(r.article?.state)], ["User", (r) => relatedName(r.user, "users")],
       ["Article reference", (r) => r.article?.snapshotMismatch ? "Snapshot differs" : words(r.article?.state)], ["Recorded", fieldDate("createdAt")]];
@@ -52,6 +57,48 @@ function columns(kind) {
     case "bookings": return [first(kind, (r) => r.service || "Booking"), ["Payment", (r) => words(r.paymentStatus)], ["Preferred date", fieldDate("preferredDate")], ["Time", (r) => r.preferredTime]];
     default: return [];
   }
+}
+
+function Inbox({ items, empty }) {
+  if (!items.length) return <p className="text-muted">{empty}</p>;
+  return <ul aria-label="Contact messages" className="editorial-index">
+    {items.map((row) => <li key={row._id} className="inbox-row">
+      <div className="min-w-0"><RecordLink kind="contacts" id={row._id}>{row.subject || "Message"}</RecordLink>
+        <p className="mt-1 text-small text-muted">{row.name || "Sender unavailable"}</p>
+        {row.preview && <p className="mt-1 text-small break-words">{row.preview}</p>}
+      </div>
+      <div className="inbox-meta"><Badge value={row.status} />{fieldDate("createdAt")(row)}</div>
+    </li>)}
+  </ul>;
+}
+
+const activityDay = new Intl.DateTimeFormat("en-IN", { timeZone: "Asia/Kolkata", dateStyle: "long" });
+function ActivityIndex({ items }) {
+  if (!items.length) return <p className="text-muted">No matching activity events.</p>;
+  const days = new Map();
+  for (const row of items) {
+    const day = Number.isFinite(Date.parse(row.createdAt)) ? activityDay.format(new Date(row.createdAt)) : "Date unavailable";
+    if (!days.has(day)) days.set(day, []);
+    days.get(day).push(row);
+  }
+  return <div className="space-y-4">
+    {[...days].map(([day, rows]) => <section key={day}><h3 className="workspace-kicker">{day}</h3>
+      <ul className="editorial-index">{rows.map((row) => <li key={row._id} className="inbox-row">
+        <div className="min-w-0"><RecordLink kind="activity" id={row._id}>{row.title || "Activity event"}</RecordLink>
+          <p className="mt-1 text-small text-muted">{words(row.domain)} · {words(row.actionType)}</p>
+          {row.user?.state === "linked" && <p className="mt-1 text-small">{relatedName(row.user, "users")}</p>}</div>
+        <div className="inbox-meta"><Badge value={row.status} />{fieldDate("createdAt")(row)}</div>
+      </li>)}</ul>
+    </section>)}
+  </div>;
+}
+
+function NewsletterSummary() {
+  const resource = useResource(getBusinessAnalytics, "range=7d");
+  const newsletter = resource.data?.newsletter;
+  if (!newsletter?.data) return <LoadState resource={resource} empty="Subscription summary unavailable." />;
+  return <MetricStrip label="Current recorded subscription statistics" items={[["Recorded subscriptions", newsletter.data.total], ["Active", newsletter.data.active],
+    ["Unsubscribed", newsletter.data.unsubscribed], ["Unknown", newsletter.data.unknown]].map(([title, value]) => ({ title, value }))} />;
 }
 
 export function Registry({ kind, owner, article, user }) {
@@ -84,11 +131,13 @@ export function Registry({ kind, owner, article, user }) {
         {kind === "activity" && !owner && <UserFilter value={user} />}
       </div>
     </section>
-    {enabled ? <LoadState resource={resource} /> : <p role="status">Choose both custom dates.</p>}
-    {data && <section className={panel}>
-      <Table name={spec.title + " results"} columns={columns(kind)} rows={data.items.map((row) => row.reference ? { ...row, id: row.reference } : row)} empty="No matching records." />
+    {enabled ? <LoadState resource={kind === "contacts" && resource.error?.status === 503 ? { ...resource, error: { message: "Contact data unavailable. Use Refresh to try again." } } : resource} /> : <p role="status">Choose both custom dates.</p>}
+    {data && <EditorialSection title={kind === "contacts" ? "Messages" : kind === "activity" ? "Recorded events" : spec.title + " results"}>
+      {kind === "contacts" ? <Inbox items={data.items} empty={query.search || query.status || useDates ? "No matching messages." : "No messages recorded."} /> :
+        kind === "activity" ? <ActivityIndex items={data.items} /> :
+          <Table name={spec.title + " results"} columns={columns(kind)} rows={data.items.map((row) => row.reference ? { ...row, id: row.reference } : row)} empty="No matching records." />}
       <div className="mt-3"><Pager data={data} change={(page) => change({ page })} /></div>
-    </section>}
+    </EditorialSection>}
   </div>;
 }
 
@@ -102,19 +151,12 @@ function UserFilter({ value }) {
 }
 
 function ContactActions({ email, subject, canReply }) {
-  const [message, setMessage] = useState("");
-  const copy = async (text, label) => {
-    try { await navigator.clipboard.writeText(text); setMessage(label + " copied."); }
-    catch { setMessage("Clipboard unavailable. Select and copy the text instead."); }
-  };
   const reply = canReply && typeof email === "string" && /^[A-Za-z0-9._+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(email);
   return <div className="mt-3 flex flex-wrap items-center gap-2">
-    {email && <button type="button" className={control} onClick={() => copy(email, "Email")}>Copy email</button>}
-    {subject && <button type="button" className={control} onClick={() => copy(subject, "Subject")}>Copy subject</button>}
+    <CopyAction value={email} label="Email" /><CopyAction value={subject} label="Subject" />
     {reply && <a className={control} href={"mailto:" + encodeURIComponent(email).replace("%40", "@") + (subject ? "?subject=" + encodeURIComponent("Re: " + subject.replace(/[\x00-\x1F\x7F]/g, " ")) : "")}>
       Open email client</a>}
     {reply && <p className="text-xs text-muted">The email client opens separately. The recorded message status stays the same.</p>}
-    {message && <p className="text-sm" role="status">{message}</p>}
   </div>;
 }
 
@@ -122,7 +164,8 @@ export function Inspector({ kind, id }) {
   const resource = useResource(getBusinessRecords, queryString({ endpoint: kind, id }));
   const r = resource.data;
   return <div className="space-y-4">
-    <Link to={routes[kind]} className={linkClass}>Back to {specifications[kind].title.toLowerCase()}</Link>
+    <div className="flex flex-wrap items-center gap-3"><Link to={routes[kind]} className={linkClass}>Back to {specifications[kind].title.toLowerCase()}</Link>
+      <button type="button" className={control} onClick={resource.refresh}>Refresh record</button></div>
     <LoadState resource={resource} />
     {r && <RecordDetails kind={kind} record={r} />}
   </div>;
@@ -130,16 +173,19 @@ export function Inspector({ kind, id }) {
 
 function RecordDetails({ kind, record: r }) {
   if (kind === "users") return <>
-    <Box title={person(r)}><Fields fields={[["User ID", r._id], ["Email", r.email], ["Email verification", status(r.emailVerified)],
-      ["Given name", r.givenName], ["Family name", r.familyName], ["Registered", displayDate(r.createdAt)], ["Last recorded login", displayDate(r.lastLoginAt)],
-      ["Bio", r.bio], ["Location", r.location], ["Website", r.website], ["Profile last updated", displayDate(r.updatedAt)]]} /></Box>
+    <EditorialSection title={person(r)} action={<span className="identity-initials" aria-hidden="true">{initials(r)}</span>}>
+      <Fields fields={[["User ID", r._id, true], ["Email", r.email], ["Email verification", verification(r.emailVerified)],
+        ["Registered", fieldDate("createdAt")(r)], ["Last recorded login", fieldDate("lastLoginAt")(r)]]} />
+    </EditorialSection>
+    <EditorialSection title="Profile information"><Fields fields={[["Given name", r.givenName], ["Family name", r.familyName],
+      ["Bio", r.bio], ["Location", r.location], ["Website", r.website], ["Profile last updated", fieldDate("updatedAt")(r)]]} /></EditorialSection>
     <Box title="Recorded welcome emails"><Fields fields={[["Last welcome email", displayDate(r.lastWelcomeEmailAt)], ["Welcome email count", r.welcomeEmailSentCount],
       ["Last welcome-back email", displayDate(r.lastWelcomeBackEmailAt)], ["Welcome-back email count", r.welcomeBackEmailSentCount], ["Last login email type", words(r.lastLoginEmailType)]]} /></Box>
     <RelatedUser id={r._id} />
   </>;
-  if (kind === "contacts") return <Box title={r.subject || "Message"}><Fields fields={[["Sender", r.name], ["Email", r.email], ["Status", words(r.status)],
-    ["Received", displayDate(r.createdAt)], ["Updated", displayDate(r.updatedAt)]]} />
-    <p className="mt-4 whitespace-pre-wrap break-words [overflow-wrap:anywhere]">{r.message}</p><ContactActions email={r.email} subject={r.subject} canReply /></Box>;
+  if (kind === "contacts") return <EditorialSection title={r.subject || "Message"} action={<Badge value={r.status} />}><Fields fields={[["Sender", r.name], ["Email", r.email],
+    ["Received", fieldDate("createdAt")(r)], ["Updated", fieldDate("updatedAt")(r)]]} />
+    <p className="transcript-text mt-4">{r.message}</p><ContactActions email={r.email} subject={r.subject} canReply /></EditorialSection>;
   if (kind === "newsletters") return <Box title={r.email || "Subscription"}><Fields fields={[["State", subscribed(r.subscribed)], ["Subscribed timestamp", displayDate(r.subscribedAt)],
     ["Unsubscribe timestamp", displayDate(r.unsubscribedAt)], ["Record created", displayDate(r.createdAt)], ["Record updated", displayDate(r.updatedAt)]]} />
     <p className="text-sm text-muted">Resubscription can preserve the original subscribed date and clear the unsubscribe date.</p><ContactActions email={r.email} /></Box>;
@@ -161,8 +207,10 @@ function RecordDetails({ kind, record: r }) {
 function RelatedUser({ id }) {
   const [kind, setKind] = useState("activity");
   return <div className="space-y-3">
-    <Box title="Related records"><Select name="Related view" value={kind} change={setKind} options={[["activity", "Activity"], ["transactions", "Transactions"],
-      ["bookings", "Bookings"], ["blog-supports", "Blog supports"]]} /><p className="mt-2 text-sm text-muted">Links use the recorded user ID.</p></Box>
+    <EditorialSection title="Related records" description="Linked by the recorded user ID.">
+      <div className="workspace-tabs" role="group" aria-label="Related record type">{[["activity", "Activity"], ["transactions", "Transactions"],
+        ["bookings", "Bookings"], ["blog-supports", "Blog supports"]].map(([key, label]) => <button type="button" key={key} aria-pressed={kind === key} onClick={() => setKind(key)}>{label}</button>)}</div>
+    </EditorialSection>
     <Registry key={kind} kind={kind} owner={id} />
   </div>;
 }
@@ -175,9 +223,11 @@ export default function BusinessPage({ kind }) {
   const description = kind === "newsletters" ? "Recorded subscription state and timestamps. Historical records with no stored flag are unknown." :
     engagement ? "Blog support is a non-monetary relationship. Article records can be created during support." :
     kind === "activity" ? "The Portfolio records selected sign-in and payment events." : undefined;
-  return <Workspace title={engagement ? "Blog engagement" : specifications[kind].title} description={description} current={routes[engagement ? "blog-posts" : kind]}>
-    {engagement && <nav className="flex flex-wrap gap-2" aria-label="Blog engagement views">
-      <Link className={control} to={routes["blog-posts"]}>Recorded articles</Link><Link className={control} to={routes["blog-supports"]}>Support relationships</Link>
+  return <Workspace title={engagement ? "Blog engagement" : specifications[kind].title} description={description}>
+    {kind === "newsletters" && !id && <NewsletterSummary />}
+    {engagement && <nav className="workspace-tabs" aria-label="Blog engagement views">
+      <Link to={routes["blog-posts"]} aria-current={kind === "blog-posts" ? id ? "location" : "page" : undefined}>Recorded articles</Link>
+      <Link to={routes["blog-supports"]} aria-current={kind === "blog-supports" ? id ? "location" : "page" : undefined}>Support relationships</Link>
     </nav>}
     {id ? <Inspector key={kind + id} kind={kind} id={id} /> : <Registry key={kind + (user || "")} kind={kind} user={kind === "activity" ? user : undefined} />}
   </Workspace>;

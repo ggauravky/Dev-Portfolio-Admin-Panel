@@ -1,17 +1,13 @@
 import { Link } from "react-router-dom";
 import { panel, heading, Tag } from "../ui/Primitives";
+import { recordPaths as routes } from "../../routes/workspace";
 
 export { routes, linkClass };
-const routes = {
-  users: "/admin/users", contacts: "/admin/contacts", newsletters: "/admin/newsletter", activity: "/admin/activity",
-  "blog-posts": "/admin/blog-engagement", "blog-supports": "/admin/blog-engagement/supports", "audit-events": "/admin/security/audit",
-  bookings: "/admin/bookings", transactions: "/admin/financial/transactions",
-};
 const linkClass = "ui-text-link";
 
 export function Badge({ value }) {
-  const color = ["paid", "sent", "processed", "linked", "success", "available"].includes(value) ? "text-success" :
-    ["failed", "inconsistent", "potential_inconsistency", "confirmed_structural_mismatch"].includes(value) ? "text-error" :
+  const color = ["paid", "sent", "processed", "linked", "success", "available", "ready", "verified", "active"].includes(value) ? "text-success" :
+    ["failed", "inconsistent", "potential_inconsistency", "confirmed_structural_mismatch", "unavailable", "insufficient_permission"].includes(value) ? "text-error" :
     ["pending", "authorized", "processing", "needs_review", "unread"].includes(value) ? "text-warning" : "text-muted";
   return <Tag tone={color}>{value ? String(value).replaceAll("_", " ") : "Not recorded"}</Tag>;
 }

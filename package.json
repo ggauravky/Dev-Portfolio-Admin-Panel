@@ -8,6 +8,7 @@
         "build": "vite build",
         "check:design": "node scripts/check-design.mjs",
         "test:design": "node --test scripts/design.test.mjs",
+        "test:workspace": "node --test scripts/workspace.test.mjs",
         "preview": "vite preview",
         "server": "cd server && npm start",
         "server:dev": "cd server && npm run dev"

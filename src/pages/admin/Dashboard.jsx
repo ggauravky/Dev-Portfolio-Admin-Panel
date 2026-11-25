@@ -4,11 +4,11 @@ import { Distribution, Timeline } from "../../components/data/Charts";
 import { latency, percent, displayDate, words } from "../../components/data/format";
 import { LoadState, Range } from "../../components/data/Controls";
 import { useResource } from "../../hooks/useResource";
-import { Table, linkClass, MetricSection, RecordLink, routes } from "../../components/data/Records";
+import { Badge, Table, linkClass, MetricSection, RecordLink, routes } from "../../components/data/Records";
 import { formatPaise } from "../../components/data/money";
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import AdminLayout from "../../components/AdminLayout";
+import { EditorialSection, MetricStrip } from "../../components/data/Editorial";
 import { getBusinessAnalytics, getStats } from "../../services/api";
 
 function Group({ title, fields, link, unavailable, children }) {
@@ -53,11 +53,6 @@ function BusinessSections({ report }) {
         </>}
       </Group>
     </div>
-    <Group title="Recent activity" unavailable={report.timelinePaymentSource !== "available" ? "The transaction source is unavailable. Other recorded events may still appear." : undefined}>
-      <Table name="Recent activity across modules" rows={report.timeline.map((item) => ({ ...item, _id: item.source + item.id }))} empty="No available sources recorded activity in this period." columns={[
-        ["Event", (item) => <RecordLink kind={item.source} id={item.id}>{item.title}</RecordLink>], ["Time", (item) => displayDate(item.timestamp)],
-      ]} />
-    </Group>
     <details className="rounded-control border border-rule bg-ink-raised p-4">
       <summary className="cursor-pointer font-semibold text-paper">Daily trends and activity breakdown</summary>
       <div className="mt-4 grid gap-4 lg:grid-cols-2">
@@ -86,33 +81,57 @@ export default function Dashboard() {
   const finance = stats.data?.financialSummary;
   const payment = finance?.transactions.data;
   const availability = stats.data?.availability;
-  return <AdminLayout><div className="min-w-0 space-y-5 px-4 sm:px-0">
-    <header className="flex flex-wrap items-end justify-between gap-3">
-      <div><h1 className="ui-page-title">Portfolio dashboard</h1>
-        <p className="mt-1 text-sm text-muted">Last generated {displayDate(stats.data?.generatedAt)}</p></div>
-      <button type="button" className={control} onClick={() => { stats.refresh(); business.refresh(); }}>Refresh dashboard</button>
-    </header>
-    <LoadState resource={stats} />
-    {stats.data && <div className="grid gap-4 lg:grid-cols-3">
-      <Group title="Intelligence · last 7 days" fields={[["Recorded chat turns", ai?.turns], ["Recorded conversations", ai?.conversations],
-        ["Cache hit rate", ai && percent(ai.cacheRate)], ["Median latency", ai && latency(ai.medianMs)]]} link={["Open AI Intelligence", "/admin/chats"]} />
-      <Group title="Financial snapshot · last 7 days" fields={[["Paid services", payment && formatPaise(payment.paid.servicePaise)],
-        ["Paid support", payment && formatPaise(payment.paid.supportPaise)], ["Pending attempts", payment?.attempts.pending],
-        ["Recorded paid bookings", finance?.bookings.data?.confirmedPaid], ["Failed customer emails", payment?.attempts.receiptFailures], ["Failed webhooks", finance?.webhooks.data?.failed]]}
-        unavailable="Test/live mode is unverified. Refund amounts are unavailable." link={["Open Financial Control Center", "/admin/financial"]} />
-      <Group title="System status" fields={[["Portfolio database", words(availability?.primary)], ["Chat database", words(availability?.chat)],
-        ["Admin database", words(availability?.admin)], ["API readiness", availability?.primary === "available" && availability?.admin === "available" ? "Ready" : "Unavailable"]]}
-        link={["Open system health", "/admin/system"]} />
-    </div>}
-    <section className="space-y-4" aria-label="Business analytics">
-      <div className="flex flex-wrap items-end gap-3 border-b border-rule pb-3">
-        <div className="mr-auto"><h2 className="ui-heading">Business analytics</h2>
-          <p className="text-sm text-muted">The date range applies to period metrics only. Reports use Asia/Kolkata.</p>
-          {report && <p className="mt-1 text-xs text-muted">Report generated {displayDate(report.generatedAt)}</p>}</div>
+  const total = payment ? formatPaise(payment.paid.totalPaise) : null;
+  return <div className="workspace-page">
+    <header className="overview-masthead">
+      <div><p className="workspace-kicker">Portfolio workspace</p><h1 className="ui-page-title">Overview</h1>
+        <p className="mt-2 text-small text-muted">Audience, activity, payments, and system readiness.</p>
+        {stats.data?.generatedAt && <p className="mt-2 font-mono text-xs text-muted">Generated {displayDate(stats.data.generatedAt)}</p>}</div>
+      <div className="flex flex-wrap items-end gap-2">
         <Range value={range} change={(change) => setRange((old) => ({ ...old, ...change }))} />
+        <button type="button" className={control} onClick={() => { stats.refresh(); business.refresh(); }}>Refresh dashboard</button>
       </div>
-      {!ready ? <p role="status">Choose both custom dates.</p> : !defaultRange && <LoadState resource={business} />}
-      {report ? <BusinessSections report={report} /> : defaultRange && stats.data && <p role="status">Business analytics are unavailable.</p>}
-    </section>
-  </div></AdminLayout>;
+    </header>
+    <p className="text-small text-muted">Business reports use Asia/Kolkata. AI and payment metrics show the last seven days.</p>
+    <LoadState resource={stats} />
+    {stats.data && <MetricStrip label="Key portfolio metrics" items={[
+      { title: "Registered users", value: stats.data.businessSummary?.users.data?.total, context: "Current accounts", to: routes.users },
+      { title: "Unread messages", value: stats.data.businessSummary?.contacts.data?.unread, context: "Current inbox", to: routes.contacts },
+      { title: "Recorded paid amount", value: total, wide: total?.length > 15, context: "7 days · test/live mode unverified", to: "/admin/financial" },
+      { title: "AI conversations", value: ai?.conversations, context: "7 days · recorded", to: "/admin/chats" },
+    ]} />}
+    {!ready ? <p role="status">Choose both custom dates.</p> : !defaultRange && <LoadState resource={business} />}
+    {report && <EditorialSection title="Activity and trends" description={`Selected period · generated ${displayDate(report.generatedAt)}`}>
+      <div className="grid gap-4 md:grid-cols-2">
+        {[["Incoming contacts", report.contacts.data], ["Recorded registrations", report.users.data]].map(([title, data]) => data ?
+          <Timeline key={title} title={title} rows={daily(data.daily)} unit="records" series={[{ key: "count", label: "Records" }]} /> :
+          <MetricSection key={title} title={title} description="Source unavailable." />)}
+      </div>
+    </EditorialSection>}
+    {stats.data && <EditorialSection title="Operations" action={<Link className={linkClass} to="/admin/system">System health</Link>}>
+      <div className="overview-operations">
+        <div><h3 className="ui-heading">Availability</h3><ul>{[["Portfolio database", availability?.primary], ["Chat database", availability?.chat], ["Admin database", availability?.admin],
+          ["API readiness", availability?.primary === "available" && availability?.admin === "available" ? "ready" : "unavailable"]].map(([label, value]) =>
+          <li key={label}><span>{label}</span><Badge value={value} /></li>)}</ul></div>
+        <div><h3 className="ui-heading">Payment diagnostics</h3><ul>{[["Failed customer emails", payment?.attempts.receiptFailures, "/admin/financial/receipts"],
+          ["Failed webhooks", finance?.webhooks.data?.failed, "/admin/financial/webhook-events"], ["Pending attempts", payment?.attempts.pending, "/admin/financial/transactions"]].map(([label, value, to]) =>
+          <li key={label}><Link className={linkClass} to={to}>{label}</Link><span className="font-mono">{value ?? "Unavailable"}</span></li>)}</ul></div>
+      </div>
+    </EditorialSection>}
+    {report && <EditorialSection title="Recent activity" description={report.timelinePaymentSource !== "available" ? "Transaction activity is unavailable." : undefined}>
+      <Table name="Recent activity across modules" rows={report.timeline.map((item) => ({ ...item, _id: item.source + item.id }))}
+        empty="No available sources recorded activity in this period." columns={[
+          ["Event", (item) => <RecordLink kind={item.source} id={item.id}>{item.title}</RecordLink>], ["Source", (item) => words(item.source.replaceAll("-", "_"))],
+          ["Recorded", (item) => <time dateTime={item.timestamp}>{displayDate(item.timestamp)}</time>, "technical"],
+        ]} />
+    </EditorialSection>}
+    {stats.data && <details className="editorial-disclosure"><summary>Seven-day AI and financial details</summary><div className="mt-4 grid gap-4 md:grid-cols-2">
+      <Group title="Intelligence · last 7 days" fields={[["Turns", ai?.turns], ["Conversations", ai?.conversations], ["Cache hit rate", ai && percent(ai.cacheRate)],
+        ["Median latency", ai && latency(ai.medianMs)]]} link={["Open AI Intelligence", "/admin/chats"]} />
+      <Group title="Financial snapshot · last 7 days" fields={[["Paid services", payment && formatPaise(payment.paid.servicePaise)],
+        ["Paid support", payment && formatPaise(payment.paid.supportPaise)], ["Recorded paid bookings", finance?.bookings.data?.confirmedPaid]]}
+        unavailable="Historical test/live mode is unverified. Refund amounts are unavailable." link={["Open Financial Control Center", "/admin/financial"]} />
+    </div></details>}
+    {report ? <EditorialSection title="Business summaries"><BusinessSections report={report} /></EditorialSection> : defaultRange && stats.data && <p role="status">Business analytics are unavailable.</p>}
+  </div>;
 }
