@@ -1,0 +1,5 @@
+{
+  "provider": ["groq", "gemini", "faq", "canned", "template"],
+  "retrieval": ["hybrid", "keyword", "about", "cache", "none"],
+  "intent": ["question", "more", "thanks", "farewell", "identity", "howareyou", "greeting", "laughter", "negative", "ack", "contact", "compensation", "personal", "codeHelp", "compliment", "gibberish", "nomatch", "declined", "repeat", "selfHarm", "abuse", "jailbreak", "model", "nonEnglish", "test", "hacking", "spam", "flirt", "joke"]
+}

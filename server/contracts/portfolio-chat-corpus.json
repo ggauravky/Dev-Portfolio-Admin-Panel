@@ -1,0 +1,2278 @@
+{
+  "sourceRevision": "37a9fba56e79119dbb3236bc975103f84f8cf46c",
+  "version": "ccbaded070c8edc8",
+  "builtAt": "2026-11-20T20:12:38.674Z",
+  "embeddingModel": "gemini-embedding-001",
+  "dimensions": 768,
+  "chunkCount": 324,
+  "chunks": [
+    {
+      "id": "about:status",
+      "title": "Availability and contact",
+      "type": "about",
+      "group": "contact",
+      "url": "https://ggauravky.vercel.app/contact"
+    },
+    {
+      "id": "overview:projects",
+      "title": "All projects",
+      "type": "overview",
+      "group": "overview:projects",
+      "url": "https://ggauravky.vercel.app/projects"
+    },
+    {
+      "id": "overview:journey",
+      "title": "Journey timeline",
+      "type": "overview",
+      "group": "overview:journey",
+      "url": "https://ggauravky.vercel.app/journey"
+    },
+    {
+      "id": "overview:services",
+      "title": "All services",
+      "type": "overview",
+      "group": "overview:services",
+      "url": "https://ggauravky.vercel.app/services"
+    },
+    {
+      "id": "overview:blog",
+      "title": "Blog posts",
+      "type": "overview",
+      "group": "overview:blog",
+      "url": "https://ggauravky.vercel.app/blog"
+    },
+    {
+      "id": "project:smartmess",
+      "title": "SmartMess",
+      "type": "project",
+      "group": "smartmess",
+      "url": "https://ggauravky.vercel.app/projects/smartmess"
+    },
+    {
+      "id": "project:dev-portfolio-admin-panel",
+      "title": "Dev Portfolio Admin Panel",
+      "type": "project",
+      "group": "dev-portfolio-admin-panel",
+      "url": "https://ggauravky.vercel.app/projects/dev-portfolio-admin-panel"
+    },
+    {
+      "id": "project:real-time-chat-app",
+      "title": "Real-Time Chat App",
+      "type": "project",
+      "group": "real-time-chat-app",
+      "url": "https://ggauravky.vercel.app/projects/real-time-chat-app"
+    },
+    {
+      "id": "project:mern-product-store",
+      "title": "MERN Product Store",
+      "type": "project",
+      "group": "mern-product-store",
+      "url": "https://ggauravky.vercel.app/projects/mern-product-store"
+    },
+    {
+      "id": "project:notes-app",
+      "title": "Notes App",
+      "type": "project",
+      "group": "notes-app",
+      "url": "https://ggauravky.vercel.app/projects/notes-app"
+    },
+    {
+      "id": "project:aireel-studio",
+      "title": "AIReel Studio",
+      "type": "project",
+      "group": "aireel-studio",
+      "url": "https://ggauravky.vercel.app/projects/aireel-studio"
+    },
+    {
+      "id": "project:glass-morphism-calculator",
+      "title": "Glass-Morphism Calculator",
+      "type": "project",
+      "group": "glass-morphism-calculator",
+      "url": "https://ggauravky.vercel.app/projects/glass-morphism-calculator"
+    },
+    {
+      "id": "project:custom-captcha-generator",
+      "title": "Custom CAPTCHA Generator",
+      "type": "project",
+      "group": "custom-captcha-generator",
+      "url": "https://ggauravky.vercel.app/projects/custom-captcha-generator"
+    },
+    {
+      "id": "project:taskmaster-pro",
+      "title": "TaskMaster Pro - Advanced Todo App",
+      "type": "project",
+      "group": "taskmaster-pro",
+      "url": "https://ggauravky.vercel.app/projects/taskmaster-pro"
+    },
+    {
+      "id": "project:flappy-bird-game",
+      "title": "Flappy Bird Game",
+      "type": "project",
+      "group": "flappy-bird-game",
+      "url": "https://ggauravky.vercel.app/projects/flappy-bird-game"
+    },
+    {
+      "id": "project:pdf-to-audio-book",
+      "title": "PDF to Audio Book",
+      "type": "project",
+      "group": "pdf-to-audio-book",
+      "url": "https://ggauravky.vercel.app/projects/pdf-to-audio-book"
+    },
+    {
+      "id": "project:shopease",
+      "title": "ShopEase",
+      "type": "project",
+      "group": "shopease",
+      "url": "https://ggauravky.vercel.app/projects/shopease"
+    },
+    {
+      "id": "project:dishdash",
+      "title": "DishDash",
+      "type": "project",
+      "group": "dishdash",
+      "url": "https://ggauravky.vercel.app/projects/dishdash"
+    },
+    {
+      "id": "project:python-grocery-store",
+      "title": "Python Grocery Store Application",
+      "type": "project",
+      "group": "python-grocery-store",
+      "url": "https://ggauravky.vercel.app/projects/python-grocery-store"
+    },
+    {
+      "id": "project:buildmyteam",
+      "title": "BuildMyTeam",
+      "type": "project",
+      "group": "buildmyteam",
+      "url": "https://ggauravky.vercel.app/projects/buildmyteam"
+    },
+    {
+      "id": "project:focusguard",
+      "title": "FocusGuard",
+      "type": "project",
+      "group": "focusguard",
+      "url": "https://ggauravky.vercel.app/projects/focusguard"
+    },
+    {
+      "id": "project:truecert",
+      "title": "TrueCert",
+      "type": "project",
+      "group": "truecert",
+      "url": "https://ggauravky.vercel.app/projects/truecert"
+    },
+    {
+      "id": "project:fire-detection-alert-system",
+      "title": "Fire Detection Alert System",
+      "type": "project",
+      "group": "fire-detection-alert-system",
+      "url": "https://ggauravky.vercel.app/projects/fire-detection-alert-system"
+    },
+    {
+      "id": "project:ziplink",
+      "title": "ZipLink",
+      "type": "project",
+      "group": "ziplink",
+      "url": "https://ggauravky.vercel.app/projects/ziplink"
+    },
+    {
+      "id": "project:instax",
+      "title": "InstaX",
+      "type": "project",
+      "group": "instax",
+      "url": "https://ggauravky.vercel.app/projects/instax"
+    },
+    {
+      "id": "project:rag-ai-teaching-assistant",
+      "title": "RAG-Based AI Teaching Assistant",
+      "type": "project",
+      "group": "rag-ai-teaching-assistant",
+      "url": "https://ggauravky.vercel.app/projects/rag-ai-teaching-assistant"
+    },
+    {
+      "id": "project:mern-linkedin-clone",
+      "title": "LinkedIn Clone (MERN Stack)",
+      "type": "project",
+      "group": "mern-linkedin-clone",
+      "url": "https://ggauravky.vercel.app/projects/mern-linkedin-clone"
+    },
+    {
+      "id": "project:spotify-clone",
+      "title": "Spotify Clone",
+      "type": "project",
+      "group": "spotify-clone",
+      "url": "https://ggauravky.vercel.app/projects/spotify-clone"
+    },
+    {
+      "id": "project:kanoon-mate",
+      "title": "Kanoon-Mate AI Legal Assistance Platform",
+      "type": "project",
+      "group": "kanoon-mate",
+      "url": "https://ggauravky.vercel.app/projects/kanoon-mate"
+    },
+    {
+      "id": "project:smart-lms",
+      "title": "Smart LMS (SaaS Platform)",
+      "type": "project",
+      "group": "smart-lms",
+      "url": "https://ggauravky.vercel.app/projects/smart-lms"
+    },
+    {
+      "id": "project:insightaudio",
+      "title": "InsightAudio",
+      "type": "project",
+      "group": "insightaudio",
+      "url": "https://ggauravky.vercel.app/projects/insightaudio"
+    },
+    {
+      "id": "journey:bbdu-bca-2024",
+      "title": "Bachelor of Computer Applications (BCA)",
+      "type": "journey",
+      "group": "journey:bbdu-bca-2024",
+      "url": "https://ggauravky.vercel.app/journey#bbdu-bca-2024"
+    },
+    {
+      "id": "journey:iitmandi-ai-minor-2025",
+      "title": "Minor in Artificial Intelligence",
+      "type": "journey",
+      "group": "journey:iitmandi-ai-minor-2025",
+      "url": "https://ggauravky.vercel.app/journey#iitmandi-ai-minor-2025"
+    },
+    {
+      "id": "journey:kalpathon-hackathon-2025",
+      "title": "Kalpathon Coding Hackathon",
+      "type": "journey",
+      "group": "journey:kalpathon-hackathon-2025",
+      "url": "https://ggauravky.vercel.app/journey#kalpathon-hackathon-2025"
+    },
+    {
+      "id": "journey:xto10x-hackathon-2025",
+      "title": "xto10x Hackathon Edition #3",
+      "type": "journey",
+      "group": "journey:xto10x-hackathon-2025",
+      "url": "https://ggauravky.vercel.app/journey#xto10x-hackathon-2025"
+    },
+    {
+      "id": "journey:gemini-data-scientist-2025",
+      "title": "Gemini for Data Scientists and Analysts",
+      "type": "journey",
+      "group": "journey:gemini-data-scientist-2025",
+      "url": "https://ggauravky.vercel.app/journey#gemini-data-scientist-2025"
+    },
+    {
+      "id": "journey:codec-mern-internship-2025",
+      "title": "MERN Stack Internship",
+      "type": "journey",
+      "group": "journey:codec-mern-internship-2025",
+      "url": "https://ggauravky.vercel.app/journey#codec-mern-internship-2025"
+    },
+    {
+      "id": "journey:python-bootcamp-2025",
+      "title": "Complete Python Bootcamp",
+      "type": "journey",
+      "group": "journey:python-bootcamp-2025",
+      "url": "https://ggauravky.vercel.app/journey#python-bootcamp-2025"
+    },
+    {
+      "id": "journey:ultimate-webdev-course-2025",
+      "title": "Ultimate Web Development Course",
+      "type": "journey",
+      "group": "journey:ultimate-webdev-course-2025",
+      "url": "https://ggauravky.vercel.app/journey#ultimate-webdev-course-2025"
+    },
+    {
+      "id": "journey:launchpad-startup-2026",
+      "title": "Launch Pad: Startup Screening",
+      "type": "journey",
+      "group": "journey:launchpad-startup-2026",
+      "url": "https://ggauravky.vercel.app/journey#launchpad-startup-2026"
+    },
+    {
+      "id": "journey:techx26-hackathon-2026",
+      "title": "TechX26 Hackathon",
+      "type": "journey",
+      "group": "journey:techx26-hackathon-2026",
+      "url": "https://ggauravky.vercel.app/journey#techx26-hackathon-2026"
+    },
+    {
+      "id": "journey:hackwithsmile-2026",
+      "title": "Cybersecurity Learning Day at HackWithSmile.In",
+      "type": "journey",
+      "group": "journey:hackwithsmile-2026",
+      "url": "https://ggauravky.vercel.app/journey#hackwithsmile-2026"
+    },
+    {
+      "id": "journey:product-builders-day-2026",
+      "title": "Learning Beyond Code at Product Builder's Day",
+      "type": "journey",
+      "group": "journey:product-builders-day-2026",
+      "url": "https://ggauravky.vercel.app/journey#product-builders-day-2026"
+    },
+    {
+      "id": "journey:opensource-connect-2026",
+      "title": "Open Source Connect Global 2026",
+      "type": "journey",
+      "group": "journey:opensource-connect-2026",
+      "url": "https://ggauravky.vercel.app/journey#opensource-connect-2026"
+    },
+    {
+      "id": "journey:samarth-internship-2026",
+      "title": "Samarth Internship 2.0",
+      "type": "journey",
+      "group": "journey:samarth-internship-2026",
+      "url": "https://ggauravky.vercel.app/journey#samarth-internship-2026"
+    },
+    {
+      "id": "journey:ecsoc-open-source-2026",
+      "title": "Elite Coders Summer of Code (ECSoC) 2026",
+      "type": "journey",
+      "group": "journey:ecsoc-open-source-2026",
+      "url": "https://ggauravky.vercel.app/journey#ecsoc-open-source-2026"
+    },
+    {
+      "id": "journey:android-nova-workshop-2026",
+      "title": "Android Nova 2.0",
+      "type": "journey",
+      "group": "journey:android-nova-workshop-2026",
+      "url": "https://ggauravky.vercel.app/journey#android-nova-workshop-2026"
+    },
+    {
+      "id": "journey:nerds-hack-days-kanoonmate-2026",
+      "title": "Nerds Hack Days: Building Kanoon-Mate",
+      "type": "journey",
+      "group": "journey:nerds-hack-days-kanoonmate-2026",
+      "url": "https://ggauravky.vercel.app/journey#nerds-hack-days-kanoonmate-2026"
+    },
+    {
+      "id": "journey:ashoksoft-fullstack-intern-2026",
+      "title": "FullStack Developer Intern",
+      "type": "journey",
+      "group": "journey:ashoksoft-fullstack-intern-2026",
+      "url": "https://ggauravky.vercel.app/journey#ashoksoft-fullstack-intern-2026"
+    },
+    {
+      "id": "journey:code-with-harry-data-science-2026",
+      "title": "The Ultimate Job-Ready Data Science Course",
+      "type": "journey",
+      "group": "journey:code-with-harry-data-science-2026",
+      "url": "https://ggauravky.vercel.app/journey#code-with-harry-data-science-2026"
+    },
+    {
+      "id": "journey:build-with-swytchcode-paytm-2026",
+      "title": "Build With Swytchcode: SupportPilot AI",
+      "type": "journey",
+      "group": "journey:build-with-swytchcode-paytm-2026",
+      "url": "https://ggauravky.vercel.app/journey#build-with-swytchcode-paytm-2026"
+    },
+    {
+      "id": "journey:osci-uttar-pradesh-state-lead-2026",
+      "title": "Uttar Pradesh State Lead",
+      "type": "journey",
+      "group": "journey:osci-uttar-pradesh-state-lead-2026",
+      "url": "https://ggauravky.vercel.app/journey#osci-uttar-pradesh-state-lead-2026"
+    },
+    {
+      "id": "journey:lenovo-leap-hackathon-2026",
+      "title": "Lenovo LEAP Hackathon",
+      "type": "journey",
+      "group": "journey:lenovo-leap-hackathon-2026",
+      "url": "https://ggauravky.vercel.app/journey#lenovo-leap-hackathon-2026"
+    },
+    {
+      "id": "journey:heygen-community-event-lucknow-2026",
+      "title": "HeyGen Community Event - Lucknow",
+      "type": "journey",
+      "group": "journey:heygen-community-event-lucknow-2026",
+      "url": "https://ggauravky.vercel.app/journey#heygen-community-event-lucknow-2026"
+    },
+    {
+      "id": "journey:qualcomm-ai-hub-meetup-lucknow-2026",
+      "title": "Qualcomm AI Hub Developer Meetup - Lucknow",
+      "type": "journey",
+      "group": "journey:qualcomm-ai-hub-meetup-lucknow-2026",
+      "url": "https://ggauravky.vercel.app/journey#qualcomm-ai-hub-meetup-lucknow-2026"
+    },
+    {
+      "id": "journey:osen-lucknow-copilot-dev-days-2026",
+      "title": "OSEN Lucknow: Copilot Dev Days",
+      "type": "journey",
+      "group": "journey:osen-lucknow-copilot-dev-days-2026",
+      "url": "https://ggauravky.vercel.app/journey#osen-lucknow-copilot-dev-days-2026"
+    },
+    {
+      "id": "skills:web",
+      "title": "Skills: Web development",
+      "type": "skills",
+      "group": "skills",
+      "url": "https://ggauravky.vercel.app/skills"
+    },
+    {
+      "id": "skills:data-ai",
+      "title": "Skills: Data & AI",
+      "type": "skills",
+      "group": "skills",
+      "url": "https://ggauravky.vercel.app/skills"
+    },
+    {
+      "id": "skills:foundations",
+      "title": "Skills: Foundations",
+      "type": "skills",
+      "group": "skills",
+      "url": "https://ggauravky.vercel.app/skills"
+    },
+    {
+      "id": "service:frontend-development",
+      "title": "Frontend Development",
+      "type": "service",
+      "group": "service:frontend-development",
+      "url": "https://ggauravky.vercel.app/frontend-development"
+    },
+    {
+      "id": "service:backend-development",
+      "title": "Backend Development",
+      "type": "service",
+      "group": "service:backend-development",
+      "url": "https://ggauravky.vercel.app/backend-development"
+    },
+    {
+      "id": "service:fullstack-development",
+      "title": "Full Stack Development",
+      "type": "service",
+      "group": "service:fullstack-development",
+      "url": "https://ggauravky.vercel.app/full-stack-development"
+    },
+    {
+      "id": "service:ai-data-guidance",
+      "title": "AI / Data Science Guidance",
+      "type": "service",
+      "group": "service:ai-data-guidance",
+      "url": "https://ggauravky.vercel.app/ai-data-science-guidance"
+    },
+    {
+      "id": "blog:uber-system-design#intro",
+      "title": "Uber System Design: How Ride Sharing Apps like Uber, Lyft Works at Scale: Why is ride sharing a system-design challenge?",
+      "type": "blog",
+      "group": "blog:uber-system-design",
+      "url": "https://ggauravky.vercel.app/blog/uber-system-design"
+    },
+    {
+      "id": "blog:uber-system-design#ride-flow",
+      "title": "Uber System Design: How Ride Sharing Apps like Uber, Lyft Works at Scale: From a ride request to a confirmed trip",
+      "type": "blog",
+      "group": "blog:uber-system-design",
+      "url": "https://ggauravky.vercel.app/blog/uber-system-design"
+    },
+    {
+      "id": "blog:uber-system-design#capacity",
+      "title": "Uber System Design: How Ride Sharing Apps like Uber, Lyft Works at Scale: Capacity estimation: the location stream is the hard part",
+      "type": "blog",
+      "group": "blog:uber-system-design",
+      "url": "https://ggauravky.vercel.app/blog/uber-system-design"
+    },
+    {
+      "id": "blog:uber-system-design#realtime",
+      "title": "Uber System Design: How Ride Sharing Apps like Uber, Lyft Works at Scale: Client, edge, and real-time communication",
+      "type": "blog",
+      "group": "blog:uber-system-design",
+      "url": "https://ggauravky.vercel.app/blog/uber-system-design"
+    },
+    {
+      "id": "blog:uber-system-design#geospatial",
+      "title": "Uber System Design: How Ride Sharing Apps like Uber, Lyft Works at Scale: H3: finding nearby drivers without searching the whole city",
+      "type": "blog",
+      "group": "blog:uber-system-design",
+      "url": "https://ggauravky.vercel.app/blog/uber-system-design"
+    },
+    {
+      "id": "blog:uber-system-design#matching",
+      "title": "Uber System Design: How Ride Sharing Apps like Uber, Lyft Works at Scale: The matching engine: choosing a suitable driver",
+      "type": "blog",
+      "group": "blog:uber-system-design",
+      "url": "https://ggauravky.vercel.app/blog/uber-system-design"
+    },
+    {
+      "id": "blog:uber-system-design#kring",
+      "title": "Uber System Design: How Ride Sharing Apps like Uber, Lyft Works at Scale: K-ring search: expanding the search area",
+      "type": "blog",
+      "group": "blog:uber-system-design",
+      "url": "https://ggauravky.vercel.app/blog/uber-system-design"
+    },
+    {
+      "id": "blog:uber-system-design#reservation",
+      "title": "Uber System Design: How Ride Sharing Apps like Uber, Lyft Works at Scale: Avoiding a double match with atomic reservations",
+      "type": "blog",
+      "group": "blog:uber-system-design",
+      "url": "https://ggauravky.vercel.app/blog/uber-system-design"
+    },
+    {
+      "id": "blog:uber-system-design#persistence",
+      "title": "Uber System Design: How Ride Sharing Apps like Uber, Lyft Works at Scale: Persistence: different data, different requirements",
+      "type": "blog",
+      "group": "blog:uber-system-design",
+      "url": "https://ggauravky.vercel.app/blog/uber-system-design"
+    },
+    {
+      "id": "blog:uber-system-design#pricing",
+      "title": "Uber System Design: How Ride Sharing Apps like Uber, Lyft Works at Scale: Dynamic pricing and ETA: two related problems",
+      "type": "blog",
+      "group": "blog:uber-system-design",
+      "url": "https://ggauravky.vercel.app/blog/uber-system-design"
+    },
+    {
+      "id": "blog:uber-system-design#tradeoffs",
+      "title": "Uber System Design: How Ride Sharing Apps like Uber, Lyft Works at Scale: What makes this architecture difficult at scale?",
+      "type": "blog",
+      "group": "blog:uber-system-design",
+      "url": "https://ggauravky.vercel.app/blog/uber-system-design"
+    },
+    {
+      "id": "blog:uber-system-design#takeaways",
+      "title": "Uber System Design: How Ride Sharing Apps like Uber, Lyft Works at Scale: Key takeaways",
+      "type": "blog",
+      "group": "blog:uber-system-design",
+      "url": "https://ggauravky.vercel.app/blog/uber-system-design"
+    },
+    {
+      "id": "blog:what-is-mcp#what-is-mcp",
+      "title": "What is MCP? A Simple Guide to the Model Context Protocol: What is MCP?",
+      "type": "blog",
+      "group": "blog:what-is-mcp",
+      "url": "https://ggauravky.vercel.app/blog/what-is-mcp"
+    },
+    {
+      "id": "blog:what-is-mcp#why-mcp-was-needed",
+      "title": "What is MCP? A Simple Guide to the Model Context Protocol: Why Was MCP Needed?",
+      "type": "blog",
+      "group": "blog:what-is-mcp",
+      "url": "https://ggauravky.vercel.app/blog/what-is-mcp"
+    },
+    {
+      "id": "blog:what-is-mcp#how-mcp-works",
+      "title": "What is MCP? A Simple Guide to the Model Context Protocol: How Does MCP Work?",
+      "type": "blog",
+      "group": "blog:what-is-mcp",
+      "url": "https://ggauravky.vercel.app/blog/what-is-mcp"
+    },
+    {
+      "id": "blog:what-is-mcp#core-parts",
+      "title": "What is MCP? A Simple Guide to the Model Context Protocol: The 3 Core Parts: Tools, Resources, and Prompts",
+      "type": "blog",
+      "group": "blog:what-is-mcp",
+      "url": "https://ggauravky.vercel.app/blog/what-is-mcp"
+    },
+    {
+      "id": "blog:what-is-mcp#message-transports",
+      "title": "What is MCP? A Simple Guide to the Model Context Protocol: How Does MCP Send Messages?",
+      "type": "blog",
+      "group": "blog:what-is-mcp",
+      "url": "https://ggauravky.vercel.app/blog/what-is-mcp"
+    },
+    {
+      "id": "blog:what-is-mcp#real-world-example",
+      "title": "What is MCP? A Simple Guide to the Model Context Protocol: A Simple Real-World Example",
+      "type": "blog",
+      "group": "blog:what-is-mcp",
+      "url": "https://ggauravky.vercel.app/blog/what-is-mcp"
+    },
+    {
+      "id": "blog:what-is-mcp#why-mcp-matters",
+      "title": "What is MCP? A Simple Guide to the Model Context Protocol: Why Does MCP Matter?",
+      "type": "blog",
+      "group": "blog:what-is-mcp",
+      "url": "https://ggauravky.vercel.app/blog/what-is-mcp"
+    },
+    {
+      "id": "kb:proj:tasknexus:overview:1",
+      "title": "TaskNexus: Overview",
+      "type": "project",
+      "group": "tasknexus",
+      "url": "https://github.com/ggauravky/TaskNexus"
+    },
+    {
+      "id": "kb:proj:tasknexus:overview:1#2",
+      "title": "TaskNexus: Overview",
+      "type": "project",
+      "group": "tasknexus",
+      "url": "https://github.com/ggauravky/TaskNexus"
+    },
+    {
+      "id": "kb:proj:tasknexus:implementation:1",
+      "title": "TaskNexus: Implementation",
+      "type": "project",
+      "group": "tasknexus",
+      "url": "https://github.com/ggauravky/TaskNexus"
+    },
+    {
+      "id": "kb:proj:tasknexus:implementation:1#2",
+      "title": "TaskNexus: Implementation",
+      "type": "project",
+      "group": "tasknexus",
+      "url": "https://github.com/ggauravky/TaskNexus"
+    },
+    {
+      "id": "kb:proj:tasknexus:implementation:1#3",
+      "title": "TaskNexus: Implementation",
+      "type": "project",
+      "group": "tasknexus",
+      "url": "https://github.com/ggauravky/TaskNexus"
+    },
+    {
+      "id": "kb:proj:tasknexus:implementation:1#4",
+      "title": "TaskNexus: Implementation",
+      "type": "project",
+      "group": "tasknexus",
+      "url": "https://github.com/ggauravky/TaskNexus"
+    },
+    {
+      "id": "kb:proj:tasknexus:implementation:2",
+      "title": "TaskNexus: Implementation",
+      "type": "project",
+      "group": "tasknexus",
+      "url": "https://github.com/ggauravky/TaskNexus"
+    },
+    {
+      "id": "kb:proj:tasknexus:history_roadmap:1",
+      "title": "TaskNexus: History Roadmap",
+      "type": "project",
+      "group": "tasknexus",
+      "url": "https://github.com/ggauravky/TaskNexus"
+    },
+    {
+      "id": "kb:proj:tasknexus:history_roadmap:1#2",
+      "title": "TaskNexus: History Roadmap",
+      "type": "project",
+      "group": "tasknexus",
+      "url": "https://github.com/ggauravky/TaskNexus"
+    },
+    {
+      "id": "kb:proj:tasknexus:history_roadmap:1#3",
+      "title": "TaskNexus: History Roadmap",
+      "type": "project",
+      "group": "tasknexus",
+      "url": "https://github.com/ggauravky/TaskNexus"
+    },
+    {
+      "id": "kb:proj:dev-portfolio:overview:1",
+      "title": "Dev Portfolio Platform: Overview",
+      "type": "project",
+      "group": "dev-portfolio",
+      "url": "https://github.com/ggauravky/Dev-Portfolio"
+    },
+    {
+      "id": "kb:proj:dev-portfolio:implementation:1",
+      "title": "Dev Portfolio Platform: Implementation",
+      "type": "project",
+      "group": "dev-portfolio",
+      "url": "https://github.com/ggauravky/Dev-Portfolio"
+    },
+    {
+      "id": "kb:proj:dev-portfolio:implementation:1#2",
+      "title": "Dev Portfolio Platform: Implementation",
+      "type": "project",
+      "group": "dev-portfolio",
+      "url": "https://github.com/ggauravky/Dev-Portfolio"
+    },
+    {
+      "id": "kb:proj:dev-portfolio:history_roadmap:1",
+      "title": "Dev Portfolio Platform: History Roadmap",
+      "type": "project",
+      "group": "dev-portfolio",
+      "url": "https://github.com/ggauravky/Dev-Portfolio"
+    },
+    {
+      "id": "kb:proj:dev-portfolio:history_roadmap:1#2",
+      "title": "Dev Portfolio Platform: History Roadmap",
+      "type": "project",
+      "group": "dev-portfolio",
+      "url": "https://github.com/ggauravky/Dev-Portfolio"
+    },
+    {
+      "id": "kb:proj:mealkhata:overview:1",
+      "title": "MealKhata: Overview",
+      "type": "project",
+      "group": "mealkhata",
+      "url": "https://github.com/ggauravky/MealKhata"
+    },
+    {
+      "id": "kb:proj:mealkhata:implementation:1",
+      "title": "MealKhata: Implementation",
+      "type": "project",
+      "group": "mealkhata",
+      "url": "https://github.com/ggauravky/MealKhata"
+    },
+    {
+      "id": "kb:proj:mealkhata:implementation:1#2",
+      "title": "MealKhata: Implementation",
+      "type": "project",
+      "group": "mealkhata",
+      "url": "https://github.com/ggauravky/MealKhata"
+    },
+    {
+      "id": "kb:proj:mealkhata:history_roadmap:1",
+      "title": "MealKhata: History Roadmap",
+      "type": "project",
+      "group": "mealkhata",
+      "url": "https://github.com/ggauravky/MealKhata"
+    },
+    {
+      "id": "kb:proj:mealkhata:history_roadmap:1#2",
+      "title": "MealKhata: History Roadmap",
+      "type": "project",
+      "group": "mealkhata",
+      "url": "https://github.com/ggauravky/MealKhata"
+    },
+    {
+      "id": "kb:proj:connectifyx:overview:1",
+      "title": "ConnectifyX: Overview",
+      "type": "project",
+      "group": "connectifyx",
+      "url": null
+    },
+    {
+      "id": "kb:proj:connectifyx:implementation:1",
+      "title": "ConnectifyX: Implementation",
+      "type": "project",
+      "group": "connectifyx",
+      "url": null
+    },
+    {
+      "id": "kb:proj:connectifyx:implementation:1#2",
+      "title": "ConnectifyX: Implementation",
+      "type": "project",
+      "group": "connectifyx",
+      "url": null
+    },
+    {
+      "id": "kb:proj:connectifyx:history_roadmap:1",
+      "title": "ConnectifyX: History Roadmap",
+      "type": "project",
+      "group": "connectifyx",
+      "url": null
+    },
+    {
+      "id": "kb:proj:connectifyx:history_roadmap:1#2",
+      "title": "ConnectifyX: History Roadmap",
+      "type": "project",
+      "group": "connectifyx",
+      "url": null
+    },
+    {
+      "id": "kb:proj:instax:overview:1",
+      "title": "InstaX: Overview",
+      "type": "project",
+      "group": "instax",
+      "url": "https://ggauravky.vercel.app/projects/instax"
+    },
+    {
+      "id": "kb:proj:instax:implementation:1",
+      "title": "InstaX: Implementation",
+      "type": "project",
+      "group": "instax",
+      "url": "https://ggauravky.vercel.app/projects/instax"
+    },
+    {
+      "id": "kb:proj:instax:implementation:1#2",
+      "title": "InstaX: Implementation",
+      "type": "project",
+      "group": "instax",
+      "url": "https://ggauravky.vercel.app/projects/instax"
+    },
+    {
+      "id": "kb:proj:instax:history_roadmap:1",
+      "title": "InstaX: History Roadmap",
+      "type": "project",
+      "group": "instax",
+      "url": "https://ggauravky.vercel.app/projects/instax"
+    },
+    {
+      "id": "kb:proj:insightaudio:overview:1",
+      "title": "InsightAudio: Overview",
+      "type": "project",
+      "group": "insightaudio",
+      "url": "https://ggauravky.vercel.app/projects/insightaudio"
+    },
+    {
+      "id": "kb:proj:insightaudio:implementation:1",
+      "title": "InsightAudio: Implementation",
+      "type": "project",
+      "group": "insightaudio",
+      "url": "https://ggauravky.vercel.app/projects/insightaudio"
+    },
+    {
+      "id": "kb:proj:insightaudio:implementation:1#2",
+      "title": "InsightAudio: Implementation",
+      "type": "project",
+      "group": "insightaudio",
+      "url": "https://ggauravky.vercel.app/projects/insightaudio"
+    },
+    {
+      "id": "kb:proj:insightaudio:history_roadmap:1",
+      "title": "InsightAudio: History Roadmap",
+      "type": "project",
+      "group": "insightaudio",
+      "url": "https://ggauravky.vercel.app/projects/insightaudio"
+    },
+    {
+      "id": "kb:proj:flipkart-capstone:overview:1",
+      "title": "Flipkart E-commerce Decision Intelligence: Overview",
+      "type": "project",
+      "group": "flipkart-capstone",
+      "url": "https://github.com/ggauravky/flipkart-churn-prediction-capstone"
+    },
+    {
+      "id": "kb:proj:flipkart-capstone:implementation:1",
+      "title": "Flipkart E-commerce Decision Intelligence: Implementation",
+      "type": "project",
+      "group": "flipkart-capstone",
+      "url": "https://github.com/ggauravky/flipkart-churn-prediction-capstone"
+    },
+    {
+      "id": "kb:proj:flipkart-capstone:history_roadmap:1",
+      "title": "Flipkart E-commerce Decision Intelligence: History Roadmap",
+      "type": "project",
+      "group": "flipkart-capstone",
+      "url": "https://github.com/ggauravky/flipkart-churn-prediction-capstone"
+    },
+    {
+      "id": "kb:proj:smartmess:overview:1",
+      "title": "SmartMess: Overview",
+      "type": "project",
+      "group": "smartmess",
+      "url": "https://ggauravky.vercel.app/projects/smartmess"
+    },
+    {
+      "id": "kb:proj:smartmess:implementation:1",
+      "title": "SmartMess: Implementation",
+      "type": "project",
+      "group": "smartmess",
+      "url": "https://ggauravky.vercel.app/projects/smartmess"
+    },
+    {
+      "id": "kb:proj:smartmess:history_roadmap:1",
+      "title": "SmartMess: History Roadmap",
+      "type": "project",
+      "group": "smartmess",
+      "url": "https://ggauravky.vercel.app/projects/smartmess"
+    },
+    {
+      "id": "kb:proj:dev-portfolio-admin-panel:overview:1",
+      "title": "Dev Portfolio Admin Panel: Overview",
+      "type": "project",
+      "group": "dev-portfolio-admin-panel",
+      "url": "https://ggauravky.vercel.app/projects/dev-portfolio-admin-panel"
+    },
+    {
+      "id": "kb:proj:dev-portfolio-admin-panel:implementation:1",
+      "title": "Dev Portfolio Admin Panel: Implementation",
+      "type": "project",
+      "group": "dev-portfolio-admin-panel",
+      "url": "https://ggauravky.vercel.app/projects/dev-portfolio-admin-panel"
+    },
+    {
+      "id": "kb:proj:dev-portfolio-admin-panel:history_roadmap:1",
+      "title": "Dev Portfolio Admin Panel: History Roadmap",
+      "type": "project",
+      "group": "dev-portfolio-admin-panel",
+      "url": "https://ggauravky.vercel.app/projects/dev-portfolio-admin-panel"
+    },
+    {
+      "id": "kb:proj:real-time-chat-app:overview:1",
+      "title": "Real-Time Chat App: Overview",
+      "type": "project",
+      "group": "real-time-chat-app",
+      "url": "https://ggauravky.vercel.app/projects/real-time-chat-app"
+    },
+    {
+      "id": "kb:proj:real-time-chat-app:implementation:1",
+      "title": "Real-Time Chat App: Implementation",
+      "type": "project",
+      "group": "real-time-chat-app",
+      "url": "https://ggauravky.vercel.app/projects/real-time-chat-app"
+    },
+    {
+      "id": "kb:proj:real-time-chat-app:history_roadmap:1",
+      "title": "Real-Time Chat App: History Roadmap",
+      "type": "project",
+      "group": "real-time-chat-app",
+      "url": "https://ggauravky.vercel.app/projects/real-time-chat-app"
+    },
+    {
+      "id": "kb:proj:buildmyteam:overview:1",
+      "title": "BuildMyTeam: Overview",
+      "type": "project",
+      "group": "buildmyteam",
+      "url": "https://ggauravky.vercel.app/projects/buildmyteam"
+    },
+    {
+      "id": "kb:proj:buildmyteam:implementation:1",
+      "title": "BuildMyTeam: Implementation",
+      "type": "project",
+      "group": "buildmyteam",
+      "url": "https://ggauravky.vercel.app/projects/buildmyteam"
+    },
+    {
+      "id": "kb:proj:buildmyteam:history_roadmap:1",
+      "title": "BuildMyTeam: History Roadmap",
+      "type": "project",
+      "group": "buildmyteam",
+      "url": "https://ggauravky.vercel.app/projects/buildmyteam"
+    },
+    {
+      "id": "kb:proj:truecert:overview:1",
+      "title": "TrueCert: Overview",
+      "type": "project",
+      "group": "truecert",
+      "url": "https://ggauravky.vercel.app/projects/truecert"
+    },
+    {
+      "id": "kb:proj:truecert:implementation:1",
+      "title": "TrueCert: Implementation",
+      "type": "project",
+      "group": "truecert",
+      "url": "https://ggauravky.vercel.app/projects/truecert"
+    },
+    {
+      "id": "kb:proj:truecert:history_roadmap:1",
+      "title": "TrueCert: History Roadmap",
+      "type": "project",
+      "group": "truecert",
+      "url": "https://ggauravky.vercel.app/projects/truecert"
+    },
+    {
+      "id": "kb:proj:focusguard:overview:1",
+      "title": "FocusGuard: Overview",
+      "type": "project",
+      "group": "focusguard",
+      "url": "https://ggauravky.vercel.app/projects/focusguard"
+    },
+    {
+      "id": "kb:proj:focusguard:implementation:1",
+      "title": "FocusGuard: Implementation",
+      "type": "project",
+      "group": "focusguard",
+      "url": "https://ggauravky.vercel.app/projects/focusguard"
+    },
+    {
+      "id": "kb:proj:focusguard:history_roadmap:1",
+      "title": "FocusGuard: History Roadmap",
+      "type": "project",
+      "group": "focusguard",
+      "url": "https://ggauravky.vercel.app/projects/focusguard"
+    },
+    {
+      "id": "kb:proj:fire-detection-alert-system:overview:1",
+      "title": "Fire Detection Alert System: Overview",
+      "type": "project",
+      "group": "fire-detection-alert-system",
+      "url": "https://ggauravky.vercel.app/projects/fire-detection-alert-system"
+    },
+    {
+      "id": "kb:proj:fire-detection-alert-system:implementation:1",
+      "title": "Fire Detection Alert System: Implementation",
+      "type": "project",
+      "group": "fire-detection-alert-system",
+      "url": "https://ggauravky.vercel.app/projects/fire-detection-alert-system"
+    },
+    {
+      "id": "kb:proj:fire-detection-alert-system:history_roadmap:1",
+      "title": "Fire Detection Alert System: History Roadmap",
+      "type": "project",
+      "group": "fire-detection-alert-system",
+      "url": "https://ggauravky.vercel.app/projects/fire-detection-alert-system"
+    },
+    {
+      "id": "kb:proj:ziplink:overview:1",
+      "title": "ZipLink: Overview",
+      "type": "project",
+      "group": "ziplink",
+      "url": "https://ggauravky.vercel.app/projects/ziplink"
+    },
+    {
+      "id": "kb:proj:ziplink:implementation:1",
+      "title": "ZipLink: Implementation",
+      "type": "project",
+      "group": "ziplink",
+      "url": "https://ggauravky.vercel.app/projects/ziplink"
+    },
+    {
+      "id": "kb:proj:ziplink:history_roadmap:1",
+      "title": "ZipLink: History Roadmap",
+      "type": "project",
+      "group": "ziplink",
+      "url": "https://ggauravky.vercel.app/projects/ziplink"
+    },
+    {
+      "id": "kb:proj:rag-ai-teaching-assistant:overview:1",
+      "title": "RAG-Based AI Teaching Assistant: Overview",
+      "type": "project",
+      "group": "rag-ai-teaching-assistant",
+      "url": "https://ggauravky.vercel.app/projects/rag-ai-teaching-assistant"
+    },
+    {
+      "id": "kb:proj:rag-ai-teaching-assistant:implementation:1",
+      "title": "RAG-Based AI Teaching Assistant: Implementation",
+      "type": "project",
+      "group": "rag-ai-teaching-assistant",
+      "url": "https://ggauravky.vercel.app/projects/rag-ai-teaching-assistant"
+    },
+    {
+      "id": "kb:proj:rag-ai-teaching-assistant:history_roadmap:1",
+      "title": "RAG-Based AI Teaching Assistant: History Roadmap",
+      "type": "project",
+      "group": "rag-ai-teaching-assistant",
+      "url": "https://ggauravky.vercel.app/projects/rag-ai-teaching-assistant"
+    },
+    {
+      "id": "kb:proj:kanoon-mate:overview:1",
+      "title": "Kanoon-Mate AI Legal Assistance Platform: Overview",
+      "type": "project",
+      "group": "kanoon-mate",
+      "url": "https://ggauravky.vercel.app/projects/kanoon-mate"
+    },
+    {
+      "id": "kb:proj:kanoon-mate:implementation:1",
+      "title": "Kanoon-Mate AI Legal Assistance Platform: Implementation",
+      "type": "project",
+      "group": "kanoon-mate",
+      "url": "https://ggauravky.vercel.app/projects/kanoon-mate"
+    },
+    {
+      "id": "kb:proj:kanoon-mate:history_roadmap:1",
+      "title": "Kanoon-Mate AI Legal Assistance Platform: History Roadmap",
+      "type": "project",
+      "group": "kanoon-mate",
+      "url": "https://ggauravky.vercel.app/projects/kanoon-mate"
+    },
+    {
+      "id": "kb:proj:smart-lms:overview:1",
+      "title": "Smart LMS (SaaS Platform): Overview",
+      "type": "project",
+      "group": "smart-lms",
+      "url": "https://ggauravky.vercel.app/projects/smart-lms"
+    },
+    {
+      "id": "kb:proj:smart-lms:implementation:1",
+      "title": "Smart LMS (SaaS Platform): Implementation",
+      "type": "project",
+      "group": "smart-lms",
+      "url": "https://ggauravky.vercel.app/projects/smart-lms"
+    },
+    {
+      "id": "kb:proj:smart-lms:history_roadmap:1",
+      "title": "Smart LMS (SaaS Platform): History Roadmap",
+      "type": "project",
+      "group": "smart-lms",
+      "url": "https://ggauravky.vercel.app/projects/smart-lms"
+    },
+    {
+      "id": "kb:proj:spotify-clone:overview:1",
+      "title": "Spotify Clone: Overview",
+      "type": "project",
+      "group": "spotify-clone",
+      "url": "https://ggauravky.vercel.app/projects/spotify-clone"
+    },
+    {
+      "id": "kb:proj:spotify-clone:implementation:1",
+      "title": "Spotify Clone: Implementation",
+      "type": "project",
+      "group": "spotify-clone",
+      "url": "https://ggauravky.vercel.app/projects/spotify-clone"
+    },
+    {
+      "id": "kb:proj:spotify-clone:history_roadmap:1",
+      "title": "Spotify Clone: History Roadmap",
+      "type": "project",
+      "group": "spotify-clone",
+      "url": "https://ggauravky.vercel.app/projects/spotify-clone"
+    },
+    {
+      "id": "kb:proj:linkedin-clone:overview:1",
+      "title": "LinkedIn Clone (MERN Stack): Overview",
+      "type": "project",
+      "group": "mern-linkedin-clone",
+      "url": "https://ggauravky.vercel.app/projects/mern-linkedin-clone"
+    },
+    {
+      "id": "kb:proj:linkedin-clone:implementation:1",
+      "title": "LinkedIn Clone (MERN Stack): Implementation",
+      "type": "project",
+      "group": "mern-linkedin-clone",
+      "url": "https://ggauravky.vercel.app/projects/mern-linkedin-clone"
+    },
+    {
+      "id": "kb:proj:linkedin-clone:history_roadmap:1",
+      "title": "LinkedIn Clone (MERN Stack): History Roadmap",
+      "type": "project",
+      "group": "mern-linkedin-clone",
+      "url": "https://ggauravky.vercel.app/projects/mern-linkedin-clone"
+    },
+    {
+      "id": "kb:proj:freshcart:overview:1",
+      "title": "FreshCart: Overview",
+      "type": "project",
+      "group": "freshcart",
+      "url": "https://github.com/ggauravky/FreshCart"
+    },
+    {
+      "id": "kb:proj:freshcart:implementation:1",
+      "title": "FreshCart: Implementation",
+      "type": "project",
+      "group": "freshcart",
+      "url": "https://github.com/ggauravky/FreshCart"
+    },
+    {
+      "id": "kb:proj:freshcart:history_roadmap:1",
+      "title": "FreshCart: History Roadmap",
+      "type": "project",
+      "group": "freshcart",
+      "url": "https://github.com/ggauravky/FreshCart"
+    },
+    {
+      "id": "kb:proj:mern-product-store:overview:1",
+      "title": "MERN Product Store: Overview",
+      "type": "project",
+      "group": "mern-product-store",
+      "url": "https://ggauravky.vercel.app/projects/mern-product-store"
+    },
+    {
+      "id": "kb:proj:mern-product-store:implementation:1",
+      "title": "MERN Product Store: Implementation",
+      "type": "project",
+      "group": "mern-product-store",
+      "url": "https://ggauravky.vercel.app/projects/mern-product-store"
+    },
+    {
+      "id": "kb:proj:mern-product-store:history_roadmap:1",
+      "title": "MERN Product Store: History Roadmap",
+      "type": "project",
+      "group": "mern-product-store",
+      "url": "https://ggauravky.vercel.app/projects/mern-product-store"
+    },
+    {
+      "id": "kb:proj:notes-app:overview:1",
+      "title": "Notes App: Overview",
+      "type": "project",
+      "group": "notes-app",
+      "url": "https://ggauravky.vercel.app/projects/notes-app"
+    },
+    {
+      "id": "kb:proj:notes-app:implementation:1",
+      "title": "Notes App: Implementation",
+      "type": "project",
+      "group": "notes-app",
+      "url": "https://ggauravky.vercel.app/projects/notes-app"
+    },
+    {
+      "id": "kb:proj:notes-app:history_roadmap:1",
+      "title": "Notes App: History Roadmap",
+      "type": "project",
+      "group": "notes-app",
+      "url": "https://ggauravky.vercel.app/projects/notes-app"
+    },
+    {
+      "id": "kb:proj:aireel-studio:overview:1",
+      "title": "AIReel Studio: Overview",
+      "type": "project",
+      "group": "aireel-studio",
+      "url": "https://ggauravky.vercel.app/projects/aireel-studio"
+    },
+    {
+      "id": "kb:proj:aireel-studio:implementation:1",
+      "title": "AIReel Studio: Implementation",
+      "type": "project",
+      "group": "aireel-studio",
+      "url": "https://ggauravky.vercel.app/projects/aireel-studio"
+    },
+    {
+      "id": "kb:proj:aireel-studio:history_roadmap:1",
+      "title": "AIReel Studio: History Roadmap",
+      "type": "project",
+      "group": "aireel-studio",
+      "url": "https://ggauravky.vercel.app/projects/aireel-studio"
+    },
+    {
+      "id": "kb:proj:glass-morphism-calculator:overview:1",
+      "title": "Glass-Morphism Calculator: Overview",
+      "type": "project",
+      "group": "glass-morphism-calculator",
+      "url": "https://ggauravky.vercel.app/projects/glass-morphism-calculator"
+    },
+    {
+      "id": "kb:proj:glass-morphism-calculator:implementation:1",
+      "title": "Glass-Morphism Calculator: Implementation",
+      "type": "project",
+      "group": "glass-morphism-calculator",
+      "url": "https://ggauravky.vercel.app/projects/glass-morphism-calculator"
+    },
+    {
+      "id": "kb:proj:glass-morphism-calculator:history_roadmap:1",
+      "title": "Glass-Morphism Calculator: History Roadmap",
+      "type": "project",
+      "group": "glass-morphism-calculator",
+      "url": "https://ggauravky.vercel.app/projects/glass-morphism-calculator"
+    },
+    {
+      "id": "kb:proj:custom-captcha-generator:overview:1",
+      "title": "Custom CAPTCHA Generator: Overview",
+      "type": "project",
+      "group": "custom-captcha-generator",
+      "url": "https://ggauravky.vercel.app/projects/custom-captcha-generator"
+    },
+    {
+      "id": "kb:proj:custom-captcha-generator:implementation:1",
+      "title": "Custom CAPTCHA Generator: Implementation",
+      "type": "project",
+      "group": "custom-captcha-generator",
+      "url": "https://ggauravky.vercel.app/projects/custom-captcha-generator"
+    },
+    {
+      "id": "kb:proj:custom-captcha-generator:history_roadmap:1",
+      "title": "Custom CAPTCHA Generator: History Roadmap",
+      "type": "project",
+      "group": "custom-captcha-generator",
+      "url": "https://ggauravky.vercel.app/projects/custom-captcha-generator"
+    },
+    {
+      "id": "kb:proj:taskmaster-pro:overview:1",
+      "title": "TaskMaster Pro: Overview",
+      "type": "project",
+      "group": "taskmaster-pro",
+      "url": "https://ggauravky.vercel.app/projects/taskmaster-pro"
+    },
+    {
+      "id": "kb:proj:taskmaster-pro:implementation:1",
+      "title": "TaskMaster Pro: Implementation",
+      "type": "project",
+      "group": "taskmaster-pro",
+      "url": "https://ggauravky.vercel.app/projects/taskmaster-pro"
+    },
+    {
+      "id": "kb:proj:taskmaster-pro:history_roadmap:1",
+      "title": "TaskMaster Pro: History Roadmap",
+      "type": "project",
+      "group": "taskmaster-pro",
+      "url": "https://ggauravky.vercel.app/projects/taskmaster-pro"
+    },
+    {
+      "id": "kb:proj:flappy-bird-game:overview:1",
+      "title": "Flappy Bird Game: Overview",
+      "type": "project",
+      "group": "flappy-bird-game",
+      "url": "https://ggauravky.vercel.app/projects/flappy-bird-game"
+    },
+    {
+      "id": "kb:proj:flappy-bird-game:implementation:1",
+      "title": "Flappy Bird Game: Implementation",
+      "type": "project",
+      "group": "flappy-bird-game",
+      "url": "https://ggauravky.vercel.app/projects/flappy-bird-game"
+    },
+    {
+      "id": "kb:proj:flappy-bird-game:history_roadmap:1",
+      "title": "Flappy Bird Game: History Roadmap",
+      "type": "project",
+      "group": "flappy-bird-game",
+      "url": "https://ggauravky.vercel.app/projects/flappy-bird-game"
+    },
+    {
+      "id": "kb:proj:pdf-to-audio-book:overview:1",
+      "title": "PDF to Audio Book: Overview",
+      "type": "project",
+      "group": "pdf-to-audio-book",
+      "url": "https://ggauravky.vercel.app/projects/pdf-to-audio-book"
+    },
+    {
+      "id": "kb:proj:pdf-to-audio-book:implementation:1",
+      "title": "PDF to Audio Book: Implementation",
+      "type": "project",
+      "group": "pdf-to-audio-book",
+      "url": "https://ggauravky.vercel.app/projects/pdf-to-audio-book"
+    },
+    {
+      "id": "kb:proj:pdf-to-audio-book:history_roadmap:1",
+      "title": "PDF to Audio Book: History Roadmap",
+      "type": "project",
+      "group": "pdf-to-audio-book",
+      "url": "https://ggauravky.vercel.app/projects/pdf-to-audio-book"
+    },
+    {
+      "id": "kb:proj:shopease:overview:1",
+      "title": "ShopEase: Overview",
+      "type": "project",
+      "group": "shopease",
+      "url": "https://ggauravky.vercel.app/projects/shopease"
+    },
+    {
+      "id": "kb:proj:shopease:implementation:1",
+      "title": "ShopEase: Implementation",
+      "type": "project",
+      "group": "shopease",
+      "url": "https://ggauravky.vercel.app/projects/shopease"
+    },
+    {
+      "id": "kb:proj:shopease:history_roadmap:1",
+      "title": "ShopEase: History Roadmap",
+      "type": "project",
+      "group": "shopease",
+      "url": "https://ggauravky.vercel.app/projects/shopease"
+    },
+    {
+      "id": "kb:proj:dishdash:overview:1",
+      "title": "DishDash: Overview",
+      "type": "project",
+      "group": "dishdash",
+      "url": "https://ggauravky.vercel.app/projects/dishdash"
+    },
+    {
+      "id": "kb:proj:dishdash:implementation:1",
+      "title": "DishDash: Implementation",
+      "type": "project",
+      "group": "dishdash",
+      "url": "https://ggauravky.vercel.app/projects/dishdash"
+    },
+    {
+      "id": "kb:proj:dishdash:history_roadmap:1",
+      "title": "DishDash: History Roadmap",
+      "type": "project",
+      "group": "dishdash",
+      "url": "https://ggauravky.vercel.app/projects/dishdash"
+    },
+    {
+      "id": "kb:proj:python-grocery-store:overview:1",
+      "title": "Python Grocery Store Application: Overview",
+      "type": "project",
+      "group": "python-grocery-store",
+      "url": "https://ggauravky.vercel.app/projects/python-grocery-store"
+    },
+    {
+      "id": "kb:proj:python-grocery-store:implementation:1",
+      "title": "Python Grocery Store Application: Implementation",
+      "type": "project",
+      "group": "python-grocery-store",
+      "url": "https://ggauravky.vercel.app/projects/python-grocery-store"
+    },
+    {
+      "id": "kb:proj:python-grocery-store:history_roadmap:1",
+      "title": "Python Grocery Store Application: History Roadmap",
+      "type": "project",
+      "group": "python-grocery-store",
+      "url": "https://ggauravky.vercel.app/projects/python-grocery-store"
+    },
+    {
+      "id": "kb:proj:supportpilot-ai:overview:1",
+      "title": "SupportPilot AI: Overview",
+      "type": "project",
+      "group": "supportpilot-ai",
+      "url": "https://github.com/ggauravky/SupportPilot-AI-Hackethon"
+    },
+    {
+      "id": "kb:proj:supportpilot-ai:implementation:1",
+      "title": "SupportPilot AI: Implementation",
+      "type": "project",
+      "group": "supportpilot-ai",
+      "url": "https://github.com/ggauravky/SupportPilot-AI-Hackethon"
+    },
+    {
+      "id": "kb:proj:supportpilot-ai:history_roadmap:1",
+      "title": "SupportPilot AI: History Roadmap",
+      "type": "project",
+      "group": "supportpilot-ai",
+      "url": "https://github.com/ggauravky/SupportPilot-AI-Hackethon"
+    },
+    {
+      "id": "kb:proj:mental-health-score-predictor:overview:1",
+      "title": "Mental Health Score Predictor: Overview",
+      "type": "project",
+      "group": "mental-health-score-predictor",
+      "url": "https://github.com/ggauravky/Mental-Health-Score-Predictor"
+    },
+    {
+      "id": "kb:proj:mental-health-score-predictor:implementation:1",
+      "title": "Mental Health Score Predictor: Implementation",
+      "type": "project",
+      "group": "mental-health-score-predictor",
+      "url": "https://github.com/ggauravky/Mental-Health-Score-Predictor"
+    },
+    {
+      "id": "kb:proj:mental-health-score-predictor:history_roadmap:1",
+      "title": "Mental Health Score Predictor: History Roadmap",
+      "type": "project",
+      "group": "mental-health-score-predictor",
+      "url": "https://github.com/ggauravky/Mental-Health-Score-Predictor"
+    },
+    {
+      "id": "kb:proj:notehub-studyspace:overview:1",
+      "title": "NoteHub StudySpace: Overview",
+      "type": "project",
+      "group": "notehub-studyspace",
+      "url": "https://github.com/ggauravky/NoteHub-studyspace"
+    },
+    {
+      "id": "kb:proj:notehub-studyspace:implementation:1",
+      "title": "NoteHub StudySpace: Implementation",
+      "type": "project",
+      "group": "notehub-studyspace",
+      "url": "https://github.com/ggauravky/NoteHub-studyspace"
+    },
+    {
+      "id": "kb:proj:notehub-studyspace:history_roadmap:1",
+      "title": "NoteHub StudySpace: History Roadmap",
+      "type": "project",
+      "group": "notehub-studyspace",
+      "url": "https://github.com/ggauravky/NoteHub-studyspace"
+    },
+    {
+      "id": "kb:proj:automusic-sync:overview:1",
+      "title": "AutoMusic Sync: Overview",
+      "type": "project",
+      "group": "automusic-sync",
+      "url": "https://github.com/ggauravky/AutoMusic-Sync"
+    },
+    {
+      "id": "kb:proj:automusic-sync:implementation:1",
+      "title": "AutoMusic Sync: Implementation",
+      "type": "project",
+      "group": "automusic-sync",
+      "url": "https://github.com/ggauravky/AutoMusic-Sync"
+    },
+    {
+      "id": "kb:proj:automusic-sync:history_roadmap:1",
+      "title": "AutoMusic Sync: History Roadmap",
+      "type": "project",
+      "group": "automusic-sync",
+      "url": "https://github.com/ggauravky/AutoMusic-Sync"
+    },
+    {
+      "id": "kb:proj:vscode-error-sound-notifier:overview:1",
+      "title": "Error Sound Notifier (VS Code): Overview",
+      "type": "project",
+      "group": "vscode-error-sound-notifier",
+      "url": "https://github.com/ggauravky/vscode-error-sound-notifier"
+    },
+    {
+      "id": "kb:proj:vscode-error-sound-notifier:implementation:1",
+      "title": "Error Sound Notifier (VS Code): Implementation",
+      "type": "project",
+      "group": "vscode-error-sound-notifier",
+      "url": "https://github.com/ggauravky/vscode-error-sound-notifier"
+    },
+    {
+      "id": "kb:proj:vscode-error-sound-notifier:history_roadmap:1",
+      "title": "Error Sound Notifier (VS Code): History Roadmap",
+      "type": "project",
+      "group": "vscode-error-sound-notifier",
+      "url": "https://github.com/ggauravky/vscode-error-sound-notifier"
+    },
+    {
+      "id": "kb:proj:github-analytics-dashboard:overview:1",
+      "title": "GitHub Analytics Dashboard: Overview",
+      "type": "project",
+      "group": "github-analytics-dashboard",
+      "url": null
+    },
+    {
+      "id": "kb:proj:github-analytics-dashboard:implementation:1",
+      "title": "GitHub Analytics Dashboard: Implementation",
+      "type": "project",
+      "group": "github-analytics-dashboard",
+      "url": null
+    },
+    {
+      "id": "kb:proj:github-analytics-dashboard:history_roadmap:1",
+      "title": "GitHub Analytics Dashboard: History Roadmap",
+      "type": "project",
+      "group": "github-analytics-dashboard",
+      "url": null
+    },
+    {
+      "id": "kb:proj:windows-in-browser:overview:1",
+      "title": "Windows in Browser: Overview",
+      "type": "project",
+      "group": "windows-in-browser",
+      "url": null
+    },
+    {
+      "id": "kb:proj:windows-in-browser:implementation:1",
+      "title": "Windows in Browser: Implementation",
+      "type": "project",
+      "group": "windows-in-browser",
+      "url": null
+    },
+    {
+      "id": "kb:proj:windows-in-browser:history_roadmap:1",
+      "title": "Windows in Browser: History Roadmap",
+      "type": "project",
+      "group": "windows-in-browser",
+      "url": null
+    },
+    {
+      "id": "kb:proj:jarvis-assistant:overview:1",
+      "title": "Jarvis Assistant: Overview",
+      "type": "project",
+      "group": "jarvis-assistant",
+      "url": null
+    },
+    {
+      "id": "kb:proj:jarvis-assistant:implementation:1",
+      "title": "Jarvis Assistant: Implementation",
+      "type": "project",
+      "group": "jarvis-assistant",
+      "url": null
+    },
+    {
+      "id": "kb:proj:jarvis-assistant:history_roadmap:1",
+      "title": "Jarvis Assistant: History Roadmap",
+      "type": "project",
+      "group": "jarvis-assistant",
+      "url": null
+    },
+    {
+      "id": "kb:proj:qr-code-generator:overview:1",
+      "title": "QR Code Generator: Overview",
+      "type": "project",
+      "group": "qr-code-generator",
+      "url": null
+    },
+    {
+      "id": "kb:proj:qr-code-generator:implementation:1",
+      "title": "QR Code Generator: Implementation",
+      "type": "project",
+      "group": "qr-code-generator",
+      "url": null
+    },
+    {
+      "id": "kb:proj:qr-code-generator:history_roadmap:1",
+      "title": "QR Code Generator: History Roadmap",
+      "type": "project",
+      "group": "qr-code-generator",
+      "url": null
+    },
+    {
+      "id": "kb:roadmap:tasknexus",
+      "title": "TaskNexus: roadmap and plans",
+      "type": "roadmap",
+      "group": "tasknexus",
+      "url": "https://github.com/ggauravky/TaskNexus"
+    },
+    {
+      "id": "kb:roadmap:tasknexus#2",
+      "title": "TaskNexus: roadmap and plans",
+      "type": "roadmap",
+      "group": "tasknexus",
+      "url": "https://github.com/ggauravky/TaskNexus"
+    },
+    {
+      "id": "kb:roadmap:tasknexus#3",
+      "title": "TaskNexus: roadmap and plans",
+      "type": "roadmap",
+      "group": "tasknexus",
+      "url": "https://github.com/ggauravky/TaskNexus"
+    },
+    {
+      "id": "kb:roadmap:dev-portfolio",
+      "title": "Dev Portfolio Platform: roadmap and plans",
+      "type": "roadmap",
+      "group": "dev-portfolio",
+      "url": "https://github.com/ggauravky/Dev-Portfolio"
+    },
+    {
+      "id": "kb:roadmap:connectifyx",
+      "title": "ConnectifyX: roadmap and plans",
+      "type": "roadmap",
+      "group": "connectifyx",
+      "url": null
+    },
+    {
+      "id": "kb:roadmap:mealkhata",
+      "title": "MealKhata: roadmap and plans",
+      "type": "roadmap",
+      "group": "mealkhata",
+      "url": "https://github.com/ggauravky/MealKhata"
+    },
+    {
+      "id": "kb:roadmap:insightaudio",
+      "title": "InsightAudio: roadmap and plans",
+      "type": "roadmap",
+      "group": "insightaudio",
+      "url": "https://ggauravky.vercel.app/projects/insightaudio"
+    },
+    {
+      "id": "kb:roadmap:tasknexus-ai-iqoo-concept",
+      "title": "tasknexus-ai-iqoo-concept: roadmap and plans",
+      "type": "roadmap",
+      "group": "tasknexus-ai-iqoo-concept",
+      "url": null
+    },
+    {
+      "id": "kb:roadmap:tasknexus-ai-iqoo-concept#2",
+      "title": "tasknexus-ai-iqoo-concept: roadmap and plans",
+      "type": "roadmap",
+      "group": "tasknexus-ai-iqoo-concept",
+      "url": null
+    },
+    {
+      "id": "faq:q001",
+      "title": "Who is Gaurav Kumar Yadav?",
+      "type": "faq",
+      "group": "faq:about",
+      "url": "https://ggauravky.vercel.app/about"
+    },
+    {
+      "id": "faq:q002",
+      "title": "Where does Gaurav live?",
+      "type": "faq",
+      "group": "faq:about",
+      "url": "https://ggauravky.vercel.app/about"
+    },
+    {
+      "id": "faq:q003",
+      "title": "Where does Gaurav study?",
+      "type": "faq",
+      "group": "faq:education",
+      "url": "https://ggauravky.vercel.app/journey"
+    },
+    {
+      "id": "faq:q004",
+      "title": "Is Gaurav in the final year?",
+      "type": "faq",
+      "group": "faq:education",
+      "url": "https://ggauravky.vercel.app/journey"
+    },
+    {
+      "id": "faq:q005",
+      "title": "What is Gaurav's AI education?",
+      "type": "faq",
+      "group": "faq:education",
+      "url": "https://ggauravky.vercel.app/journey"
+    },
+    {
+      "id": "faq:q006",
+      "title": "Where has Gaurav worked?",
+      "type": "faq",
+      "group": "faq:experience",
+      "url": "https://ggauravky.vercel.app/journey"
+    },
+    {
+      "id": "faq:q007",
+      "title": "Is Gaurav currently an intern at AshokSoft?",
+      "type": "faq",
+      "group": "faq:experience",
+      "url": "https://ggauravky.vercel.app/journey"
+    },
+    {
+      "id": "faq:q008",
+      "title": "What kind of developer is Gaurav?",
+      "type": "faq",
+      "group": "faq:skills",
+      "url": "https://ggauravky.vercel.app/skills"
+    },
+    {
+      "id": "faq:q009",
+      "title": "What languages and technologies does he use?",
+      "type": "faq",
+      "group": "faq:skills",
+      "url": "https://ggauravky.vercel.app/skills"
+    },
+    {
+      "id": "faq:q010",
+      "title": "Does he know AI and machine learning?",
+      "type": "faq",
+      "group": "faq:skills",
+      "url": "https://ggauravky.vercel.app/skills"
+    },
+    {
+      "id": "faq:q011",
+      "title": "Does he work with MongoDB and PostgreSQL?",
+      "type": "faq",
+      "group": "faq:skills",
+      "url": "https://ggauravky.vercel.app/skills"
+    },
+    {
+      "id": "faq:q012",
+      "title": "How does Gaurav learn programming?",
+      "type": "faq",
+      "group": "faq:mindset",
+      "url": "https://ggauravky.vercel.app/about"
+    },
+    {
+      "id": "faq:q013",
+      "title": "How does he debug difficult bugs?",
+      "type": "faq",
+      "group": "faq:mindset",
+      "url": "https://ggauravky.vercel.app/about"
+    },
+    {
+      "id": "faq:q014",
+      "title": "What are Gaurav's career goals?",
+      "type": "faq",
+      "group": "faq:goals",
+      "url": "https://ggauravky.vercel.app/about"
+    },
+    {
+      "id": "faq:q015",
+      "title": "Is he available for internships or work?",
+      "type": "faq",
+      "group": "faq:opportunities",
+      "url": "https://ggauravky.vercel.app/contact"
+    },
+    {
+      "id": "faq:q016",
+      "title": "How do I contact Gaurav?",
+      "type": "faq",
+      "group": "faq:contact",
+      "url": "https://ggauravky.vercel.app/contact"
+    },
+    {
+      "id": "faq:q017",
+      "title": "Where can I see his code?",
+      "type": "faq",
+      "group": "faq:github",
+      "url": "https://github.com/ggauravky"
+    },
+    {
+      "id": "faq:q018",
+      "title": "How many repositories does he have?",
+      "type": "faq",
+      "group": "faq:github",
+      "url": "https://github.com/ggauravky"
+    },
+    {
+      "id": "faq:q019",
+      "title": "How many GitHub commits has Gaurav made?",
+      "type": "faq",
+      "group": "faq:github",
+      "url": "https://github.com/ggauravky"
+    },
+    {
+      "id": "faq:q020",
+      "title": "What is his longest GitHub streak?",
+      "type": "faq",
+      "group": "faq:github",
+      "url": "https://github.com/ggauravky"
+    },
+    {
+      "id": "faq:q021",
+      "title": "What does a GitHub contribution represent?",
+      "type": "faq",
+      "group": "faq:github",
+      "url": "https://github.com/ggauravky"
+    },
+    {
+      "id": "faq:q022",
+      "title": "What are Gaurav's most important projects?",
+      "type": "faq",
+      "group": "faq:projects",
+      "url": "https://ggauravky.vercel.app/projects"
+    },
+    {
+      "id": "faq:q023",
+      "title": "What is TaskNexus?",
+      "type": "faq",
+      "group": "tasknexus",
+      "url": "https://github.com/ggauravky/TaskNexus"
+    },
+    {
+      "id": "faq:q024",
+      "title": "What is Gaurav's original idea for TaskNexus?",
+      "type": "faq",
+      "group": "tasknexus",
+      "url": "https://github.com/ggauravky/TaskNexus"
+    },
+    {
+      "id": "faq:q025",
+      "title": "Why did he change TaskNexus's vision?",
+      "type": "faq",
+      "group": "tasknexus",
+      "url": "https://github.com/ggauravky/TaskNexus"
+    },
+    {
+      "id": "faq:q026",
+      "title": "What does CONNECT → BUILD → PROVE → GROW mean?",
+      "type": "faq",
+      "group": "tasknexus",
+      "url": "https://github.com/ggauravky/TaskNexus"
+    },
+    {
+      "id": "faq:q027",
+      "title": "What features are already in TaskNexus V2?",
+      "type": "faq",
+      "group": "tasknexus",
+      "url": "https://github.com/ggauravky/TaskNexus"
+    },
+    {
+      "id": "faq:q028",
+      "title": "How does TaskNexus work end to end?",
+      "type": "faq",
+      "group": "tasknexus",
+      "url": "https://github.com/ggauravky/TaskNexus"
+    },
+    {
+      "id": "faq:q029",
+      "title": "Is TaskNexus a freelance marketplace?",
+      "type": "faq",
+      "group": "tasknexus",
+      "url": "https://github.com/ggauravky/TaskNexus"
+    },
+    {
+      "id": "faq:q030",
+      "title": "How are a Team and a Project different in TaskNexus?",
+      "type": "faq",
+      "group": "tasknexus",
+      "url": "https://github.com/ggauravky/TaskNexus"
+    },
+    {
+      "id": "faq:q031",
+      "title": "How do marketplace tasks differ from project tasks?",
+      "type": "faq",
+      "group": "tasknexus",
+      "url": "https://github.com/ggauravky/TaskNexus"
+    },
+    {
+      "id": "faq:q032",
+      "title": "How does TaskNexus prove developers' contributions?",
+      "type": "faq",
+      "group": "tasknexus",
+      "url": "https://github.com/ggauravky/TaskNexus"
+    },
+    {
+      "id": "faq:q033",
+      "title": "How does TaskNexus find team members?",
+      "type": "faq",
+      "group": "tasknexus",
+      "url": "https://github.com/ggauravky/TaskNexus"
+    },
+    {
+      "id": "faq:q034",
+      "title": "Does TaskNexus have AI matching now?",
+      "type": "faq",
+      "group": "tasknexus",
+      "url": "https://github.com/ggauravky/TaskNexus"
+    },
+    {
+      "id": "faq:q035",
+      "title": "What is TaskNexus AI?",
+      "type": "faq",
+      "group": "tasknexus",
+      "url": "https://github.com/ggauravky/TaskNexus"
+    },
+    {
+      "id": "faq:q036",
+      "title": "What is the future roadmap for TaskNexus?",
+      "type": "faq",
+      "group": "tasknexus",
+      "url": "https://github.com/ggauravky/TaskNexus"
+    },
+    {
+      "id": "faq:q037",
+      "title": "Does TaskNexus use PostgreSQL or MongoDB?",
+      "type": "faq",
+      "group": "tasknexus",
+      "url": "https://github.com/ggauravky/TaskNexus"
+    },
+    {
+      "id": "faq:q038",
+      "title": "Does TaskNexus support real payments or escrow?",
+      "type": "faq",
+      "group": "tasknexus",
+      "url": "https://github.com/ggauravky/TaskNexus"
+    },
+    {
+      "id": "faq:q039",
+      "title": "Is TaskNexus publicly launched and production ready?",
+      "type": "faq",
+      "group": "tasknexus",
+      "url": "https://github.com/ggauravky/TaskNexus"
+    },
+    {
+      "id": "faq:q040",
+      "title": "What is ConnectifyX?",
+      "type": "faq",
+      "group": "connectifyx",
+      "url": null
+    },
+    {
+      "id": "faq:q041",
+      "title": "What database does ConnectifyX use?",
+      "type": "faq",
+      "group": "connectifyx",
+      "url": null
+    },
+    {
+      "id": "faq:q042",
+      "title": "What are Phase 3A and 3B in ConnectifyX?",
+      "type": "faq",
+      "group": "connectifyx",
+      "url": null
+    },
+    {
+      "id": "faq:q043",
+      "title": "What is MealKhata?",
+      "type": "faq",
+      "group": "mealkhata",
+      "url": "https://github.com/ggauravky/MealKhata"
+    },
+    {
+      "id": "faq:q044",
+      "title": "How does MealKhata calculate bills?",
+      "type": "faq",
+      "group": "mealkhata",
+      "url": "https://github.com/ggauravky/MealKhata"
+    },
+    {
+      "id": "faq:q045",
+      "title": "Does MealKhata have hardcoded students?",
+      "type": "faq",
+      "group": "mealkhata",
+      "url": "https://github.com/ggauravky/MealKhata"
+    },
+    {
+      "id": "faq:q046",
+      "title": "How is SmartMess different from MealKhata?",
+      "type": "faq",
+      "group": "faq:projects",
+      "url": "https://ggauravky.vercel.app/projects"
+    },
+    {
+      "id": "faq:q047",
+      "title": "What is InstaX built with?",
+      "type": "faq",
+      "group": "instax",
+      "url": "https://ggauravky.vercel.app/projects/instax"
+    },
+    {
+      "id": "faq:q048",
+      "title": "What is InsightAudio?",
+      "type": "faq",
+      "group": "insightaudio",
+      "url": "https://ggauravky.vercel.app/projects/insightaudio"
+    },
+    {
+      "id": "faq:q049",
+      "title": "How is InsightAudio different from the RAG Teaching Assistant?",
+      "type": "faq",
+      "group": "faq:projects",
+      "url": "https://ggauravky.vercel.app/projects"
+    },
+    {
+      "id": "faq:q050",
+      "title": "What is the Flipkart churn prediction project?",
+      "type": "faq",
+      "group": "faq:ml",
+      "url": "https://ggauravky.vercel.app/projects"
+    },
+    {
+      "id": "faq:q051",
+      "title": "What is the RAG-Based AI Teaching Assistant?",
+      "type": "faq",
+      "group": "faq:ai",
+      "url": "https://ggauravky.vercel.app/projects"
+    },
+    {
+      "id": "faq:q052",
+      "title": "What is TrueCert?",
+      "type": "faq",
+      "group": "faq:projects",
+      "url": "https://ggauravky.vercel.app/projects"
+    },
+    {
+      "id": "faq:q053",
+      "title": "What is BuildMyTeam?",
+      "type": "faq",
+      "group": "faq:projects",
+      "url": "https://ggauravky.vercel.app/projects"
+    },
+    {
+      "id": "faq:q054",
+      "title": "What is FocusGuard?",
+      "type": "faq",
+      "group": "faq:ai",
+      "url": "https://ggauravky.vercel.app/projects"
+    },
+    {
+      "id": "faq:q055",
+      "title": "Can Fire Detection Alert System replace a fire alarm?",
+      "type": "faq",
+      "group": "faq:ai",
+      "url": "https://ggauravky.vercel.app/projects"
+    },
+    {
+      "id": "faq:q056",
+      "title": "What is Kanoon-Mate?",
+      "type": "faq",
+      "group": "faq:ai",
+      "url": "https://ggauravky.vercel.app/projects"
+    },
+    {
+      "id": "faq:q057",
+      "title": "What is FreshCart?",
+      "type": "faq",
+      "group": "faq:projects",
+      "url": "https://ggauravky.vercel.app/projects"
+    },
+    {
+      "id": "faq:q058",
+      "title": "What developer tools has Gaurav created?",
+      "type": "faq",
+      "group": "faq:projects",
+      "url": "https://ggauravky.vercel.app/projects"
+    },
+    {
+      "id": "faq:q059",
+      "title": "What did he learn from real-time chat applications?",
+      "type": "faq",
+      "group": "faq:projects",
+      "url": "https://ggauravky.vercel.app/projects"
+    },
+    {
+      "id": "faq:q060",
+      "title": "Is Gaurav a hackathon winner?",
+      "type": "faq",
+      "group": "faq:achievements",
+      "url": "https://ggauravky.vercel.app/journey"
+    },
+    {
+      "id": "faq:q061",
+      "title": "What is Gaurav's open-source role?",
+      "type": "faq",
+      "group": "faq:community",
+      "url": "https://ggauravky.vercel.app/journey"
+    },
+    {
+      "id": "faq:q062",
+      "title": "How does he combine AI with full-stack development?",
+      "type": "faq",
+      "group": "faq:skills",
+      "url": "https://ggauravky.vercel.app/skills"
+    },
+    {
+      "id": "faq:q063",
+      "title": "What is a portfolio chatbot and how does it know Gaurav?",
+      "type": "faq",
+      "group": "faq:meta",
+      "url": "https://ggauravky.vercel.app/about"
+    },
+    {
+      "id": "faq:q064",
+      "title": "Does Gaurav prefer React or Next.js?",
+      "type": "faq",
+      "group": "faq:skills",
+      "url": "https://ggauravky.vercel.app/skills"
+    },
+    {
+      "id": "faq:q065",
+      "title": "What is his approach to secure authentication?",
+      "type": "faq",
+      "group": "faq:engineering",
+      "url": "https://ggauravky.vercel.app/about"
+    },
+    {
+      "id": "faq:q066",
+      "title": "What is his philosophy on AI-generated work?",
+      "type": "faq",
+      "group": "faq:mindset",
+      "url": "https://ggauravky.vercel.app/about"
+    },
+    {
+      "id": "faq:q067",
+      "title": "Can I reuse his projects in my application?",
+      "type": "faq",
+      "group": "faq:legal",
+      "url": "https://ggauravky.vercel.app/about"
+    },
+    {
+      "id": "faq:q068",
+      "title": "Why are some project links missing?",
+      "type": "faq",
+      "group": "faq:meta",
+      "url": "https://ggauravky.vercel.app/about"
+    },
+    {
+      "id": "kb:identity",
+      "title": "About Gaurav",
+      "type": "about",
+      "group": "about",
+      "url": "https://ggauravky.vercel.app/about"
+    },
+    {
+      "id": "kb:identity#2",
+      "title": "About Gaurav",
+      "type": "about",
+      "group": "about",
+      "url": "https://ggauravky.vercel.app/about"
+    },
+    {
+      "id": "kb:approach",
+      "title": "How Gaurav works and his goals",
+      "type": "about",
+      "group": "about",
+      "url": "https://ggauravky.vercel.app/about"
+    },
+    {
+      "id": "kb:approach#2",
+      "title": "How Gaurav works and his goals",
+      "type": "about",
+      "group": "about",
+      "url": "https://ggauravky.vercel.app/about"
+    },
+    {
+      "id": "kb:education",
+      "title": "Education",
+      "type": "about",
+      "group": "education",
+      "url": "https://ggauravky.vercel.app/journey"
+    },
+    {
+      "id": "kb:experience",
+      "title": "Work experience",
+      "type": "about",
+      "group": "experience",
+      "url": "https://ggauravky.vercel.app/journey"
+    },
+    {
+      "id": "kb:experience#2",
+      "title": "Work experience",
+      "type": "about",
+      "group": "experience",
+      "url": "https://ggauravky.vercel.app/journey"
+    },
+    {
+      "id": "kb:community",
+      "title": "Community roles and achievements",
+      "type": "about",
+      "group": "community",
+      "url": "https://ggauravky.vercel.app/journey"
+    },
+    {
+      "id": "kb:skills",
+      "title": "Skills overview",
+      "type": "skills",
+      "group": "skills",
+      "url": "https://ggauravky.vercel.app/skills"
+    },
+    {
+      "id": "kb:skills#2",
+      "title": "Skills overview",
+      "type": "skills",
+      "group": "skills",
+      "url": "https://ggauravky.vercel.app/skills"
+    },
+    {
+      "id": "kb:github",
+      "title": "GitHub activity",
+      "type": "about",
+      "group": "github",
+      "url": "https://github.com/ggauravky"
+    },
+    {
+      "id": "kb:github#2",
+      "title": "GitHub activity",
+      "type": "about",
+      "group": "github",
+      "url": "https://github.com/ggauravky"
+    },
+    {
+      "id": "kb:links",
+      "title": "Profiles and links",
+      "type": "about",
+      "group": "contact",
+      "url": "https://ggauravky.vercel.app/contact"
+    },
+    {
+      "id": "kb:decisions:1",
+      "title": "Engineering decisions",
+      "type": "about",
+      "group": "decisions",
+      "url": null
+    },
+    {
+      "id": "kb:decisions:2",
+      "title": "Engineering decisions",
+      "type": "about",
+      "group": "decisions",
+      "url": null
+    },
+    {
+      "id": "kb:decisions:3",
+      "title": "Engineering decisions",
+      "type": "about",
+      "group": "decisions",
+      "url": null
+    },
+    {
+      "id": "kb:decisions:4",
+      "title": "Engineering decisions",
+      "type": "about",
+      "group": "decisions",
+      "url": null
+    },
+    {
+      "id": "kb:decisions:5",
+      "title": "Engineering decisions",
+      "type": "about",
+      "group": "decisions",
+      "url": null
+    },
+    {
+      "id": "kb:relationships",
+      "title": "How the projects relate",
+      "type": "about",
+      "group": "relationships",
+      "url": "https://ggauravky.vercel.app/projects"
+    },
+    {
+      "id": "kb:relationships#2",
+      "title": "How the projects relate",
+      "type": "about",
+      "group": "relationships",
+      "url": "https://ggauravky.vercel.app/projects"
+    },
+    {
+      "id": "hire:overall",
+      "title": "Why hire Gaurav",
+      "type": "about",
+      "group": "hire",
+      "url": "https://ggauravky.vercel.app/about"
+    },
+    {
+      "id": "hire:fullstack",
+      "title": "Gaurav as a full-stack web developer",
+      "type": "about",
+      "group": "hire",
+      "url": "https://ggauravky.vercel.app/projects"
+    },
+    {
+      "id": "hire:frontend",
+      "title": "Gaurav as a frontend developer",
+      "type": "about",
+      "group": "hire",
+      "url": "https://ggauravky.vercel.app/projects"
+    },
+    {
+      "id": "hire:backend",
+      "title": "Gaurav as a backend developer",
+      "type": "about",
+      "group": "hire",
+      "url": "https://ggauravky.vercel.app/projects"
+    },
+    {
+      "id": "hire:ai",
+      "title": "Gaurav as an AI engineer (LLM and RAG applications)",
+      "type": "about",
+      "group": "hire",
+      "url": "https://ggauravky.vercel.app/projects"
+    },
+    {
+      "id": "hire:ml",
+      "title": "Gaurav as a machine learning engineer",
+      "type": "about",
+      "group": "hire",
+      "url": "https://ggauravky.vercel.app/projects"
+    },
+    {
+      "id": "hire:data",
+      "title": "Gaurav as a data scientist or data analyst",
+      "type": "about",
+      "group": "hire",
+      "url": "https://ggauravky.vercel.app/projects"
+    }
+  ]
+}

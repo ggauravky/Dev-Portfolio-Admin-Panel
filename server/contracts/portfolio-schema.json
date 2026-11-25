@@ -1,0 +1,1518 @@
+{
+  "revision": "105ca84ee854336df6a90c545c8d65e65210b930",
+  "evidence": "portfolio source and write paths; deployment unverified",
+  "databases": {
+    "primary": {
+      "expectedName": "dev-portfolio",
+      "owner": "portfolio backend"
+    },
+    "chat": {
+      "name": "portfolio_chat",
+      "owner": "portfolio chatbot"
+    }
+  },
+  "money": {
+    "amount": "INR major units",
+    "amountPaise": "integer INR minor units"
+  },
+  "retention": {
+    "chat_turnsDays": 180,
+    "chat_cacheHours": 24
+  },
+  "legacy": [
+    "mllogs",
+    "chatlogs",
+    "supportpayments"
+  ],
+  "collections": {
+    "contacts": {
+      "model": "Contact",
+      "database": "primary",
+      "fields": {
+        "name": {
+          "type": "String",
+          "required": true
+        },
+        "email": {
+          "type": "String",
+          "required": true
+        },
+        "subject": {
+          "type": "String",
+          "required": true
+        },
+        "message": {
+          "type": "String",
+          "required": true
+        },
+        "ipAddress": {
+          "type": "String",
+          "required": false
+        },
+        "userAgent": {
+          "type": "String",
+          "required": false
+        },
+        "status": {
+          "type": "String",
+          "required": false,
+          "enum": [
+            "unread",
+            "read",
+            "replied"
+          ]
+        },
+        "createdAt": {
+          "type": "Date",
+          "required": false
+        },
+        "_id": {
+          "type": "ObjectId",
+          "required": true
+        },
+        "updatedAt": {
+          "type": "Date",
+          "required": false
+        },
+        "__v": {
+          "type": "Number",
+          "required": false
+        }
+      },
+      "indexes": [
+        [
+          {
+            "createdAt": -1
+          },
+          {
+            "background": true
+          }
+        ],
+        [
+          {
+            "status": 1
+          },
+          {
+            "background": true
+          }
+        ],
+        [
+          {
+            "email": 1
+          },
+          {
+            "background": true
+          }
+        ]
+      ],
+      "admin": "read"
+    },
+    "newsletters": {
+      "model": "Newsletter",
+      "database": "primary",
+      "fields": {
+        "email": {
+          "type": "String",
+          "required": true
+        },
+        "subscribed": {
+          "type": "Boolean",
+          "required": false
+        },
+        "ipAddress": {
+          "type": "String",
+          "required": false
+        },
+        "userAgent": {
+          "type": "String",
+          "required": false
+        },
+        "subscribedAt": {
+          "type": "Date",
+          "required": false
+        },
+        "unsubscribedAt": {
+          "type": "Date",
+          "required": false
+        },
+        "_id": {
+          "type": "ObjectId",
+          "required": true
+        },
+        "createdAt": {
+          "type": "Date",
+          "required": false
+        },
+        "updatedAt": {
+          "type": "Date",
+          "required": false
+        },
+        "__v": {
+          "type": "Number",
+          "required": false
+        }
+      },
+      "indexes": [
+        [
+          {
+            "email": 1
+          },
+          {
+            "unique": true,
+            "background": true
+          }
+        ],
+        [
+          {
+            "subscribed": 1
+          },
+          {
+            "background": true
+          }
+        ]
+      ],
+      "admin": "read"
+    },
+    "bookings": {
+      "model": "Booking",
+      "database": "primary",
+      "fields": {
+        "name": {
+          "type": "String",
+          "required": true
+        },
+        "email": {
+          "type": "String",
+          "required": true
+        },
+        "userId": {
+          "type": "ObjectId",
+          "required": false,
+          "ref": "users"
+        },
+        "phone": {
+          "type": "String",
+          "required": true
+        },
+        "serviceSlug": {
+          "type": "String",
+          "required": true
+        },
+        "service": {
+          "type": "String",
+          "required": true
+        },
+        "preferredDate": {
+          "type": "Date",
+          "required": true
+        },
+        "preferredTime": {
+          "type": "String",
+          "required": true
+        },
+        "projectBrief": {
+          "type": "String",
+          "required": false
+        },
+        "amount": {
+          "type": "Number",
+          "required": true
+        },
+        "paymentId": {
+          "type": "String",
+          "required": false
+        },
+        "orderId": {
+          "type": "String",
+          "required": true
+        },
+        "paymentProvider": {
+          "type": "String",
+          "required": false
+        },
+        "paymentStatus": {
+          "type": "String",
+          "required": false,
+          "enum": [
+            "created",
+            "pending",
+            "paid",
+            "failed"
+          ]
+        },
+        "paidAt": {
+          "type": "Date",
+          "required": false
+        },
+        "receiptEmailSentAt": {
+          "type": "Date",
+          "required": false
+        },
+        "receiptEmailLastAttemptAt": {
+          "type": "Date",
+          "required": false
+        },
+        "receiptEmailRecipient": {
+          "type": "String",
+          "required": false
+        },
+        "receiptEmailMessageId": {
+          "type": "String",
+          "required": false
+        },
+        "receiptEmailError": {
+          "type": "String",
+          "required": false
+        },
+        "adminEmailSentAt": {
+          "type": "Date",
+          "required": false
+        },
+        "adminEmailLastAttemptAt": {
+          "type": "Date",
+          "required": false
+        },
+        "adminEmailMessageId": {
+          "type": "String",
+          "required": false
+        },
+        "adminEmailError": {
+          "type": "String",
+          "required": false
+        },
+        "verificationAcceptedAt": {
+          "type": "Date",
+          "required": false
+        },
+        "webhookReceivedAt": {
+          "type": "Date",
+          "required": false
+        },
+        "reconciliationStatus": {
+          "type": "String",
+          "required": false,
+          "enum": [
+            "idle",
+            "queued",
+            "processing",
+            "pending_gateway",
+            "pending_local",
+            "paid",
+            "failed"
+          ]
+        },
+        "reconciliationAttempts": {
+          "type": "Number",
+          "required": false
+        },
+        "lastReconciliationAt": {
+          "type": "Date",
+          "required": false
+        },
+        "lastReconciliationError": {
+          "type": "String",
+          "required": false
+        },
+        "ipAddress": {
+          "type": "String",
+          "required": false
+        },
+        "userAgent": {
+          "type": "String",
+          "required": false
+        },
+        "date": {
+          "type": "Date",
+          "required": false
+        },
+        "_id": {
+          "type": "ObjectId",
+          "required": true
+        },
+        "createdAt": {
+          "type": "Date",
+          "required": false
+        },
+        "updatedAt": {
+          "type": "Date",
+          "required": false
+        },
+        "__v": {
+          "type": "Number",
+          "required": false
+        }
+      },
+      "indexes": [
+        [
+          {
+            "userId": 1
+          },
+          {
+            "background": true
+          }
+        ],
+        [
+          {
+            "serviceSlug": 1
+          },
+          {
+            "background": true
+          }
+        ],
+        [
+          {
+            "paymentId": 1
+          },
+          {
+            "sparse": true,
+            "unique": true,
+            "background": true
+          }
+        ],
+        [
+          {
+            "orderId": 1
+          },
+          {
+            "unique": true,
+            "background": true
+          }
+        ],
+        [
+          {
+            "paymentStatus": 1
+          },
+          {
+            "background": true
+          }
+        ],
+        [
+          {
+            "reconciliationStatus": 1
+          },
+          {
+            "background": true
+          }
+        ],
+        [
+          {
+            "date": 1
+          },
+          {
+            "background": true
+          }
+        ],
+        [
+          {
+            "email": 1,
+            "date": -1
+          },
+          {
+            "background": true
+          }
+        ],
+        [
+          {
+            "serviceSlug": 1,
+            "preferredDate": 1
+          },
+          {
+            "background": true
+          }
+        ]
+      ],
+      "admin": "read"
+    },
+    "users": {
+      "model": "User",
+      "database": "primary",
+      "fields": {
+        "googleId": {
+          "type": "String",
+          "required": true
+        },
+        "email": {
+          "type": "String",
+          "required": true
+        },
+        "displayName": {
+          "type": "String",
+          "required": false
+        },
+        "name": {
+          "type": "String",
+          "required": true
+        },
+        "givenName": {
+          "type": "String",
+          "required": false
+        },
+        "familyName": {
+          "type": "String",
+          "required": false
+        },
+        "emailVerified": {
+          "type": "Boolean",
+          "required": false
+        },
+        "locale": {
+          "type": "String",
+          "required": false
+        },
+        "picture": {
+          "type": "String",
+          "required": false
+        },
+        "avatarUrl": {
+          "type": "String",
+          "required": false
+        },
+        "avatarPublicId": {
+          "type": "String",
+          "required": false
+        },
+        "bio": {
+          "type": "String",
+          "required": false
+        },
+        "location": {
+          "type": "String",
+          "required": false
+        },
+        "website": {
+          "type": "String",
+          "required": false
+        },
+        "lastLoginAt": {
+          "type": "Date",
+          "required": false
+        },
+        "lastWelcomeEmailAt": {
+          "type": "Date",
+          "required": false
+        },
+        "lastWelcomeBackEmailAt": {
+          "type": "Date",
+          "required": false
+        },
+        "welcomeEmailSentCount": {
+          "type": "Number",
+          "required": false
+        },
+        "welcomeBackEmailSentCount": {
+          "type": "Number",
+          "required": false
+        },
+        "lastLoginEmailType": {
+          "type": "String",
+          "required": false,
+          "enum": [
+            "none",
+            "welcome",
+            "welcome_back"
+          ]
+        },
+        "lastLoginEmailProviderId": {
+          "type": "String",
+          "required": false
+        },
+        "lastLoginEmailEventId": {
+          "type": "String",
+          "required": false
+        },
+        "recentLoginEmailEventIds": {
+          "type": "Array<String>",
+          "required": false
+        },
+        "_id": {
+          "type": "ObjectId",
+          "required": true
+        },
+        "createdAt": {
+          "type": "Date",
+          "required": false
+        },
+        "updatedAt": {
+          "type": "Date",
+          "required": false
+        },
+        "__v": {
+          "type": "Number",
+          "required": false
+        }
+      },
+      "indexes": [
+        [
+          {
+            "googleId": 1
+          },
+          {
+            "unique": true,
+            "background": true
+          }
+        ],
+        [
+          {
+            "email": 1
+          },
+          {
+            "unique": true,
+            "background": true
+          }
+        ],
+        [
+          {
+            "emailVerified": 1
+          },
+          {
+            "background": true
+          }
+        ]
+      ],
+      "admin": "read"
+    },
+    "paymenttransactions": {
+      "model": "PaymentTransaction",
+      "database": "primary",
+      "fields": {
+        "userId": {
+          "type": "ObjectId",
+          "required": true,
+          "ref": "users"
+        },
+        "flowType": {
+          "type": "String",
+          "required": true,
+          "enum": [
+            "service",
+            "support"
+          ]
+        },
+        "serviceSlug": {
+          "type": "String",
+          "required": true
+        },
+        "serviceName": {
+          "type": "String",
+          "required": true
+        },
+        "customerName": {
+          "type": "String",
+          "required": true
+        },
+        "contributorName": {
+          "type": "String",
+          "required": false
+        },
+        "email": {
+          "type": "String",
+          "required": true
+        },
+        "phone": {
+          "type": "String",
+          "required": true
+        },
+        "preferredDate": {
+          "type": "Date",
+          "required": true
+        },
+        "preferredTime": {
+          "type": "String",
+          "required": true
+        },
+        "projectBrief": {
+          "type": "String",
+          "required": false
+        },
+        "message": {
+          "type": "String",
+          "required": false
+        },
+        "amount": {
+          "type": "Number",
+          "required": true
+        },
+        "amountPaise": {
+          "type": "Number",
+          "required": true
+        },
+        "currency": {
+          "type": "String",
+          "required": true,
+          "enum": [
+            "INR"
+          ]
+        },
+        "provider": {
+          "type": "String",
+          "required": true,
+          "enum": [
+            "razorpay"
+          ]
+        },
+        "internalReference": {
+          "type": "String",
+          "required": true
+        },
+        "razorpayOrderId": {
+          "type": "String",
+          "required": false
+        },
+        "razorpayPaymentId": {
+          "type": "String",
+          "required": false
+        },
+        "status": {
+          "type": "String",
+          "required": false,
+          "enum": [
+            "created",
+            "pending",
+            "authorized",
+            "paid",
+            "failed",
+            "refunded"
+          ]
+        },
+        "bookingId": {
+          "type": "ObjectId",
+          "required": false,
+          "ref": "bookings"
+        },
+        "paidAt": {
+          "type": "Date",
+          "required": false
+        },
+        "failedAt": {
+          "type": "Date",
+          "required": false
+        },
+        "verificationAcceptedAt": {
+          "type": "Date",
+          "required": false
+        },
+        "webhookReceivedAt": {
+          "type": "Date",
+          "required": false
+        },
+        "receiptNumber": {
+          "type": "String",
+          "required": false
+        },
+        "receiptGeneratedAt": {
+          "type": "Date",
+          "required": false
+        },
+        "receiptEmailSentAt": {
+          "type": "Date",
+          "required": false
+        },
+        "receiptEmailStatus": {
+          "type": "String",
+          "required": false,
+          "enum": [
+            "not_sent",
+            "processing",
+            "sent",
+            "failed"
+          ]
+        },
+        "receiptEmailAttemptCount": {
+          "type": "Number",
+          "required": false
+        },
+        "receiptEmailMessageId": {
+          "type": "String",
+          "required": false
+        },
+        "receiptEmailLastAttemptAt": {
+          "type": "Date",
+          "required": false
+        },
+        "receiptEmailClaimedAt": {
+          "type": "Date",
+          "required": false
+        },
+        "receiptEmailError": {
+          "type": "String",
+          "required": false
+        },
+        "adminEmailSentAt": {
+          "type": "Date",
+          "required": false
+        },
+        "adminEmailStatus": {
+          "type": "String",
+          "required": false,
+          "enum": [
+            "not_sent",
+            "processing",
+            "sent",
+            "failed"
+          ]
+        },
+        "adminEmailAttemptCount": {
+          "type": "Number",
+          "required": false
+        },
+        "adminEmailLastAttemptAt": {
+          "type": "Date",
+          "required": false
+        },
+        "adminEmailClaimedAt": {
+          "type": "Date",
+          "required": false
+        },
+        "adminEmailMessageId": {
+          "type": "String",
+          "required": false
+        },
+        "adminEmailError": {
+          "type": "String",
+          "required": false
+        },
+        "failureCode": {
+          "type": "String",
+          "required": false
+        },
+        "failureReason": {
+          "type": "String",
+          "required": false
+        },
+        "providerErrorCode": {
+          "type": "String",
+          "required": false
+        },
+        "providerStatus": {
+          "type": "Number",
+          "required": false
+        },
+        "failureCategory": {
+          "type": "String",
+          "required": false
+        },
+        "ipAddress": {
+          "type": "String",
+          "required": false
+        },
+        "userAgent": {
+          "type": "String",
+          "required": false
+        },
+        "metadata": {
+          "type": "Mixed",
+          "required": false
+        },
+        "_id": {
+          "type": "ObjectId",
+          "required": true
+        },
+        "createdAt": {
+          "type": "Date",
+          "required": false
+        },
+        "updatedAt": {
+          "type": "Date",
+          "required": false
+        },
+        "__v": {
+          "type": "Number",
+          "required": false
+        }
+      },
+      "indexes": [
+        [
+          {
+            "userId": 1
+          },
+          {
+            "background": true
+          }
+        ],
+        [
+          {
+            "serviceSlug": 1
+          },
+          {
+            "background": true
+          }
+        ],
+        [
+          {
+            "email": 1
+          },
+          {
+            "background": true
+          }
+        ],
+        [
+          {
+            "internalReference": 1
+          },
+          {
+            "unique": true,
+            "background": true
+          }
+        ],
+        [
+          {
+            "status": 1
+          },
+          {
+            "background": true
+          }
+        ],
+        [
+          {
+            "razorpayOrderId": 1
+          },
+          {
+            "unique": true,
+            "partialFilterExpression": {
+              "razorpayOrderId": {
+                "$type": "string",
+                "$gt": ""
+              }
+            },
+            "background": true
+          }
+        ],
+        [
+          {
+            "razorpayPaymentId": 1
+          },
+          {
+            "unique": true,
+            "partialFilterExpression": {
+              "razorpayPaymentId": {
+                "$type": "string",
+                "$gt": ""
+              }
+            },
+            "background": true
+          }
+        ],
+        [
+          {
+            "receiptNumber": 1
+          },
+          {
+            "unique": true,
+            "partialFilterExpression": {
+              "receiptNumber": {
+                "$type": "string",
+                "$gt": ""
+              }
+            },
+            "background": true
+          }
+        ],
+        [
+          {
+            "userId": 1,
+            "createdAt": -1
+          },
+          {
+            "background": true
+          }
+        ]
+      ],
+      "admin": "read"
+    },
+    "paymentwebhookevents": {
+      "model": "PaymentWebhookEvent",
+      "database": "primary",
+      "fields": {
+        "eventId": {
+          "type": "String",
+          "required": true
+        },
+        "provider": {
+          "type": "String",
+          "required": true,
+          "enum": [
+            "razorpay"
+          ]
+        },
+        "eventType": {
+          "type": "String",
+          "required": true
+        },
+        "status": {
+          "type": "String",
+          "required": false,
+          "enum": [
+            "processing",
+            "processed",
+            "failed",
+            "ignored"
+          ]
+        },
+        "transactionId": {
+          "type": "ObjectId",
+          "required": false,
+          "ref": "paymenttransactions"
+        },
+        "attempts": {
+          "type": "Number",
+          "required": false
+        },
+        "processedAt": {
+          "type": "Date",
+          "required": false
+        },
+        "error": {
+          "type": "String",
+          "required": false
+        },
+        "_id": {
+          "type": "ObjectId",
+          "required": true
+        },
+        "createdAt": {
+          "type": "Date",
+          "required": false
+        },
+        "updatedAt": {
+          "type": "Date",
+          "required": false
+        },
+        "__v": {
+          "type": "Number",
+          "required": false
+        }
+      },
+      "indexes": [
+        [
+          {
+            "eventId": 1
+          },
+          {
+            "unique": true,
+            "background": true
+          }
+        ],
+        [
+          {
+            "eventType": 1
+          },
+          {
+            "background": true
+          }
+        ],
+        [
+          {
+            "status": 1
+          },
+          {
+            "background": true
+          }
+        ]
+      ],
+      "admin": "read"
+    },
+    "activityevents": {
+      "model": "ActivityEvent",
+      "database": "primary",
+      "fields": {
+        "eventKey": {
+          "type": "String",
+          "required": false
+        },
+        "userId": {
+          "type": "ObjectId",
+          "required": false,
+          "ref": "users"
+        },
+        "userEmail": {
+          "type": "String",
+          "required": false
+        },
+        "actionType": {
+          "type": "String",
+          "required": true
+        },
+        "domain": {
+          "type": "String",
+          "required": false
+        },
+        "title": {
+          "type": "String",
+          "required": true
+        },
+        "description": {
+          "type": "String",
+          "required": false
+        },
+        "status": {
+          "type": "String",
+          "required": false,
+          "enum": [
+            "success",
+            "pending",
+            "failed",
+            "info"
+          ]
+        },
+        "amount": {
+          "type": "Number",
+          "required": false
+        },
+        "currency": {
+          "type": "String",
+          "required": false
+        },
+        "orderId": {
+          "type": "String",
+          "required": false
+        },
+        "paymentId": {
+          "type": "String",
+          "required": false
+        },
+        "transactionId": {
+          "type": "String",
+          "required": false
+        },
+        "receiptKind": {
+          "type": "String",
+          "required": false,
+          "enum": [
+            "",
+            "service",
+            "support"
+          ]
+        },
+        "receiptOrderId": {
+          "type": "String",
+          "required": false
+        },
+        "metadata": {
+          "type": "Mixed",
+          "required": false
+        },
+        "_id": {
+          "type": "ObjectId",
+          "required": true
+        },
+        "createdAt": {
+          "type": "Date",
+          "required": false
+        },
+        "updatedAt": {
+          "type": "Date",
+          "required": false
+        },
+        "__v": {
+          "type": "Number",
+          "required": false
+        }
+      },
+      "indexes": [
+        [
+          {
+            "eventKey": 1
+          },
+          {
+            "sparse": true,
+            "unique": true,
+            "background": true
+          }
+        ],
+        [
+          {
+            "userId": 1
+          },
+          {
+            "background": true
+          }
+        ],
+        [
+          {
+            "userEmail": 1
+          },
+          {
+            "background": true
+          }
+        ],
+        [
+          {
+            "actionType": 1
+          },
+          {
+            "background": true
+          }
+        ],
+        [
+          {
+            "domain": 1
+          },
+          {
+            "background": true
+          }
+        ],
+        [
+          {
+            "status": 1
+          },
+          {
+            "background": true
+          }
+        ],
+        [
+          {
+            "orderId": 1
+          },
+          {
+            "background": true
+          }
+        ],
+        [
+          {
+            "paymentId": 1
+          },
+          {
+            "background": true
+          }
+        ],
+        [
+          {
+            "transactionId": 1
+          },
+          {
+            "background": true
+          }
+        ],
+        [
+          {
+            "userId": 1,
+            "createdAt": -1
+          },
+          {
+            "background": true
+          }
+        ],
+        [
+          {
+            "userEmail": 1,
+            "createdAt": -1
+          },
+          {
+            "background": true
+          }
+        ],
+        [
+          {
+            "domain": 1,
+            "actionType": 1,
+            "createdAt": -1
+          },
+          {
+            "background": true
+          }
+        ]
+      ],
+      "admin": "read"
+    },
+    "blogposts": {
+      "model": "BlogPost",
+      "database": "primary",
+      "fields": {
+        "title": {
+          "type": "String",
+          "required": true
+        },
+        "slug": {
+          "type": "String",
+          "required": true
+        },
+        "content": {
+          "type": "String",
+          "required": true
+        },
+        "supportCount": {
+          "type": "Number",
+          "required": false
+        },
+        "_id": {
+          "type": "ObjectId",
+          "required": true
+        },
+        "createdAt": {
+          "type": "Date",
+          "required": false
+        },
+        "updatedAt": {
+          "type": "Date",
+          "required": false
+        },
+        "__v": {
+          "type": "Number",
+          "required": false
+        }
+      },
+      "indexes": [
+        [
+          {
+            "slug": 1
+          },
+          {
+            "unique": true,
+            "background": true
+          }
+        ],
+        [
+          {
+            "supportCount": 1
+          },
+          {
+            "background": true
+          }
+        ]
+      ],
+      "admin": "read"
+    },
+    "supports": {
+      "model": "Support",
+      "database": "primary",
+      "fields": {
+        "userId": {
+          "type": "ObjectId",
+          "required": true,
+          "ref": "users"
+        },
+        "blogPostId": {
+          "type": "ObjectId",
+          "required": true,
+          "ref": "blogposts"
+        },
+        "supporterSnapshot.name": {
+          "type": "String",
+          "required": false
+        },
+        "supporterSnapshot.email": {
+          "type": "String",
+          "required": false
+        },
+        "supporterSnapshot.picture": {
+          "type": "String",
+          "required": false
+        },
+        "blogSnapshot.slug": {
+          "type": "String",
+          "required": false
+        },
+        "blogSnapshot.title": {
+          "type": "String",
+          "required": false
+        },
+        "_id": {
+          "type": "ObjectId",
+          "required": true
+        },
+        "createdAt": {
+          "type": "Date",
+          "required": false
+        },
+        "__v": {
+          "type": "Number",
+          "required": false
+        }
+      },
+      "indexes": [
+        [
+          {
+            "userId": 1
+          },
+          {
+            "background": true
+          }
+        ],
+        [
+          {
+            "blogPostId": 1
+          },
+          {
+            "background": true
+          }
+        ],
+        [
+          {
+            "userId": 1,
+            "blogPostId": 1
+          },
+          {
+            "unique": true,
+            "background": true
+          }
+        ],
+        [
+          {
+            "createdAt": -1
+          },
+          {
+            "background": true
+          }
+        ]
+      ],
+      "admin": "read"
+    },
+    "chat_turns": {
+      "database": "chat",
+      "admin": "read",
+      "fields": {
+        "_id": {
+          "type": "UUID",
+          "required": true
+        },
+        "sessionId": {
+          "type": "UUID",
+          "required": true
+        },
+        "owner": {
+          "type": "String",
+          "required": true
+        },
+        "question": {
+          "type": "String",
+          "required": true
+        },
+        "answer": {
+          "type": "String",
+          "required": true
+        },
+        "intent": {
+          "type": "String",
+          "required": true
+        },
+        "chunkIds": {
+          "type": "Array<String>",
+          "required": true
+        },
+        "retrieval": {
+          "type": "String",
+          "required": true
+        },
+        "matched": {
+          "type": "Boolean",
+          "required": true
+        },
+        "provider": {
+          "type": "String",
+          "required": true
+        },
+        "cached": {
+          "type": "Boolean",
+          "required": true
+        },
+        "latencyMs": {
+          "type": "Number",
+          "required": true
+        },
+        "aborted": {
+          "type": "Boolean",
+          "required": true
+        },
+        "ipHash": {
+          "type": "String",
+          "required": true
+        },
+        "corpusVersion": {
+          "type": "String",
+          "required": true
+        },
+        "createdAt": {
+          "type": "Date",
+          "required": true
+        }
+      },
+      "indexes": [
+        [
+          {
+            "createdAt": 1
+          },
+          {
+            "expireAfterSeconds": 15552000
+          }
+        ],
+        [
+          {
+            "sessionId": 1,
+            "createdAt": -1
+          },
+          {}
+        ]
+      ]
+    },
+    "chat_rate": {
+      "database": "chat",
+      "admin": "none",
+      "indexes": [
+        [
+          {
+            "key": 1,
+            "windowStart": 1
+          },
+          {
+            "unique": true
+          }
+        ],
+        [
+          {
+            "expireAt": 1
+          },
+          {
+            "expireAfterSeconds": 0
+          }
+        ]
+      ]
+    },
+    "chat_cache": {
+      "database": "chat",
+      "admin": "none",
+      "indexes": [
+        [
+          {
+            "expireAt": 1
+          },
+          {
+            "expireAfterSeconds": 0
+          }
+        ]
+      ]
+    },
+    "chat_locks": {
+      "database": "chat",
+      "admin": "none",
+      "indexes": [
+        [
+          {
+            "expireAt": 1
+          },
+          {
+            "expireAfterSeconds": 0
+          }
+        ]
+      ]
+    }
+  },
+  "sourceFingerprints": {
+    "backend/models/Contact.js": "8154e998277ddea2b90fb4b07d0a66d019a46f964e509c5d3176271dcf7c58e1",
+    "backend/models/Newsletter.js": "60ac82c716f8c5c524fd72e6ac243b2a133f1d29049d3741b9830399cac44eca",
+    "backend/models/Booking.js": "eca598ec4e283fd1c41b691b21b9788865b3d2952d85b36a640f52bcf515ceb8",
+    "backend/models/User.js": "447f08256cb5d16abe47fa2ab14b6b56cc198493a3b1c980f7f246a267a5f5fa",
+    "backend/models/PaymentTransaction.js": "fcb0b83b5fddb2a088fd1e2b75c8c6a9c9afabb0718fb3d31b6514296f63f9cd",
+    "backend/models/PaymentWebhookEvent.js": "098df383c0e7d0d21d6eab6325e2d7772cf032173417ef2ff530fb7d69729893",
+    "backend/models/ActivityEvent.js": "901581266ceea061ba875b1ea10cdce80f1be746637b594420d3f6f342b30ca2",
+    "backend/models/BlogPost.js": "dba45e9f95c2b259c8395feea5f3f083629f53197085104b05f44deda778bf78",
+    "backend/models/Support.js": "bc569f59666d1f9a420df054c4ace721160be77bce722bf001e033d9e9f15450",
+    "backend/config/database.js": "1c8989d9b95aa42b810ff0b40346d36f3d8937dd915f5ad412658ec25ac3e1fd",
+    "backend/config/env.js": "0e1d07e0b1ade3da30d14a2d16c0f2b452e6350198979389aaaaa6b66e478b29",
+    "backend/controllers/paymentController.js": "6341b8c1a52b425f5efcbc90ca30766c6772383732959591d8e02cf240846178",
+    "backend/services/payment/paymentFinalizationService.js": "195e7ca61a3c6ccf7d07907cd7e90fd25b7c3e58620c82223e574595e0612c26",
+    "lib/chat/config.js": "b6ee4d6e4b243d61f4d6ecc1915c8a955cb94085ed023776da2c4078f2fb1942",
+    "lib/chat/store.js": "5dd1c76c85a9d92073a59453e6d6e3c805b5489d21e6f2f17d75642fc588e40e",
+    "lib/chat/handler.js": "e1b46b778cc4c06debf5fe7a687bf92eabf777a7bce1db172d8d028789b57d23",
+    "lib/chat/quota.js": "ac1c406dc90a19ddd06d9d4f62dea36367600f0efba5da7f08cf6c9724f89bf0"
+  }
+}

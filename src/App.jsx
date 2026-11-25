@@ -1,32 +1,43 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { lazy } from 'react';
 import Login from './pages/admin/Login';
-import Dashboard from './pages/admin/Dashboard';
-import Contacts from './pages/admin/Contacts';
-import Newsletter from './pages/admin/Newsletter';
-import Chats from './pages/admin/Chats';
-import MlLogs from './pages/admin/MlLogs';
-import Bookings from './pages/admin/Bookings';
-import SupportPayments from './pages/admin/SupportPayments';
 import AdminRoutes from './routes/AdminRoutes';
+import { AdminAuthProvider } from './context/AdminAuth';
+import { workspaceRoutes } from './routes/workspace';
+import { PageHeader, TextLink } from './components/ui/Primitives';
+
+const Dashboard = lazy(() => import('./pages/admin/Dashboard'));
+const BusinessPage = lazy(() => import('./pages/admin/business/Registry'));
+const System = lazy(() => import('./pages/admin/business/System'));
+const Chats = lazy(() => import('./pages/admin/Chats'));
+const Finance = lazy(() => import('./pages/admin/Finance'));
+const pages = { dashboard: Dashboard, business: BusinessPage, system: System, chats: Chats, finance: Finance };
+
+function NotFound() {
+  return <div className="space-y-5">
+    <PageHeader title="Page unavailable" description="The requested workspace page could not be found." />
+    <TextLink to="/admin">Return to overview</TextLink>
+  </div>;
+}
 
 function App() {
     return (
         <BrowserRouter>
+          <AdminAuthProvider>
             <Routes>
                 <Route path="/" element={<Navigate to="/admin" />} />
                 <Route path="/admin/login" element={<Login />} />
 
                 {/* Protected admin routes */}
                 <Route element={<AdminRoutes />}>
-                    <Route path="/admin" element={<Dashboard />} />
-                    <Route path="/admin/contacts" element={<Contacts />} />
-                    <Route path="/admin/newsletter" element={<Newsletter />} />
-                    <Route path="/admin/chats" element={<Chats />} />
-                    <Route path="/admin/mllogs" element={<MlLogs />} />
-                    <Route path="/admin/bookings" element={<Bookings />} />
-                    <Route path="/admin/support-payments" element={<SupportPayments />} />
+                    {workspaceRoutes.map(({ path, page, props }) => {
+                      const View = pages[page];
+                      return <Route path={path} key={path} element={<View {...props} />} />;
+                    })}
+                    <Route path="/admin/*" element={<NotFound />} />
                 </Route>
             </Routes>
+          </AdminAuthProvider>
         </BrowserRouter>
     );
 }
