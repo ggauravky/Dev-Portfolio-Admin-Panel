@@ -19,9 +19,21 @@ test("Vercel handler forwards only the scoped cookie and approved headers and re
       status: 200, headers: [["content-type", "application/json"], ["set-cookie", cookie + "; Path=/api/admin; Secure; HttpOnly"], ["set-cookie", "unrelated=private"]],
     });
   };
-  const server = createServer((req, res) => {
+  const server = createServer(async (req, res) => {
     req.query = Object.fromEntries(new URL(req.url, "http://localhost").searchParams);
-    void handler(req, res);
+    if (req.method === "POST") {
+      const chunks = [];
+      for await (const chunk of req) chunks.push(chunk);
+      const raw = Buffer.concat(chunks);
+      Object.defineProperty(req, "body", {
+        get: () => {
+          if (req.headers["content-type"] === "application/json") return JSON.parse(raw);
+          if (req.headers["content-type"] === "application/octet-stream") return raw;
+          return raw.toString();
+        },
+      });
+    }
+    await handler(req, res);
   }).listen(0, "127.0.0.1");
   t.after(async () => {
     global.fetch = nativeFetch;
@@ -51,6 +63,18 @@ test("Vercel handler forwards only the scoped cookie and approved headers and re
   assert.equal((await nativeFetch(base + "/?__admin_path=chat-conversations/" + conversation + "&page=2")).status, 200);
   assert.equal(seen[1].url.pathname, "/api/admin/chat-conversations/" + conversation);
   assert.equal(seen[1].url.searchParams.get("page"), "2");
+  const logout = base + "/?__admin_path=logout";
+  assert.equal((await nativeFetch(logout, { method: "POST", headers: { "Content-Type": "application/octet-stream" } })).status, 200);
+  assert.equal(seen[2].options.body, undefined);
+  const login = base + "/?__admin_path=login";
+  const json = { method: "POST", headers: { "Content-Type": "application/json" } };
+  const invalid = await nativeFetch(login, { ...json, body: "{" });
+  assert.equal(invalid.status, 400);
+  assert.match(invalid.headers.get("cache-control"), /no-store/);
+  assert.equal((await invalid.json()).error.code, "VALIDATION_ERROR");
+  assert.equal((await nativeFetch(login, { ...json, body: JSON.stringify({ value: "x".repeat(33 * 1024) }) })).status, 413);
+  assert.equal((await nativeFetch(login, { method: "POST", body: "unsupported" })).status, 415);
+  assert.equal(seen.length, 3);
   redirects = true;
   assert.equal((await nativeFetch(base + "/?__admin_path=me")).status, 503);
 });

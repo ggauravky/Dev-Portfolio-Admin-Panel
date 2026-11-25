@@ -22,10 +22,11 @@ function Sessions() {
   const [pending, setPending] = useState(false);
   const [notice, setNotice] = useState(null);
   const [confirmation, setConfirmation] = useState(null);
-  function requestRevocation(scope, row) {
+  function requestRevocation(scope, row, trigger) {
     if (active.current) return;
-    if (scope === "all" || row?.current) setConfirmation({ scope, row });
-    else void revoke(scope, row);
+    if (scope !== "all" && !row?.current) return void revoke(scope, row);
+    trigger.focus({ preventScroll: true });
+    setConfirmation({ scope, row });
   }
   async function revoke(scope, row) {
     if (active.current) return;
@@ -46,7 +47,7 @@ function Sessions() {
     <div className="my-4 flex flex-wrap gap-2">
       <Button onClick={resource.refresh} disabled={pending}>Refresh sessions</Button>
       <Button onClick={() => requestRevocation("others")} disabled={pending || !resource.data}>Revoke other sessions</Button>
-      <Button variant="destructive" onClick={() => requestRevocation("all")} disabled={pending || !resource.data}>Revoke all sessions</Button>
+      <Button variant="destructive" onClick={(event) => requestRevocation("all", undefined, event.currentTarget)} disabled={pending || !resource.data}>Revoke all sessions</Button>
     </div>
     {notice && <InlineAlert className="mb-2" tone={notice.error ? "error" : "info"}>{notice.text}</InlineAlert>}
     <LoadState resource={resource} />
@@ -54,7 +55,7 @@ function Sessions() {
       ["Session", (row) => row.current ? <span className="session-current">Current session</span> : "Other session"], ["Created", (row) => displayDate(row.createdAt), "technical"],
       ["Last activity", (row) => displayDate(row.lastActivityAt), "technical"], ["Idle expiration", (row) => displayDate(row.idleExpiresAt), "technical"],
       ["Absolute expiration", (row) => displayDate(row.expiresAt), "technical"],
-      ["Action", (row) => <Button disabled={pending} onClick={() => requestRevocation("one", row)}>{row.current ? "Revoke current session" : "Revoke session"}</Button>],
+      ["Action", (row) => <Button disabled={pending} onClick={(event) => requestRevocation("one", row, event.currentTarget)}>{row.current ? "Revoke current session" : "Revoke session"}</Button>],
     ]} />}
     {confirmation && <ConfirmDialog title={confirmation.scope === "all" ? "Revoke all sessions?" : "Revoke current session?"}
       description="This signs you out and returns you to sign-in."

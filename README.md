@@ -134,9 +134,9 @@ A modern, blazing-fast admin panel that gives you:
 ### Prerequisites
 
 ```bash
-node >= 14.x
-npm >= 6.x
-MongoDB Atlas account (or local MongoDB)
+Node.js 22.12+ on the 22.x line, or Node.js 24.x
+npm bundled with Node.js
+MongoDB Atlas or a local MongoDB instance
 ```
 
 ### 📥 Installation
@@ -151,14 +151,13 @@ cd Dev-Portfolio-Admin-Panel
 2. **Install Frontend Dependencies**
 
 ```bash
-npm install
+npm ci
 ```
 
 3. **Install Backend Dependencies**
 
 ```bash
-cd server
-npm install
+npm --prefix server ci
 ```
 
 4. **Setup Environment Variables**
@@ -223,7 +222,7 @@ Portfolio-Admin-Panel/
 
 ## 🌐 Deployment
 
-Deploy the frontend and its same-origin API Function on Vercel. Deploy the Express backend from `server/` on Render. The [authentication rollout guide](docs/admin-auth-phase-3.md) lists the paired environment variables, MongoDB permissions, verification, and rollback steps.
+Deploy the frontend and its same-origin API Function on Vercel. Deploy the Express backend from `server/` on Render. Follow the [release runbook](docs/admin-release-runbook.md) for pre-merge gates, staging, the paired cutover, and recovery. The [authentication guide](docs/admin-auth-phase-3.md) covers owner credential provisioning and Admin database permissions.
 
 ---
 

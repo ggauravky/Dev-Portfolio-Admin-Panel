@@ -18,8 +18,9 @@ const proxy = {
 export default defineConfig({
   plugins: [react()],
   server: {
+    host: "localhost",
     port: 3000,
     proxy,
   },
-  preview: { proxy },
+  preview: { host: "localhost", proxy },
 });

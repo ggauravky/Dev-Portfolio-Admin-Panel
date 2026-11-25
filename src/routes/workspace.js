@@ -12,6 +12,13 @@ export function aiView(search) {
   return Object.hasOwn(aiViews, view) ? view : "overview";
 }
 
+export function intendedDestination(value) {
+  if (typeof value !== "string" || /[\\\u0000-\u001f\u007f]/.test(value)) return "/admin";
+  const pathname = value.split(/[?#]/, 1)[0];
+  if (!/^\/admin(?:\/[a-z0-9-]+)*\/?$/i.test(pathname) || /^\/admin\/login(?:\/|$)/i.test(pathname)) return "/admin";
+  return value;
+}
+
 const route = (name, label, path, group, icon, page, props = {}, parent) => ({ name, label, path, group, icon, page, props, parent });
 const record = (path) => `${path}/:id?`;
 export const workspaceRoutes = [

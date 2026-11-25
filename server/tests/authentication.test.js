@@ -28,6 +28,13 @@ test("startup requires valid hashed credentials and an isolated admin store", as
 test("login verifies the exact password, binds a secure cookie, and fails closed", async (t) => {
   const { request, store } = await setup(t, { production: true });
   assert.equal((await login(request)).response.status, 403);
+  const oversized = { email, password: "x".repeat(33 * 1024) };
+  const direct = await login(request, { json: oversized });
+  assert.equal(direct.response.status, 403);
+  assert.equal(direct.payload.error.code, "PROXY_REQUIRED");
+  const admitted = await login(request, { headers: privileges, json: oversized });
+  assert.equal(admitted.response.status, 400);
+  assert.equal(admitted.payload.error.code, "VALIDATION_ERROR");
   assert.equal((await login(request, { headers: { ...privileges, Origin: "https://elsewhere.example" } })).response.status, 403);
   assert.equal((await login(request, { headers: { ...privileges, Origin: "" } })).response.status, 403);
   assert.equal((await login(request, { headers: privileges, json: { email, password: "x".repeat(257) } })).response.status, 400);

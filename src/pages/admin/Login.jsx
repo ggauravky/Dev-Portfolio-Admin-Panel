@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAdminAuth } from "../../context/AdminAuth";
-import { intendedDestination } from "../../routes/AdminRoutes";
+import { intendedDestination } from "../../routes/workspace";
 import { PortfolioLink } from "../../components/layout/Identity";
 import { Button, Field, Icon, InlineAlert, SkipLink, heading } from "../../components/ui/Primitives";
 

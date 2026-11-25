@@ -80,6 +80,11 @@ export default function WorkspaceShell() {
     try { localStorage.setItem(preference, String(next)); } catch { /* Presentation preference only. */ }
   }
 
+  function openNavigation(event) {
+    event.currentTarget.focus({ preventScroll: true });
+    setDrawerKey(location.key);
+  }
+
   async function logout() {
     if (lock.current) return;
     lock.current = true;
@@ -106,7 +111,7 @@ export default function WorkspaceShell() {
     </aside>
     <div className="workspace-content">
       <header className="workspace-topbar">
-        <Button className="workspace-menu" aria-label="Open navigation" aria-haspopup="dialog" aria-expanded={drawer} onClick={() => setDrawerKey(location.key)}><WorkspaceIcon name="menu" /></Button>
+        <Button className="workspace-menu" aria-label="Open navigation" aria-haspopup="dialog" aria-expanded={drawer} onClick={openNavigation}><WorkspaceIcon name="menu" /></Button>
         <Button className="workspace-toggle" aria-label={compact ? "Expand sidebar" : "Collapse sidebar"} aria-pressed={compact} onClick={toggle}><WorkspaceIcon name="panel" /></Button>
         <Breadcrumbs items={page.crumbs} />
         <div className="workspace-topbar-action">{logoutButton}</div>

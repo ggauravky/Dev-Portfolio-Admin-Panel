@@ -33,7 +33,6 @@ function createApp({ config, db, store = createSecurityStore(db), now, chatNow, 
     credentials: true,
     exposedHeaders: ["X-Request-Id"],
   }));
-  app.use(express.json({ limit: "32kb" }));
   app.get("/", (req, res) => res.json({ message: "Admin API running", status: "ok" }));
   app.get("/ready", asyncRoute(async (req, res) => {
     await Promise.all([db.connect?.("primary"), db.connect?.("admin")]);
@@ -42,7 +41,8 @@ function createApp({ config, db, store = createSecurityStore(db), now, chatNow, 
     if (!res.headersSent) res.status(ready ? 200 : 503).json({ ready });
   }));
   const security = createAuthService(config, store, { now, log });
-  app.use("/api/admin", security.trustedProxy, createAdminRouter({ config, db, security, now: chatNow, financialNow, businessNow }));
+  app.use("/api/admin", security.trustedProxy, express.json({ limit: "32kb" }),
+    createAdminRouter({ config, db, security, now: chatNow, financialNow, businessNow }));
   app.use((req, res, next) => next(missing()));
   app.use((error, req, res, next) => {
     if (res.headersSent) return;

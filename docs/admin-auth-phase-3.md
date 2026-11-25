@@ -4,7 +4,7 @@ Phase 3 uses a single configured administrator, Argon2id, and MongoDB-backed opa
 
 ## Configuration
 
-Use Node 22 or later on Render and a supported Node runtime with `Headers.getSetCookie()` on Vercel. Local backend values go in ignored `server/.env`. Production secrets go in each service's server-only environment settings.
+Use Node 22.12+ on the 22.x line or 24.x on Vercel. Render's backend manifest requires Node 22 or later. Use the same supported LTS line on both hosts where possible. Local backend values go in ignored `server/.env`. Production secrets go in each service's server-only environment settings.
 
 | Variable | Runtime | Requirement |
 | --- | --- | --- |
@@ -19,7 +19,7 @@ Use Node 22 or later on Render and a supported Node runtime with `Headers.getSet
 | `ADMIN_AUDIT_RETENTION_DAYS` | Backend | Optional, 90 days by default, range 7–365. Applies to new events. |
 | `ADMIN_DEV_PORT` | Vite process | Optional loopback backend port, default 5000. |
 
-Phase 2 portfolio and chat variables remain as documented. The previous `ADMIN_PASSWORD`, `JWT_SECRET` and `VITE_API_URL` are retired. No secrets should use a `VITE_` prefix. If the existing primary URI omits its database identity, confirm the intended database before setting `PORTFOLIO_DB_NAME`.
+Phase 2 portfolio and chat variables remain as documented. V2 does not read `ADMIN_PASSWORD`, `JWT_SECRET` or `VITE_API_URL`. Retire these hosting variables after the paired cutover is verified. Keep all secrets server-only. If the existing primary URI omits its database identity, confirm the intended database before setting `PORTFOLIO_DB_NAME`.
 
 ## Owner credentials and recovery
 
@@ -47,7 +47,7 @@ db.admin_security_audit.createIndex({ createdAt: -1 });
 | --- | --- |
 | `admin_sessions` | `find`, `insert`, `update`, `listIndexes` |
 | `admin_auth_limits` | `insert`, `update`, `listIndexes` |
-| `admin_security_audit` | `insert`, `listIndexes` |
+| `admin_security_audit` | `find`, `insert`, `listIndexes` |
 
 Allow visibility via MongoDB's authorized, name-only collection listing. The runtime needs no index creation, collection creation or delete permissions. TTL cleanup runs on MongoDB. Keep shared Portfolio and chat credentials read-only and separate from this credential.
 

@@ -2,14 +2,9 @@ import { Navigate, useLocation } from "react-router-dom";
 import { lazy, Suspense } from "react";
 import { useAdminAuth } from "../context/AdminAuth";
 import { Button, InlineAlert } from "../components/ui/Primitives";
+import { intendedDestination } from "./workspace";
 
 const WorkspaceShell = lazy(() => import("../components/layout/WorkspaceShell"));
-
-export function intendedDestination(value) {
-  if (typeof value !== "string" || !/^\/admin(?:\/[a-z0-9/-]*)?(?:[?#][^\\\r\n]*)?$/i.test(value) ||
-      /^\/admin\/login(?:[/?#]|$)/i.test(value)) return "/admin";
-  return value;
-}
 
 export default function AdminRoutes() {
   const { status, message, restore } = useAdminAuth();

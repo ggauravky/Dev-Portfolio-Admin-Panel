@@ -49,14 +49,22 @@ export default async function adminProxy(req, res) {
   const cookies = (req.headers.cookie || "").split(";").map((cookie) => cookie.trim()).filter((cookie) => cookie.startsWith(cookieName));
   if (cookies.length) headers.set("cookie", cookies.join("; "));
   let body;
-  if (req.body !== undefined && req.body !== null && req.body !== "" && !["HEAD", "GET"].includes(req.method)) {
-    const type = req.headers["content-type"];
-    if (typeof type !== "string" || !/^application\/json(?:\s*;|$)/i.test(type)) {
-      return error(res, id, 415, "UNSUPPORTED_TYPE", "JSON is required");
+  if (!["HEAD", "GET"].includes(req.method)) {
+    let incoming;
+    try {
+      incoming = req.body;
+    } catch {
+      return error(res, id, 400, "VALIDATION_ERROR", "Invalid request body");
     }
-    headers.set("content-type", "application/json");
-    body = typeof req.body === "string" || Buffer.isBuffer(req.body) ? req.body : JSON.stringify(req.body);
-    if (Buffer.byteLength(body) > bodyLimit) return error(res, id, 413, "BODY_TOO_LARGE", "Request is too large");
+    if (incoming != null && incoming !== "" && !(Buffer.isBuffer(incoming) && incoming.length === 0)) {
+      const type = req.headers["content-type"];
+      if (typeof type !== "string" || !/^application\/json(?:\s*;|$)/i.test(type)) {
+        return error(res, id, 415, "UNSUPPORTED_TYPE", "JSON is required");
+      }
+      headers.set("content-type", "application/json");
+      body = typeof incoming === "string" || Buffer.isBuffer(incoming) ? incoming : JSON.stringify(incoming);
+      if (Buffer.byteLength(body) > bodyLimit) return error(res, id, 413, "BODY_TOO_LARGE", "Request is too large");
+    }
   }
 
   try {
