@@ -1,9 +1,9 @@
 const { mongo: { MongoClient } } = require("mongoose");
 const { collections: securityCollections, verifySecurityIndexes } = require("../auth/store");
 
-const anchors = { primary: ["contacts", "newsletters", "bookings", "paymenttransactions", "users", "blogposts"], chat: ["chat_turns"] };
+const primaryAnchors = ["contacts", "newsletters", "bookings", "paymenttransactions", "users", "blogposts"];
+const anchors = { primary: primaryAnchors, chat: ["chat_turns"], admin: Object.values(securityCollections) };
 const cooldown = 30_000;
-anchors.admin = Object.values(securityCollections);
 
 function createDatabases(config, { Client = MongoClient, log = () => {}, now = Date.now } = {}) {
   let closing = false;
@@ -86,4 +86,4 @@ function createDatabases(config, { Client = MongoClient, log = () => {}, now = D
   };
 }
 
-module.exports = { createDatabases };
+module.exports = { createDatabases, primaryAnchors };

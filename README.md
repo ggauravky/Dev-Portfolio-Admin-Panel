@@ -162,7 +162,7 @@ npm --prefix server ci
 
 4. **Setup Environment Variables**
 
-The Vite development server proxies `/api/admin` to the backend on port 5000. Copy [server/.env.example](server/.env.example) to the ignored `server/.env`. Generate credentials and provision the isolated Admin database using the [authentication setup guide](docs/admin-auth-phase-3.md).
+The Vite development server proxies `/api/admin` to the backend on port 5000. Copy [server/.env.example](server/.env.example) to the ignored `server/.env`. For Cluster0, the Portfolio and Admin security collections share `test` and use separately scoped credentials. Chat uses `portfolio_chat`. Set the database names and provision the security collections using the [authentication setup guide](docs/admin-auth-phase-3.md). Use a disposable MongoDB instance for local development and tests.
 
 5. **Run Development Servers**
 

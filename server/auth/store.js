@@ -64,17 +64,24 @@ function createSecurityStore(db) {
   };
 }
 
+function sameIndexKey(actual, required) {
+  return JSON.stringify(actual.key) === JSON.stringify(required.key);
+}
+
+function matchesSecurityIndex(actual, required) {
+  return sameIndexKey(actual, required) &&
+    Boolean(actual.unique) === Boolean(required.unique) &&
+    actual.expireAfterSeconds === required.expireAfterSeconds &&
+    !actual.sparse && !actual.partialFilterExpression && !actual.collation && !actual.hidden;
+}
+
 async function verifySecurityIndexes(database) {
   await Promise.all(Object.entries(indexes).map(async ([name, required]) => {
     const actual = await database.collection(collections[name]).listIndexes(options).toArray();
-    if (!required.every((wanted) => actual.some((index) =>
-      JSON.stringify(index.key) === JSON.stringify(wanted.key) &&
-      Boolean(index.unique) === Boolean(wanted.unique) &&
-      index.expireAfterSeconds === wanted.expireAfterSeconds &&
-      !index.sparse && !index.partialFilterExpression && !index.collation && !index.hidden))) {
+    if (!required.every((wanted) => actual.some((index) => matchesSecurityIndex(index, wanted)))) {
       throw new Error("Admin security indexes are incomplete");
     }
   }));
 }
 
-module.exports = { createSecurityStore, verifySecurityIndexes, authUnavailable, collections, indexes };
+module.exports = { createSecurityStore, verifySecurityIndexes, authUnavailable, collections, indexes, sameIndexKey, matchesSecurityIndex };

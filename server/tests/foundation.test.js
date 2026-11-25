@@ -16,6 +16,32 @@ test("configuration binds explicitly and rejects ambiguous database identities",
   assert.equal(readConfig({ ...env, PORTFOLIO_MONGODB_URI: "", MONGO_URI: "mongodb://localhost/fixture", PORTFOLIO_DB_NAME: "" }).primary.name, "fixture");
 });
 
+test("explicit test database can host security with a distinct MongoDB identity", async () => {
+  const { readConfig } = require("../config/env");
+  const env = await fixtureEnv({
+    PORTFOLIO_MONGODB_URI: "mongodb://reader:fixture@localhost/test",
+    PORTFOLIO_DB_NAME: "test",
+    ADMIN_MONGODB_URI: "mongodb://security:fixture@localhost/test",
+    ADMIN_DB_NAME: "",
+    CHAT_MONGODB_URI: "mongodb://chat:fixture@localhost/portfolio_chat",
+  });
+  const config = readConfig(env);
+  assert.equal(config.primary.name, "test");
+  assert.equal(config.admin.name, "test");
+  assert.equal(config.chat.name, "portfolio_chat");
+  assert.notEqual(config.admin.uri, config.primary.uri);
+  assert.equal(readConfig({ ...env, ADMIN_DB_NAME: "test" }).admin.name, "test");
+  for (const [overrides, message] of [
+    [{ PORTFOLIO_MONGODB_URI: "", MONGO_URI: env.PORTFOLIO_MONGODB_URI, PORTFOLIO_DB_NAME: "" }, /primary MongoDB database identity/],
+    [{ PORTFOLIO_MONGODB_URI: "mongodb://localhost/test" }, /distinct MongoDB credentials/],
+    [{ ADMIN_MONGODB_URI: "mongodb://reader:other@localhost/test?retryWrites=false" }, /distinct MongoDB credentials/],
+    [{ CHAT_MONGODB_URI: "mongodb://security:fixture@localhost/portfolio_chat" }, /distinct MongoDB credentials/],
+    [{ ADMIN_MONGODB_URI: "mongodb://localhost/test" }, /distinct MongoDB credentials/],
+    [{ ADMIN_DB_NAME: "portfolio_chat", ADMIN_MONGODB_URI: env.CHAT_MONGODB_URI }, /ADMIN_DB_NAME/],
+    [{ ADMIN_DB_NAME: "config", ADMIN_MONGODB_URI: "mongodb://localhost/config" }, /database identity/],
+  ]) assert.throws(() => readConfig({ ...env, ...overrides }), message);
+});
+
 test("full app protects reads and isolates unavailable chat and financial writes", async (t) => {
   const { createApp } = require("../app");
   const { readConfig } = require("../config/env");

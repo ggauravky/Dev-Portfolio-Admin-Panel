@@ -22,7 +22,7 @@ Set the backend variables in ignored `server/.env` locally and in the Admin Rend
 | `TRUST_PROXY_HOPS` | Admin backend | Optional 0–2, defaults to 0. Set only after confirming the trusted ingress path. |
 | `VITE_API_URL` | Admin frontend | Admin API base ending in `/api/admin`. Local browser fallback is the local backend. |
 
-Use separate credentials. The primary credential needs `find` on the nine primary collections in the contract. Chat needs `find` on `chat_turns` only. The runtime verifies existing collection metadata using MongoDB's name-only, authorized-collections mode, so it needs visibility to a recognized primary collection and the chat turns collection. For inspection, the credential needs visibility to any collections being inventoried and `listIndexes` on the inspected collections. Prefer a separate inspection credential if necessary. Missing visibility is reported as ambiguous. No write, collection-creation, index-modification or quota permission is needed.
+Use separate credentials. The primary credential needs `find` on the nine primary collections in the contract and on `supportpayments` if the historical registry is available. For current chat analytics and operations, grant `find` on `chat_turns`, `chat_rate`, `chat_cache`, and `chat_locks`. The runtime verifies collection visibility with MongoDB's authorized name-only listing. The inspection command also needs `listIndexes` on the inspected collections. Missing visibility is reported as ambiguous. Keep these credentials read-only.
 
 ## API compatibility
 

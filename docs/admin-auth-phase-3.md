@@ -10,7 +10,10 @@ Use Node 22.12+ on the 22.x line or 24.x on Vercel. Render's backend manifest re
 | --- | --- | --- |
 | `ADMIN_EMAIL` | Backend | Required. Normalized configured owner email. |
 | `ADMIN_PASSWORD_HASH` | Backend | Required. Generate through the interactive command. Only the supported Argon2id encoding is accepted. |
-| `ADMIN_MONGODB_URI` and `ADMIN_DB_NAME` | Backend | Required. Explicit Admin-only database and separate runtime credential. URI name, if present, must match. |
+| `PORTFOLIO_MONGODB_URI` and `PORTFOLIO_DB_NAME` | Backend | Use the Portfolio read-only credential and set the database name explicitly to `test`. A database path in the URI must match. |
+| `CHAT_MONGODB_URI` | Backend | Use the chatbot read-only credential. Admin selects `portfolio_chat` automatically. |
+| `ADMIN_MONGODB_URI` | Backend | Use a different Atlas username scoped to the three Admin security collections. A database path in the URI must match the selected database. |
+| `ADMIN_DB_NAME` | Backend | Optional. Defaults to the Portfolio database. Omit for Cluster0. Existing separate security databases can still set their own name explicitly. |
 | `ADMIN_PROXY_SECRET` | Render and Vercel Function | Required in production on both services. Generate once and set the same 32-byte hex value on both. Development uses loopback and an exact origin check. |
 | `ADMIN_API_UPSTREAM` | Vercel Function | Required. Fixed HTTPS origin of the matching Render service. Omit paths and credentials. Preview must point to isolated infrastructure and use separate secrets. |
 | `FRONTEND_URL` or `ADMIN_ALLOWED_ORIGINS` | Backend | Required in production. Exact HTTPS browser origins. Set the Vite URL explicitly for non-default local origins. |
@@ -19,7 +22,7 @@ Use Node 22.12+ on the 22.x line or 24.x on Vercel. Render's backend manifest re
 | `ADMIN_AUDIT_RETENTION_DAYS` | Backend | Optional, 90 days by default, range 7–365. Applies to new events. |
 | `ADMIN_DEV_PORT` | Vite process | Optional loopback backend port, default 5000. |
 
-Phase 2 portfolio and chat variables remain as documented. V2 does not read `ADMIN_PASSWORD`, `JWT_SECRET` or `VITE_API_URL`. Retire these hosting variables after the paired cutover is verified. Keep all secrets server-only. If the existing primary URI omits its database identity, confirm the intended database before setting `PORTFOLIO_DB_NAME`.
+Use one primary URI setting for V2. If the legacy `MONGO_URI` is also configured, it must exactly match `PORTFOLIO_MONGODB_URI`. Keep secrets server-only. Retire the legacy `ADMIN_PASSWORD`, `JWT_SECRET` and `VITE_API_URL` after the paired cutover is verified.
 
 ## Owner credentials and recovery
 
@@ -29,19 +32,13 @@ Owner recovery uses the same command and trusted Render console access. Updating
 
 ## Admin MongoDB bootstrap
 
-Use a dedicated Admin database. An operator with provisioning permissions must create the three collections and indexes **before** enabling the app. The application verifies the expected indexes at connection time and does not create them. In an authorized shell connected to the new Admin database, verify `db.getName()`, then apply:
+Before enabling Admin V2, load a temporary operator URI for Cluster0 into the local process environment as `ADMIN_PROVISION_MONGODB_URI`. Give that operator `listCollections` on `test` and `createCollection`, `createIndex`, `listIndexes`, and `find` on the three security collections. Run from the Admin repository:
 
-```javascript
-db.createCollection("admin_sessions");
-db.createCollection("admin_auth_limits");
-db.createCollection("admin_security_audit");
-db.admin_sessions.createIndex({ tokenHash: 1 }, { unique: true });
-db.admin_sessions.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 });
-db.admin_sessions.createIndex({ owner: 1, credentialVersion: 1, createdAt: -1 });
-db.admin_auth_limits.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 });
-db.admin_security_audit.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 });
-db.admin_security_audit.createIndex({ createdAt: -1 });
+```sh
+npm --prefix server run auth:provision -- --database test
 ```
+
+The command checks that the explicitly selected database already contains a recognized Portfolio collection. It creates only the three Admin collections and six required indexes. Reruns reuse compatible indexes, including custom index names. A conflict or a populated security collection missing its TTL index stops provisioning. MongoDB TTL indexes can expire stored records, so run this before enabling the Admin service. Clear the temporary URI from your shell when finished. The application verifies indexes at connection time.
 
 | Runtime collection privilege | Actions |
 | --- | --- |
@@ -49,7 +46,7 @@ db.admin_security_audit.createIndex({ createdAt: -1 });
 | `admin_auth_limits` | `insert`, `update`, `listIndexes` |
 | `admin_security_audit` | `find`, `insert`, `listIndexes` |
 
-Allow visibility via MongoDB's authorized, name-only collection listing. The runtime needs no index creation, collection creation or delete permissions. TTL cleanup runs on MongoDB. Keep shared Portfolio and chat credentials read-only and separate from this credential.
+Use an Atlas custom role scoped to these exact collection names on `test`. The security runtime needs these actions and authorized name-only collection visibility. Give the Portfolio runtime account `find` on its business collections in `test` and the chat runtime account `find` on `chat_turns`, `chat_rate`, `chat_cache`, and `chat_locks` in `portfolio_chat`. All three connections keep independent clients and permissions. TTL cleanup runs on MongoDB for Admin security records.
 
 ## HTTP behavior
 
@@ -68,7 +65,7 @@ Login uses atomic shared five-minute windows: eight attempts per network, twenty
 
 ## Rollout and rollback
 
-1. Confirm backend database identity and provision the new Admin store using a separate provisioning principal. Configure secrets on the paired services. Keep the existing deployment available for independent recovery.
+1. Confirm the backend database identities and provision the Admin security collections in the existing Portfolio database using an operator credential. Configure secrets on the paired services. Keep the existing deployment available for independent recovery.
 2. Test an isolated Render/Vercel pair end to end, including allowlisted exact origins, HTTPS cookies, revocation, old bearer-token rejection, same-origin paths, and frontend restoration after refresh.
 3. Roll out the paired frontend and backend together so there is no lasting mismatch in response and authentication formats. Require all administrators to sign in again. Remove obsolete variables from the services once the migration is confirmed.
 4. If verification fails, keep the portal unavailable or roll back together under restricted access while repairing configuration. Restoring the old backend reintroduces bearer authentication. Do not expose that rollback publicly with the old signing key still valid.

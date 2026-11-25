@@ -18,7 +18,8 @@ function database(uri, explicitName, key) {
     fail(key);
   }
   const name = explicitName || named;
-  if (!name || !/^[A-Za-z0-9_-]{1,63}$/.test(name) || /^(admin|local|config|test)$/i.test(name)) fail(key + " database identity");
+  if (!name || !/^[A-Za-z0-9_-]{1,63}$/.test(name) || /^(admin|local|config)$/i.test(name) ||
+      (!explicitName && /^test$/i.test(name))) fail(key + " database identity");
   if (named && named !== name) fail(key + " database identity mismatch");
   return { uri, name };
 }
@@ -34,7 +35,7 @@ function readDatabaseConfig(env = process.env) {
   if (env.PORTFOLIO_MONGODB_URI && !env.PORTFOLIO_DB_NAME) fail("PORTFOLIO_DB_NAME");
   const primary = database(env.PORTFOLIO_MONGODB_URI || env.MONGO_URI, env.PORTFOLIO_DB_NAME, "primary MongoDB");
   const chat = env.CHAT_MONGODB_URI ? database(env.CHAT_MONGODB_URI, "portfolio_chat", "CHAT_MONGODB_URI") : null;
-  if (primary.name === "portfolio_chat") fail("primary MongoDB database identity");
+  if (primary.name.toLowerCase() === "portfolio_chat") fail("primary MongoDB database identity");
   const dnsServers = env.DNS_SERVERS ? env.DNS_SERVERS.split(",").map((value) => value.trim()) : [];
   if (dnsServers.some((value) => !isIP(value))) fail("DNS_SERVERS");
   return {
@@ -63,10 +64,18 @@ function readConfig(env = process.env) {
   const email = env.ADMIN_EMAIL?.trim().toLowerCase();
   if (!email || email.length > 254 || !/^[^\s@]+@[^\s@]+$/.test(email)) fail("ADMIN_EMAIL");
   if (!validHash(env.ADMIN_PASSWORD_HASH)) fail("ADMIN_PASSWORD_HASH");
-  if (!env.ADMIN_DB_NAME) fail("ADMIN_DB_NAME");
   const databases = readDatabaseConfig(env);
-  const admin = database(env.ADMIN_MONGODB_URI, env.ADMIN_DB_NAME, "ADMIN_MONGODB_URI");
-  if ([databases.primary.name, "portfolio_chat"].includes(admin.name)) fail("ADMIN_DB_NAME must be dedicated");
+  const admin = database(env.ADMIN_MONGODB_URI, env.ADMIN_DB_NAME || databases.primary.name, "ADMIN_MONGODB_URI");
+  if (admin.name.toLowerCase() === "portfolio_chat") fail("ADMIN_DB_NAME cannot be the chatbot database");
+  if (admin.name.toLowerCase() === databases.primary.name.toLowerCase()) {
+    const username = ({ uri }) => new MongoClient(uri).options.credentials?.username;
+    const securityUser = username(admin);
+    const portfolioUser = username(databases.primary);
+    if (!securityUser || !portfolioUser || securityUser === portfolioUser ||
+        (databases.chat && securityUser === username(databases.chat))) {
+      fail("co-located Admin security requires distinct MongoDB credentials");
+    }
+  }
   if (mode === "production" && !/^[a-f0-9]{64}$/i.test(env.ADMIN_PROXY_SECRET || "")) fail("ADMIN_PROXY_SECRET");
 
   return {

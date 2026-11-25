@@ -12,13 +12,13 @@ async function setup(t, { store = fixtureStore(), production = false, ...options
   return { request, store };
 }
 
-test("startup requires valid hashed credentials and an isolated admin store", async () => {
+test("startup requires valid hashed credentials and a valid admin store", async () => {
   const env = await fixtureEnv();
   for (const patch of [
     { ADMIN_PASSWORD_HASH: "", ADMIN_PASSWORD: password, JWT_SECRET: "obsolete fixture" },
     { ADMIN_PASSWORD_HASH: "invalid" },
     { ADMIN_EMAIL: "" },
-    { ADMIN_DB_NAME: "" },
+    { ADMIN_DB_NAME: "wrong_database" },
     { ADMIN_MONGODB_URI: "" },
     { ADMIN_MONGODB_URI: env.PORTFOLIO_MONGODB_URI, ADMIN_DB_NAME: env.PORTFOLIO_DB_NAME },
     { NODE_ENV: "production" },
